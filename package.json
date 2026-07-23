@@ -1,0 +1,14 @@
+{
+  "name": "shopee-price-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Small Playwright demo that extracts Shopee product prices from the PDP API response.",
+  "main": "demo.js",
+  "scripts": {
+    "start": "node demo.js",
+    "check": "node --check demo.js"
+  },
+  "dependencies": {
+    "playwright": "^1.54.1"
+  }
+}
