@@ -1,58 +1,44 @@
+# Maintainer Guide
 
-Technical Specification & Prompt for AI Coding Agent
-Prompt / System Instruction for the AI Agent
-Role & Task: You are an expert Node.js automation developer. Write a standalone Node.js script using Playwright to extract price data from Shopee product pages by intercepting background API requests.
+The project has one collection pipeline and two browser adapters.
 
-Goal: Create a script (demo.js) that takes a Shopee product URL, extracts the item's pricing information and variations, converts raw currency units, and logs the output to the console.
+## Collection pipeline
 
-Implementation Requirements
+1. Capture Shopee's `get_pc` response.
+2. Build one request descriptor for every model and its `tier_index`.
+3. Select each variation sequentially on the product page.
+4. Capture the Shopee-generated `select_variation_*` response.
+5. Keep the best response for each exact tier combination.
+6. Merge the final display price back into the matching model.
 
-1. Dependencies & Setup
-   Use Node.js with CommonJS (require).
+The shared implementation lives in `chrome-extension/shared/`:
 
-Require playwright for browser automation.
+- `variant-core.js`: pure data transformations and price parsing.
+- `variation-page.js`: variation-button lookup and click behavior.
+- `variation-flow.js`: sequential collection, waits, and retry behavior.
 
-2. Input Parsing (extractShopeeIds)
-   Extract shopId and itemId from the URL string using the regular expression /i\.(\d+)\.(\d+)/.
+These files use a small dual-runtime wrapper so Node.js can load them with
+`require()` and the Chrome service worker can load them with `importScripts()`.
+Business rules belong here so both browser modes stay consistent.
 
-Validate URL structure and exit gracefully if invalid.
+## Runtime adapters
 
-3. Network Interception Engine
-   Launch Playwright Chromium (headless: false for testing).
+- `variant-pricing.js` captures Playwright responses and provides Playwright
+  mouse input.
+- `chrome-extension/background.js` captures CDP responses and provides CDP
+  mouse input.
 
-Attach a network listener on page.on('response') before navigating.
+Adapters should translate browser APIs only. They should not contain their own
+price paths, tier normalization, response ranking, or retry sequence.
 
-Intercept responses where response.url() includes /api/v4/pdp/get_pc.
+## Safe change workflow
 
-Parse and extract data.item from the JSON response payload.
+1. Add or update a focused unit assertion in
+   `tests/variant-pricing.test.js`.
+2. Change the shared module that owns the behavior.
+3. Run `npm.cmd test`.
+4. Reload the unpacked extension in `chrome://extensions`.
 
-4. Data Extraction & Formatting Rules
-   Title: data.item.title.
-
-Raw Price Conversion: Divide all raw price fields by 100,000 to convert to actual VND currency values.
-
-Base Range: Extract price_min and price_max.
-
-SKU / Variations: Iterate over data.item.models array and extract:
-
-model.name (variation label)
-
-model.price (converted raw value)
-
-5. Output Format
-   Print formatted output to the terminal:
-   =================== PRODUCT DATA EXTRACTED ===================
-   Title     :
-   Min Price :  VND
-   Max Price :  VND
-
---- Product Variations (SKUs) ---
-Variation 1:  ->  VND
-Step-by-Step Instructions for the AI Agent
-Create package.json with Playwright dependency.
-
-Create demo.js implementing the parsing, interception, and conversion logic.
-
-Include error handling for network timeouts or missing JSON payloads.
-
-Set targetUrl to [https://shopee.vn/C%C3%A0-Ph%C3%AA-%C4%90%E1%BA%B7c-S%E1%BA%A3n-Fine-Robusta-Honey-Ph%C3%B9-H%E1%BB%A3p-Pha-Phin-v%C3%A0-Pha-M%C3%A1y-Every-Half-T%C3%BAi-200G-i.1259293184.26882883164](https://shopee.vn/C%C3%A0-Ph%C3%AA-%C4%90%E1%BA%B7c-S%E1%BA%A3n-Fine-Robusta-Honey-Ph%C3%B9-H%E1%BB%A3p-Pha-Phin-v%C3%A0-Pha-M%C3%A1y-Every-Half-T%C3%BAi-200G-i.1259293184.26882883164) for execution testing.
+When Shopee introduces another successful response shape, add its price path
+to `FINAL_PRICE_PATHS` in `variant-core.js` and include a matching fixture in
+the unit test.

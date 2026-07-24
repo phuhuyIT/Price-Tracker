@@ -2,11 +2,17 @@
   "name": "shopee-price-demo",
   "version": "1.0.0",
   "private": true,
-  "description": "Small Playwright demo that extracts Shopee product prices from the PDP API response.",
+  "description": "Collect Shopee base and post-voucher prices for every product variant.",
   "main": "demo.js",
   "scripts": {
-    "start": "node demo.js",
-    "check": "node --check demo.js"
+    "start": "node current-profile.js",
+    "current": "node current-profile.js",
+    "playwright": "node demo.js",
+    "check": "node --check product.js && node --check playwright-browser.js && node --check demo.js && node --check variant-pricing.js && node --check current-profile.js && node --check chrome-extension/background.js && node --check chrome-extension/shared/variant-core.js && node --check chrome-extension/shared/variation-page.js && node --check chrome-extension/shared/variation-flow.js && node --check tests/variant-pricing.test.js && node --check tests/playwright-variant.integration.js && node --check tests/current-profile.integration.js",
+    "test": "npm run check && npm run test:variant && npm run test:playwright-variant && npm run test:current",
+    "test:current": "node tests/current-profile.integration.js",
+    "test:playwright-variant": "node tests/playwright-variant.integration.js",
+    "test:variant": "node tests/variant-pricing.test.js"
   },
   "dependencies": {
     "playwright": "^1.54.1"

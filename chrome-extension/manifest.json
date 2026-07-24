@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Shopee Price - Current Profile",
+  "version": "1.2.0",
+  "description": "Opens a Shopee product in the current Chrome profile and returns its price data to the local Node.js script.",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "debugger",
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ],
+  "action": {
+    "default_title": "Run Shopee price job in this profile"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
