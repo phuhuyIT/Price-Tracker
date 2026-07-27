@@ -1,5 +1,15 @@
 # Shopee Variant Price Collector
 
+> The repository is being evolved from this working collector demo into the
+> Shopee Price Tracker MVP described in [Task_list.md](Task_list.md). The Phase
+> 0 product decisions are recorded in
+> [docs/phase-0-mvp-definition.md](docs/phase-0-mvp-definition.md), and the
+> target system design is in [docs/architecture.md](docs/architecture.md).
+> Existing collector behavior is intentionally preserved for Phase 1 analysis.
+> The persistent-profile Playwright mode described below is legacy discovery
+> behavior; the target MVP uses anonymous Playwright contexts and relies on the
+> extension for prices from the user's current Shopee session.
+
 This project has two browser modes:
 
 - `npm.cmd start` (also available as `npm.cmd run current`) uses the exact
