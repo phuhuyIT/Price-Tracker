@@ -1,0 +1,131 @@
+{
+  "fixtureVersion": 1,
+  "capturedAt": "2026-07-26T13:20:23.540Z",
+  "platform": "shopee",
+  "pricingContext": "user_session",
+  "provenance": "derived_from_sanitized_live_capture",
+  "derivedFrom": "shopee-multi-variant-user-session.json",
+  "scenario": "complete_catalogue_with_one_variant_price_failure",
+  "sourceUrl": "https://shopee.vn/product-i.1259293184.26882883164",
+  "endpointEvidence": {
+    "productDetail": {
+      "endpoint": "/api/v4/pdp/get_pc",
+      "response": {
+        "data": {
+          "item": {
+            "currency": "VND",
+            "item_id": 26882883164,
+            "shop_id": 1259293184,
+            "title": "Sanitised derived fixture",
+            "models": [
+              {
+                "model_id": 280758809721,
+                "name": "Variant 1",
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [0]
+                }
+              },
+              {
+                "model_id": 280758809722,
+                "name": "Variant 2",
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [1]
+                }
+              },
+              {
+                "model_id": 280758809723,
+                "name": "Variant 3",
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [2]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "selectedVariations": [
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 26882883164,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 0
+            },
+            "shop_id": 1259293184
+          }
+        },
+        "response": {
+          "error": null,
+          "ok": true,
+          "payload": {
+            "data": {
+              "product_price": {
+                "price": {
+                  "single_value": 15125000000
+                },
+                "final_price_vouchers": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 26882883164,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 1
+            },
+            "shop_id": 1259293184
+          }
+        },
+        "response": {
+          "error": null,
+          "ok": true,
+          "payload": {
+            "data": {
+              "product_price": {
+                "price": {
+                  "single_value": 15125000000
+                },
+                "final_price_vouchers": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 26882883164,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 2
+            },
+            "shop_id": 1259293184
+          }
+        },
+        "response": {
+          "error": "The variant API returned HTTP 503.",
+          "ok": false,
+          "payload": {
+            "error": 503,
+            "error_msg": "Temporary upstream failure"
+          },
+          "status": 503
+        }
+      }
+    ]
+  }
+}

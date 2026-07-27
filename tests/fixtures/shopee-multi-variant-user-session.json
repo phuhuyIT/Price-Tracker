@@ -1,0 +1,406 @@
+{
+  "fixtureVersion": 1,
+  "capturedAt": "2026-07-26T13:20:23.540Z",
+  "platform": "shopee",
+  "pricingContext": "user_session",
+  "provenance": "sanitized_live_capture",
+  "sourceUrl": "https://shopee.vn/C%C3%A0-Ph%C3%AA-%C4%90%E1%BA%B7c-S%E1%BA%A3n-Fine-Robusta-Honey-Ph%C3%B9-H%E1%BB%A3p-Pha-Phin-v%C3%A0-Pha-M%C3%A1y-Every-Half-T%C3%BAi-200G-i.1259293184.26882883164",
+  "endpointEvidence": {
+    "productDetail": {
+      "endpoint": "/api/v4/pdp/get_pc",
+      "response": {
+        "data": {
+          "item": {
+            "currency": "VND",
+            "image": "vn-11134207-81ztc-moywoh70u4uj55",
+            "item_status": "normal",
+            "item_id": 26882883164,
+            "normal_stock": null,
+            "price": 15125000000,
+            "price_before_discount": 25500000000,
+            "price_max": 15125000000,
+            "price_min": 15125000000,
+            "shop_id": 1259293184,
+            "status": 1,
+            "stock": null,
+            "title": "[MUA 249K TẶNG QUÀ] Cà Phê Đặc Sản Fine Robusta Honey Phù Hợp Pha Phin và Pha Máy Every Half - Túi 200G",
+            "itemid": 26882883164,
+            "models": [
+              {
+                "model_id": 280758809721,
+                "name": "NGUYÊN HẠT",
+                "normal_stock": null,
+                "price": 15125000000,
+                "price_before_discount": 25500000000,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 280758809722,
+                "name": "PHA PHIN",
+                "normal_stock": null,
+                "price": 15125000000,
+                "price_before_discount": 25500000000,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 280758809723,
+                "name": "PHA MÁY ESPRESSO",
+                "normal_stock": null,
+                "price": 15125000000,
+                "price_before_discount": 25500000000,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    2
+                  ]
+                }
+              }
+            ],
+            "shopid": 1259293184,
+            "tier_variations": [
+              {
+                "name": "ĐÓNG GÓI",
+                "options": [
+                  "NGUYÊN HẠT",
+                  "PHA PHIN",
+                  "PHA MÁY ESPRESSO"
+                ]
+              }
+            ]
+          },
+          "pricing": {
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": 41,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 15125000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": {
+                  "single_value": 25500000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": [
+                  {
+                    "type": 0,
+                    "text": "Free Returns",
+                    "color": "#26AA99",
+                    "display": "free_return",
+                    "exclusive_price": null,
+                    "promotion_id": null,
+                    "voucher_ext_info": null
+                  },
+                  {
+                    "type": 0,
+                    "text": "Free Gift",
+                    "color": "primary",
+                    "display": "aod",
+                    "exclusive_price": null,
+                    "promotion_id": 484329801728097,
+                    "voucher_ext_info": null
+                  }
+                ],
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 280758809721,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 475828593438766,
+                  "price_single_promotion_type": 502,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            },
+            "item": {
+              "price_breakdown": null
+            }
+          }
+        }
+      }
+    },
+    "selectedVariations": [
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 26882883164,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 0
+            },
+            "shop_id": 1259293184
+          },
+          "modelIndex": 0,
+          "selectedTiers": {
+            "0": 0
+          }
+        },
+        "response": {
+          "error": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": 41,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 15125000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": {
+                  "single_value": 25500000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": [
+                  {
+                    "type": 0,
+                    "text": "Free Returns",
+                    "color": "#26AA99",
+                    "display": "free_return",
+                    "exclusive_price": null,
+                    "promotion_id": null,
+                    "voucher_ext_info": null
+                  }
+                ],
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 280758809721,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 475828593438766,
+                  "price_single_promotion_type": 502,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 26882883164,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 1
+            },
+            "shop_id": 1259293184
+          },
+          "modelIndex": 1,
+          "selectedTiers": {
+            "0": 1
+          }
+        },
+        "response": {
+          "error": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": 41,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 15125000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": {
+                  "single_value": 25500000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": [
+                  {
+                    "type": 0,
+                    "text": "Free Returns",
+                    "color": "#26AA99",
+                    "display": "free_return",
+                    "exclusive_price": null,
+                    "promotion_id": null,
+                    "voucher_ext_info": null
+                  }
+                ],
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 280758809722,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 475828593438766,
+                  "price_single_promotion_type": 502,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 26882883164,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 2
+            },
+            "shop_id": 1259293184
+          },
+          "modelIndex": 2,
+          "selectedTiers": {
+            "0": 2
+          }
+        },
+        "response": {
+          "error": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": 41,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 15125000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": {
+                  "single_value": 25500000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": [
+                  {
+                    "type": 0,
+                    "text": "Free Returns",
+                    "color": "#26AA99",
+                    "display": "free_return",
+                    "exclusive_price": null,
+                    "promotion_id": null,
+                    "voucher_ext_info": null
+                  }
+                ],
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 280758809723,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 475828593438766,
+                  "price_single_promotion_type": 502,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "fixtureVersion": 1,
+  "capturedAt": "2026-07-26T13:20:23.540Z",
+  "platform": "shopee",
+  "pricingContext": "user_session",
+  "provenance": "derived_from_sanitized_live_capture",
+  "derivedFrom": "shopee-multi-variant-user-session.json",
+  "scenario": "product_detail_rate_limited",
+  "sourceUrl": "https://shopee.vn/product-i.1259293184.26882883164",
+  "endpointEvidence": {
+    "productDetail": {
+      "endpoint": "/api/v4/pdp/get_pc",
+      "response": {
+        "ok": false,
+        "status": 429,
+        "payload": {
+          "error": 429,
+          "error_msg": "Rate limited"
+        }
+      }
+    }
+  },
+  "expectedClassification": {
+    "variantCoverage": "unknown",
+    "coverageConfidence": "unknown",
+    "lifecycleEligible": false
+  }
+}

@@ -17,13 +17,21 @@ function extractShopeeIds(url) {
 }
 
 function toVnd(rawPrice) {
-  const numericPrice = Number(rawPrice);
-
-  if (!Number.isFinite(numericPrice)) {
+  if (rawPrice === null || rawPrice === undefined || rawPrice === "") {
     return null;
   }
 
-  return numericPrice / PRICE_DIVISOR;
+  const numericPrice = Number(rawPrice);
+
+  if (!Number.isSafeInteger(numericPrice) || numericPrice <= 0) {
+    return null;
+  }
+
+  const priceAmount = numericPrice / PRICE_DIVISOR;
+
+  return Number.isSafeInteger(priceAmount) && priceAmount > 0
+    ? priceAmount
+    : null;
 }
 
 function formatVnd(price) {
@@ -36,6 +44,14 @@ function formatVnd(price) {
   }).format(price);
 }
 
+function formatRawVnd(rawPrice) {
+  const priceAmount = toVnd(rawPrice);
+
+  return priceAmount === null
+    ? "N/A"
+    : `${formatVnd(priceAmount)} VND`;
+}
+
 function printProduct(item) {
   const models = Array.isArray(item.models) ? item.models : [];
   const variantPricing = Array.isArray(item.variant_pricing)
@@ -44,8 +60,8 @@ function printProduct(item) {
 
   console.log("=================== PRODUCT DATA EXTRACTED ===================");
   console.log(`Title     : ${item.title || "N/A"}`);
-  console.log(`Min Price : ${formatVnd(toVnd(item.price_min))} VND`);
-  console.log(`Max Price : ${formatVnd(toVnd(item.price_max))} VND`);
+  console.log(`Min Price : ${formatRawVnd(item.price_min)}`);
+  console.log(`Max Price : ${formatRawVnd(item.price_max)}`);
   console.log("");
   console.log("--- Product Variations (SKUs) ---");
 
@@ -56,22 +72,22 @@ function printProduct(item) {
 
   models.forEach((model, index) => {
     const pricing = variantPricing[index];
-    const finalPrice = pricing
-      ? formatVnd(toVnd(pricing.final_display_price))
-      : "N/A";
-
     console.log(
       `Variation ${index + 1}: ${model.name || `Variation ${index + 1}`}`,
     );
     console.log(
-      `  Base promo price : ${formatVnd(toVnd(model.price))} VND`,
+      `  Base promo price : ${formatRawVnd(model.price)}`,
     );
     console.log(
-      `  Original price   : ${formatVnd(
-        toVnd(model.price_before_discount),
-      )} VND`,
+      `  Original price   : ${formatRawVnd(
+        model.price_before_discount,
+      )}`,
     );
-    console.log(`  Final display    : ${finalPrice} VND`);
+    console.log(
+      `  Final display    : ${formatRawVnd(
+        pricing?.final_display_price,
+      )}`,
+    );
 
     if (pricing?.error) {
       console.log(`  Final price note : ${pricing.error}`);
