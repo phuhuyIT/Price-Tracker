@@ -1,2 +1,8 @@
 .agents/
 node_modules/
+AGENTS.md
+
+# Local live-capture diagnostics retained outside repository history.
+tests/fixtures/*-debug*.json
+tests/fixtures/*-reset-user-session.json
+tests/fixtures/*-candidates-verified.json
