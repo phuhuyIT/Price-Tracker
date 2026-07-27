@@ -19,12 +19,33 @@
     collector,
     definitions,
     initialPriceBreakdown,
+    onProgress,
     requests,
     responseTimeoutMs = DEFAULT_RESPONSE_TIMEOUT_MS,
     settleTimeoutMs = DEFAULT_SETTLE_TIMEOUT_MS,
   }) {
-    const runnableRequests = requests.filter((request) => request.body);
+    const runnableRequests = requests.filter(
+      (request) => request.body && request.skip !== true,
+    );
     const clickErrors = new Map();
+    let completedRequests = 0;
+
+    async function reportProgress(key, outcome) {
+      completedRequests += 1;
+
+      if (typeof onProgress !== "function") {
+        return;
+      }
+
+      await Promise.resolve(
+        onProgress({
+          completed: completedRequests,
+          key,
+          outcome,
+          total: runnableRequests.length,
+        }),
+      ).catch(() => {});
+    }
 
     try {
       let fatalButtonError = null;
@@ -33,29 +54,53 @@
         const key = core.selectedTiersKey(request.selectedTiers);
 
         if (collector.captured.has(key)) {
+          await reportProgress(key, "captured");
           continue;
         }
 
-        const error =
+        const selectionError =
           fatalButtonError ||
           (await clicker.clickCombination(
             definitions,
             request.selectedTiers,
           ));
 
-        if (error) {
-          clickErrors.set(key, error);
+        if (selectionError) {
+          const errorMessage =
+            typeof selectionError === "string"
+              ? selectionError
+              : selectionError.message;
+          const errorCode =
+            typeof selectionError === "string"
+              ? null
+              : selectionError.code;
+          clickErrors.set(key, {
+            code: errorCode,
+            details:
+              typeof selectionError === "object"
+                ? selectionError.details ?? null
+                : null,
+            message: errorMessage,
+          });
 
-          if (error.startsWith("Could not find")) {
-            fatalButtonError = error;
+          if (
+            errorCode === "VARIATION_BUTTON_NOT_FOUND" ||
+            errorMessage.startsWith("Could not find")
+          ) {
+            fatalButtonError = selectionError;
           }
 
+          await reportProgress(
+            key,
+            errorCode ?? "selection_failed",
+          );
           continue;
         }
 
         await collector.waitFor([key], settleTimeoutMs);
 
         if (collector.captured.has(key)) {
+          await reportProgress(key, "captured");
           continue;
         }
 
@@ -65,11 +110,36 @@
         );
 
         if (forceError) {
-          clickErrors.set(key, forceError);
+          clickErrors.set(key, {
+            code:
+              typeof forceError === "string"
+                ? null
+                : forceError.code,
+            details:
+              typeof forceError === "object"
+                ? forceError.details ?? null
+                : null,
+            message:
+              typeof forceError === "string"
+                ? forceError
+                : forceError.message,
+          });
+          await reportProgress(
+            key,
+            typeof forceError === "string"
+              ? "request_not_triggered"
+              : forceError.code,
+          );
           continue;
         }
 
         await collector.waitFor([key], settleTimeoutMs);
+        await reportProgress(
+          key,
+          collector.captured.has(key)
+            ? "captured"
+            : "response_missing",
+        );
       }
 
       await collector.waitFor(

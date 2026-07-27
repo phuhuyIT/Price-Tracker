@@ -13,7 +13,9 @@ const {
 } = ShopeeVariantCore;
 const {
   createVariationClicker,
+  findSelectedVariationButtonsInPage,
   findVariationButtonInPage,
+  inspectVariationButtonsInPage,
 } = ShopeeVariationPage;
 const { collectVariantResponses } = ShopeeVariationFlow;
 
@@ -121,6 +123,15 @@ function waitForProductData(debuggee, timeoutMs) {
               payload?.data?.product_price ??
               item.price_breakdown ??
               null,
+            initialPricingPayload: {
+              data: {
+                price_breakdown: payload?.data?.price_breakdown ?? null,
+                product_price: payload?.data?.product_price ?? null,
+              },
+              item: {
+                price_breakdown: item.price_breakdown ?? null,
+              },
+            },
             item,
           });
         }
@@ -167,7 +178,7 @@ async function evaluateInPage(debuggee, functionToCall, argument) {
   return evaluation.result?.value;
 }
 
-function createCdpClicker(debuggee) {
+function createCdpClicker(debuggee, options = {}) {
   return createVariationClicker({
     async click(x, y) {
       await chrome.debugger.sendCommand(
@@ -199,8 +210,20 @@ function createCdpClicker(debuggee) {
         optionIndex,
         tierIndex,
       }),
+    locateSelected: (definitions) =>
+      evaluateInPage(
+        debuggee,
+        findSelectedVariationButtonsInPage,
+        { definitions },
+      ),
+    inspectState: (definitions) =>
+      evaluateInPage(
+        debuggee,
+        inspectVariationButtonsInPage,
+        { definitions },
+      ),
     wait,
-  });
+  }, options);
 }
 
 function createCdpResponseCollector(debuggee) {
@@ -358,13 +381,39 @@ async function fetchVariantResponses(debuggee, productData, job) {
     itemId: job.itemId,
     shopId: job.shopId,
   });
+  const requestedModelIds = new Set(
+    Array.isArray(job.modelIds)
+      ? job.modelIds.map(String)
+      : [],
+  );
+  const collectionRequests =
+    requestedModelIds.size === 0
+      ? requests
+      : requests.map((request, modelIndex) => {
+          const model = productData.item.models?.[modelIndex];
+          const modelId = String(
+            model?.modelid ?? model?.model_id ?? "",
+          );
+
+          return requestedModelIds.has(modelId)
+            ? request
+            : { ...request, skip: true };
+        });
   const definitions = buildTierDefinitions(productData.item, requests);
   const responses = await collectVariantResponses({
-    clicker: createCdpClicker(debuggee),
+    clicker: createCdpClicker(debuggee, {
+      includeDiagnostics: requestedModelIds.size > 0,
+    }),
     collector: createCdpResponseCollector(debuggee),
     definitions,
     initialPriceBreakdown: productData.initialPriceBreakdown,
-    requests,
+    onProgress: (progress) =>
+      postToBridge("/progress", {
+        ...progress,
+        jobId: job.jobId,
+        stage: "variant_collection",
+      }).catch(() => {}),
+    requests: collectionRequests,
   });
 
   return { requests, responses };
@@ -445,6 +494,14 @@ async function runJob(sourceTab) {
     });
 
     const productData = await productDataPromise;
+    await postToBridge("/progress", {
+      completed: 0,
+      jobId: job.jobId,
+      stage: "product_captured",
+      total: Array.isArray(productData.item?.models)
+        ? productData.item.models.length
+        : 0,
+    }).catch(() => {});
     const variantData = await fetchVariantResponses(
       debuggee,
       productData,
@@ -452,6 +509,7 @@ async function runJob(sourceTab) {
     );
 
     await postToBridge("/result", {
+      initialPricingPayload: productData.initialPricingPayload,
       item: productData.item,
       jobId: job.jobId,
       variantRequests: variantData.requests,

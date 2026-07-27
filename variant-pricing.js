@@ -1,7 +1,9 @@
 const core = require("./chrome-extension/shared/variant-core");
 const {
   createVariationClicker,
+  findSelectedVariationButtonsInPage,
   findVariationButtonInPage,
+  inspectVariationButtonsInPage,
 } = require("./chrome-extension/shared/variation-page");
 const {
   collectVariantResponses,
@@ -89,6 +91,14 @@ function createPlaywrightClicker(page) {
         optionIndex,
         tierIndex,
       }),
+    locateSelected: (definitions) =>
+      page.evaluate(findSelectedVariationButtonsInPage, {
+        definitions,
+      }),
+    inspectState: (definitions) =>
+      page.evaluate(inspectVariationButtonsInPage, {
+        definitions,
+      }),
     wait: (timeoutMs) => page.waitForTimeout(timeoutMs),
   });
 }
@@ -117,5 +127,7 @@ module.exports = {
   createPlaywrightClicker,
   createResponseCollector,
   fetchVariantPricing,
+  findSelectedVariationButtonsInPage,
   findVariationButtonInPage,
+  inspectVariationButtonsInPage,
 };

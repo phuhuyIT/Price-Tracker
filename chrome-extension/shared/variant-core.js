@@ -254,10 +254,20 @@
         return initialResponse;
       }
 
+      const clickError = clickErrors.get(key);
+
       return {
         error:
-          clickErrors.get(key) ||
+          (typeof clickError === "string"
+            ? clickError
+            : clickError?.message) ||
           "Shopee did not issue a variation-price request for this model.",
+        errorCode:
+          typeof clickError === "object" ? clickError?.code ?? null : null,
+        errorDetails:
+          typeof clickError === "object"
+            ? clickError?.details ?? null
+            : null,
         ok: false,
         payload: null,
         status: null,
@@ -294,6 +304,10 @@
 
       return {
         error,
+        error_code:
+          request?.errorCode ?? response?.errorCode ?? null,
+        error_details:
+          request?.errorDetails ?? response?.errorDetails ?? null,
         final_display_price: finalDisplayPrice,
         model_id: model?.modelid ?? model?.model_id ?? null,
         name: model?.name ?? `Variation ${modelIndex + 1}`,
