@@ -86,7 +86,41 @@ function createVariationResponseMap(selectedVariations) {
   return responses;
 }
 
-function identifyPriceSource(payload) {
+function createProductDetailFallbackMap(pricing) {
+  const productPrice = pricing?.data?.product_price;
+  const modelId =
+    productPrice?.price_model?.price_single_model_id;
+  const payload = {
+    data: { product_price: productPrice },
+  };
+
+  if (
+    modelId === null ||
+    modelId === undefined ||
+    extractFinalDisplayPrice(payload) === null
+  ) {
+    return new Map();
+  }
+
+  return new Map([
+    [
+      String(modelId),
+      {
+        error: null,
+        ok: true,
+        payload,
+        priceSource: "product_detail_fallback",
+        status: 200,
+      },
+    ],
+  ]);
+}
+
+function identifyPriceSource(payload, response) {
+  if (response?.priceSource === "product_detail_fallback") {
+    return response.priceSource;
+  }
+
   if (payload?.data?.price_breakdown || payload?.price_breakdown) {
     return "variation_price_breakdown";
   }
@@ -103,6 +137,11 @@ function inferVoucherStatus(payload) {
     payload?.data?.price_breakdown ?? payload?.price_breakdown;
   const productPrice = payload?.data?.product_price;
   const discountBreakdown = priceBreakdown?.discount_breakdown;
+  const finalPriceVouchers =
+    productPrice &&
+    Object.hasOwn(productPrice, "final_price_vouchers")
+      ? productPrice.final_price_vouchers
+      : priceBreakdown?.final_price_vouchers;
 
   if (
     Array.isArray(discountBreakdown) &&
@@ -116,13 +155,13 @@ function inferVoucherStatus(payload) {
     return "applied";
   }
 
-  if (Array.isArray(productPrice?.final_price_vouchers)) {
-    return productPrice.final_price_vouchers.length > 0
+  if (Array.isArray(finalPriceVouchers)) {
+    return finalPriceVouchers.length > 0
       ? "applied"
       : "not_applied";
   }
 
-  if (productPrice?.final_price_vouchers === null) {
+  if (finalPriceVouchers === null) {
     return "not_applied";
   }
 
@@ -157,30 +196,70 @@ function missingPriceReason(response) {
   return "variation_response_missing_display_price";
 }
 
-function normalizeVariant(model, modelIndex, responses, priceScale) {
+function optionLabel(option) {
+  if (typeof option === "string") {
+    return option.trim();
+  }
+
+  return String(option?.name ?? option?.option ?? "").trim();
+}
+
+function isImplicitDefaultVariant(item) {
+  const models = Array.isArray(item?.models) ? item.models : [];
+
+  if (
+    models.length !== 1 ||
+    String(models[0]?.name ?? "").trim() !== ""
+  ) {
+    return false;
+  }
+
+  const tiers = Array.isArray(item?.tier_variations)
+    ? item.tier_variations
+    : [];
+
+  return tiers.every(
+    (tier) =>
+      String(tier?.name ?? "").trim() === "" &&
+      (!Array.isArray(tier?.options) ||
+        tier.options.every((option) => optionLabel(option) === "")),
+  );
+}
+
+function normalizeVariant(
+  model,
+  modelIndex,
+  responses,
+  fallbackResponses,
+  priceScale,
+  options = {},
+) {
+  const implicitDefault = options.implicitDefault === true;
   const selectedTiers = normalizeSelectedTiers(model?.extinfo?.tier_index);
-  const response = selectedTiers
+  const selectedResponse = selectedTiers
     ? responses.get(selectedTiersKey(selectedTiers))
     : null;
   const identity = model?.modelid ?? model?.model_id;
-  const modelId = normalizeId(
+  const externalModelId = normalizeId(
     identity,
     `models[${modelIndex}].modelid`,
   );
   const responseModelId =
-    response?.payload?.data?.product_price?.price_model
+    selectedResponse?.payload?.data?.product_price?.price_model
       ?.price_single_model_id ??
-    response?.payload?.data?.selected_model_id;
+    selectedResponse?.payload?.data?.selected_model_id;
   const base = {
-    availability: inferAvailability(model, response),
-    modelId,
-    name: model?.name || `Variant ${modelIndex + 1}`,
+    availability: inferAvailability(model, selectedResponse),
+    modelId: implicitDefault ? "default" : externalModelId,
+    name: implicitDefault
+      ? "Default"
+      : model?.name || `Variant ${modelIndex + 1}`,
   };
 
   if (
     responseModelId !== null &&
     responseModelId !== undefined &&
-    String(responseModelId) !== modelId
+    String(responseModelId) !== externalModelId
   ) {
     return {
       ...base,
@@ -191,6 +270,14 @@ function normalizeVariant(model, modelIndex, responses, priceScale) {
     };
   }
 
+  const selectedRawPrice = extractFinalDisplayPrice(
+    selectedResponse?.payload,
+  );
+  const fallbackResponse = fallbackResponses.get(externalModelId);
+  const response =
+    selectedRawPrice === null && fallbackResponse
+      ? fallbackResponse
+      : selectedResponse;
   const rawPrice = extractFinalDisplayPrice(response?.payload);
 
   if (rawPrice === null) {
@@ -210,7 +297,9 @@ function normalizeVariant(model, modelIndex, responses, priceScale) {
       currency: "VND",
       priceAmount: convertRawPriceToVnd(rawPrice, priceScale),
       priceDefinition: PRICE_DEFINITION,
-      priceSource: identifyPriceSource(response.payload),
+      priceSource: implicitDefault
+        ? "product_detail_fallback"
+        : identifyPriceSource(response.payload, response),
       shippingIncluded: false,
       status: "observed",
       voucherStatus: inferVoucherStatus(response.payload),
@@ -302,8 +391,19 @@ function normalizeFixtureToSnapshot(fixture, options = {}) {
   const selectedVariations =
     fixture?.endpointEvidence?.selectedVariations ?? [];
   const responses = createVariationResponseMap(selectedVariations);
+  const fallbackResponses = createProductDetailFallbackMap(
+    productDetail.response.data.pricing,
+  );
+  const implicitDefault = isImplicitDefaultVariant(item);
   const variants = models.map((model, modelIndex) =>
-    normalizeVariant(model, modelIndex, responses, priceScale),
+    normalizeVariant(
+      model,
+      modelIndex,
+      responses,
+      fallbackResponses,
+      priceScale,
+      { implicitDefault },
+    ),
   );
   const uniqueModelIds = new Set(
     variants.map((variant) => variant.modelId),

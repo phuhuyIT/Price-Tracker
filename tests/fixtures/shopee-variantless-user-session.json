@@ -1,0 +1,201 @@
+{
+  "fixtureVersion": 1,
+  "capturedAt": "2026-07-28T10:38:39.381Z",
+  "platform": "shopee",
+  "pricingContext": "user_session",
+  "provenance": "sanitized_live_capture",
+  "sourceUrl": "https://shopee.vn/S%C3%A1ch-%C3%94ng-Gi%C3%A0-V%C3%A0-Bi%E1%BB%83n-C%E1%BA%A3-i.62069215.1909369068",
+  "endpointEvidence": {
+    "productDetail": {
+      "endpoint": "/api/v4/pdp/get_pc",
+      "response": {
+        "data": {
+          "item": {
+            "currency": "VND",
+            "image": "bbe9f1d3890a0febafb3635dfccdcc5e",
+            "item_status": "normal",
+            "item_id": 1909369068,
+            "normal_stock": null,
+            "price": 2560000000,
+            "price_before_discount": 3200000000,
+            "price_max": 2560000000,
+            "price_min": 2560000000,
+            "shop_id": 62069215,
+            "status": 1,
+            "stock": null,
+            "title": "Sách - Ông Già Và Biển Cả",
+            "itemid": 1909369068,
+            "models": [
+              {
+                "model_id": 80061566833,
+                "name": "",
+                "normal_stock": null,
+                "price": 2560000000,
+                "price_before_discount": 3200000000,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    0
+                  ]
+                }
+              }
+            ],
+            "shopid": 62069215,
+            "tier_variations": [
+              {
+                "name": "",
+                "options": [
+                  ""
+                ]
+              }
+            ]
+          },
+          "pricing": {
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": 20,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 2560000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": {
+                  "single_value": 3200000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": [
+                  {
+                    "type": 0,
+                    "text": "Free Returns",
+                    "color": "#26AA99",
+                    "display": "free_return",
+                    "exclusive_price": null,
+                    "promotion_id": null,
+                    "voucher_ext_info": null
+                  }
+                ],
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 80061566833,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 859958938894336,
+                  "price_single_promotion_type": 301,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            },
+            "item": {
+              "price_breakdown": null
+            }
+          }
+        }
+      }
+    },
+    "selectedVariations": [
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 1909369068,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 0
+            },
+            "shop_id": 62069215
+          },
+          "modelIndex": 0,
+          "selectedTiers": {
+            "0": 0
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "data": {
+              "price_breakdown": {
+                "discount": 20,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 2560000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": {
+                  "single_value": 3200000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": [
+                  {
+                    "type": 0,
+                    "text": "Free Returns",
+                    "color": "#26AA99",
+                    "display": "free_return",
+                    "exclusive_price": null,
+                    "promotion_id": null,
+                    "voucher_ext_info": null
+                  }
+                ],
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 80061566833,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 859958938894336,
+                  "price_single_promotion_type": 301,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      }
+    ]
+  }
+}

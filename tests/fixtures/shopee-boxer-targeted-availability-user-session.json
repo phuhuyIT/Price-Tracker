@@ -1,0 +1,4471 @@
+{
+  "fixtureVersion": 1,
+  "capturedAt": "2026-07-27T01:59:58.865Z",
+  "platform": "shopee",
+  "pricingContext": "user_session",
+  "provenance": "sanitized_live_capture",
+  "sourceUrl": "https://shopee.vn/QU%E1%BA%A6N-L%C3%93T-NAM-BOXER-AIRISM-(KO-%C4%90%E1%BB%94I-TR%E1%BA%A2)-i.760215.23307713229",
+  "endpointEvidence": {
+    "productDetail": {
+      "endpoint": "/api/v4/pdp/get_pc",
+      "response": {
+        "data": {
+          "item": {
+            "currency": "VND",
+            "image": "vn-11134207-7ra0g-m7hjykd5jdbnaf",
+            "item_status": "normal",
+            "item_id": 23307713229,
+            "normal_stock": null,
+            "price": 24800000000,
+            "price_before_discount": 24800000000,
+            "price_max": 24800000000,
+            "price_min": 24800000000,
+            "shop_id": 760215,
+            "status": 1,
+            "stock": null,
+            "title": "QUẦN LÓT NAM BOXER AIRISM (KO ĐỔI TRẢ)",
+            "itemid": 23307713229,
+            "models": [
+              {
+                "model_id": 227534004089,
+                "name": "65 HT LowRise (TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    24,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564647,
+                "name": "63Blue Trơn Regular,XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    12,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564629,
+                "name": "03 HT Regular(TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    6,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564652,
+                "name": "16 HT Regular(TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    14,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564495,
+                "name": "62 HT Regular( TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    1,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 223959288902,
+                "name": "66 HT LowRise (TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    29,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564660,
+                "name": "02 HT Regular(TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    17,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004087,
+                "name": "65 HT LowRise (TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    24,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004094,
+                "name": "03 HT LowRise (TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    26,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564635,
+                "name": "07 Gray Trơn Regular,XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    8,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004093,
+                "name": "03 HT LowRise (TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    26,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564661,
+                "name": "02 HT Regular(TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    17,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564644,
+                "name": "61Blue Trơn Regular,XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    11,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564494,
+                "name": "62 HT Regular( TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    1,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564501,
+                "name": "67 HT Regular(TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    3,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004083,
+                "name": "02 Trơn Low Rise,XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    22,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004098,
+                "name": "06 HT LowRise (TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    27,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564499,
+                "name": "67 HT Regular(TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    3,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564641,
+                "name": "09Black Trơn Regular,XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    10,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564666,
+                "name": "05 HT Regular(TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    19,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564645,
+                "name": "63Blue Trơn Regular,M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    12,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 223959288906,
+                "name": "69 HT LowRise (TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    30,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564634,
+                "name": "07 Gray Trơn Regular,L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    8,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564630,
+                "name": "07 HT Regular(TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    7,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564665,
+                "name": "06 HT Regular(TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    18,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564497,
+                "name": "65 HT Regular (TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    2,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564631,
+                "name": "07 HT Regular(TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    7,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004080,
+                "name": "69 NavyTrơn Low Rise,XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    21,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 213343608439,
+                "name": "Màu ngẫu nhiên,L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    0,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004084,
+                "name": "09 HT LowRise (TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    23,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564633,
+                "name": "07 Gray Trơn Regular,M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    8,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004081,
+                "name": "02 Trơn Low Rise,M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    22,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564663,
+                "name": "06 HT Regular(TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    18,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 223959288907,
+                "name": "69 HT LowRise (TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    30,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 223959288900,
+                "name": "63 HT LowRise (TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    28,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004078,
+                "name": "69 NavyTrơn Low Rise,M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    21,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 223959288901,
+                "name": "63 HT LowRise (TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    28,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564622,
+                "name": "68 HT Regular(TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    4,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004086,
+                "name": "09 HT LowRise (TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    23,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564664,
+                "name": "06 HT Regular(TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    18,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564632,
+                "name": "07 HT Regular(TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    7,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564639,
+                "name": "09Black Trơn Regular,M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    10,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 223959288905,
+                "name": "69 HT LowRise (TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    30,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004091,
+                "name": "07 HT LowRise (TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    25,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564640,
+                "name": "09Black Trơn Regular,L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    10,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004090,
+                "name": "07 HT LowRise (TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    25,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004095,
+                "name": "03 HT LowRise (TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    26,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564502,
+                "name": "68 HT Regular(TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    4,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564625,
+                "name": "69 HT Regular(TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    5,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564642,
+                "name": "61Blue Trơn Regular,M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    11,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564496,
+                "name": "65 HT Regular (TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    2,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564651,
+                "name": "16 HT Regular(TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    14,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564653,
+                "name": "16 HT Regular(TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    14,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564646,
+                "name": "63Blue Trơn Regular,L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    12,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564627,
+                "name": "03 HT Regular(TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    6,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564648,
+                "name": "02Trơn Regular,M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    13,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564637,
+                "name": "69 Navy Trơn Regular,L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    9,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564656,
+                "name": "18 HT Regular(TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    15,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564654,
+                "name": "18 HT Regular(TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    15,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564626,
+                "name": "69 HT Regular(TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    5,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564638,
+                "name": "69 Navy Trơn Regular,XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    9,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564655,
+                "name": "18 HT Regular(TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    15,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564636,
+                "name": "69 Navy Trơn Regular,M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    9,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 213343608438,
+                "name": "Màu ngẫu nhiên,M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    0,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004096,
+                "name": "06 HT LowRise (TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    27,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 223959288903,
+                "name": "66 HT LowRise (TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    29,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004082,
+                "name": "02 Trơn Low Rise,L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    22,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004079,
+                "name": "69 NavyTrơn Low Rise,L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    21,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564662,
+                "name": "02 HT Regular(TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    17,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564658,
+                "name": "09HT Regular(TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    16,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 223959288904,
+                "name": "66 HT LowRise (TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    29,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 213343608440,
+                "name": "Màu ngẫu nhiên,XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    0,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564628,
+                "name": "03 HT Regular(TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    6,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004092,
+                "name": "07 HT LowRise (TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    25,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564643,
+                "name": "61Blue Trơn Regular,L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    11,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004088,
+                "name": "65 HT LowRise (TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    24,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564493,
+                "name": "62 HT Regular( TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    1,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564657,
+                "name": "09HT Regular(TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    16,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564659,
+                "name": "09HT Regular(TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    16,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564650,
+                "name": "02Trơn Regular,XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    13,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564667,
+                "name": "05 HT Regular(TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    19,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564668,
+                "name": "05 HT Regular(TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    19,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564623,
+                "name": "68 HT Regular(TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    4,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004097,
+                "name": "06 HT LowRise (TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    27,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564624,
+                "name": "69 HT Regular(TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    5,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 223959288899,
+                "name": "63 HT LowRise (TĐợt),M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    28,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564498,
+                "name": "65 HT Regular (TĐợt),XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 227534004085,
+                "name": "09 HT LowRise (TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    23,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564669,
+                "name": "09BlackTrơn Low Rise,M 76-84cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    20,
+                    0
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564670,
+                "name": "09BlackTrơn Low Rise,L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    20,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564500,
+                "name": "67 HT Regular(TĐợt),L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    3,
+                    1
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564671,
+                "name": "09BlackTrơn Low Rise,XL 92-100cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    20,
+                    2
+                  ]
+                }
+              },
+              {
+                "model_id": 257921564649,
+                "name": "02Trơn Regular,L 84-92cm",
+                "normal_stock": null,
+                "price": 24800000000,
+                "price_before_discount": 0,
+                "status": 1,
+                "stock": null,
+                "extinfo": {
+                  "tier_index": [
+                    13,
+                    1
+                  ]
+                }
+              }
+            ],
+            "shopid": 760215,
+            "tier_variations": [
+              {
+                "name": "Màu sắc",
+                "options": [
+                  "Màu ngẫu nhiên",
+                  "62 HT Regular( TĐợt)",
+                  "65 HT Regular (TĐợt)",
+                  "67 HT Regular(TĐợt)",
+                  "68 HT Regular(TĐợt)",
+                  "69 HT Regular(TĐợt)",
+                  "03 HT Regular(TĐợt)",
+                  "07 HT Regular(TĐợt)",
+                  "07 Gray Trơn Regular",
+                  "69 Navy Trơn Regular",
+                  "09Black Trơn Regular",
+                  "61Blue Trơn Regular",
+                  "63Blue Trơn Regular",
+                  "02Trơn Regular",
+                  "16 HT Regular(TĐợt)",
+                  "18 HT Regular(TĐợt)",
+                  "09HT Regular(TĐợt)",
+                  "02 HT Regular(TĐợt)",
+                  "06 HT Regular(TĐợt)",
+                  "05 HT Regular(TĐợt)",
+                  "09BlackTrơn Low Rise",
+                  "69 NavyTrơn Low Rise",
+                  "02 Trơn Low Rise",
+                  "09 HT LowRise (TĐợt)",
+                  "65 HT LowRise (TĐợt)",
+                  "07 HT LowRise (TĐợt)",
+                  "03 HT LowRise (TĐợt)",
+                  "06 HT LowRise (TĐợt)",
+                  "63 HT LowRise (TĐợt)",
+                  "66 HT LowRise (TĐợt)",
+                  "69 HT LowRise (TĐợt)"
+                ]
+              },
+              {
+                "name": "Kích cỡ Hông",
+                "options": [
+                  "M 76-84cm",
+                  "L 84-92cm",
+                  "XL 92-100cm"
+                ]
+              }
+            ]
+          },
+          "pricing": {
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 257921564639,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            },
+            "item": {
+              "price_breakdown": null
+            }
+          }
+        }
+      }
+    },
+    "selectedVariations": [
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 24,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 0,
+          "selectedTiers": {
+            "0": 24,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:24 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 12,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 1,
+          "selectedTiers": {
+            "0": 12,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:12 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 6,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 2,
+          "selectedTiers": {
+            "0": 6,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:6 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 14,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 3,
+          "selectedTiers": {
+            "0": 14,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 1,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 4,
+          "selectedTiers": {
+            "0": 1,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:1 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 29,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 5,
+          "selectedTiers": {
+            "0": 29,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 17,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 6,
+          "selectedTiers": {
+            "0": 17,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 24,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 7,
+          "selectedTiers": {
+            "0": 24,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 26,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 8,
+          "selectedTiers": {
+            "0": 26,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 8,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 9,
+          "selectedTiers": {
+            "0": 8,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:8 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 26,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 10,
+          "selectedTiers": {
+            "0": 26,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 17,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 11,
+          "selectedTiers": {
+            "0": 17,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 11,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 12,
+          "selectedTiers": {
+            "0": 11,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:11 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 1,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 13,
+          "selectedTiers": {
+            "0": 1,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 3,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 14,
+          "selectedTiers": {
+            "0": 3,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:3 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 22,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 15,
+          "selectedTiers": {
+            "0": 22,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:22 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 27,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 16,
+          "selectedTiers": {
+            "0": 27,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:27 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 3,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 17,
+          "selectedTiers": {
+            "0": 3,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 10,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 18,
+          "selectedTiers": {
+            "0": 10,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 1:2 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 19,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 19,
+          "selectedTiers": {
+            "0": 19,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 12,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 20,
+          "selectedTiers": {
+            "0": 12,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 30,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 21,
+          "selectedTiers": {
+            "0": 30,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 8,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 22,
+          "selectedTiers": {
+            "0": 8,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 7,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 23,
+          "selectedTiers": {
+            "0": 7,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 18,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 24,
+          "selectedTiers": {
+            "0": 18,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:18 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 2,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 25,
+          "selectedTiers": {
+            "0": 2,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 7,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 26,
+          "selectedTiers": {
+            "0": 7,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 21,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 27,
+          "selectedTiers": {
+            "0": 21,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 227534004080,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 0,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 28,
+          "selectedTiers": {
+            "0": 0,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 23,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 29,
+          "selectedTiers": {
+            "0": 23,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 8,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 30,
+          "selectedTiers": {
+            "0": 8,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 22,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 31,
+          "selectedTiers": {
+            "0": 22,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 18,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 32,
+          "selectedTiers": {
+            "0": 18,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 30,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 33,
+          "selectedTiers": {
+            "0": 30,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 223959288907,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 28,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 34,
+          "selectedTiers": {
+            "0": 28,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 21,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 35,
+          "selectedTiers": {
+            "0": 21,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 28,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 36,
+          "selectedTiers": {
+            "0": 28,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 223959288901,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 4,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 37,
+          "selectedTiers": {
+            "0": 4,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 23,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 38,
+          "selectedTiers": {
+            "0": 23,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 227534004086,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 18,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 39,
+          "selectedTiers": {
+            "0": 18,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 7,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 40,
+          "selectedTiers": {
+            "0": 7,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:7 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 10,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 41,
+          "selectedTiers": {
+            "0": 10,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 257921564639,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 30,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 42,
+          "selectedTiers": {
+            "0": 30,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 25,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 43,
+          "selectedTiers": {
+            "0": 25,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 10,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 44,
+          "selectedTiers": {
+            "0": 10,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 25,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 45,
+          "selectedTiers": {
+            "0": 25,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 26,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 46,
+          "selectedTiers": {
+            "0": 26,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:26 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 4,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 47,
+          "selectedTiers": {
+            "0": 4,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 5,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 48,
+          "selectedTiers": {
+            "0": 5,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 11,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 49,
+          "selectedTiers": {
+            "0": 11,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 2,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 50,
+          "selectedTiers": {
+            "0": 2,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 14,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 51,
+          "selectedTiers": {
+            "0": 14,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 14,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 52,
+          "selectedTiers": {
+            "0": 14,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:14 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 12,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 53,
+          "selectedTiers": {
+            "0": 12,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 6,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 54,
+          "selectedTiers": {
+            "0": 6,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 13,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 55,
+          "selectedTiers": {
+            "0": 13,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 9,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 56,
+          "selectedTiers": {
+            "0": 9,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 257921564637,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 15,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 57,
+          "selectedTiers": {
+            "0": 15,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 257921564656,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 15,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 58,
+          "selectedTiers": {
+            "0": 15,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 5,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 59,
+          "selectedTiers": {
+            "0": 5,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:5 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 9,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 60,
+          "selectedTiers": {
+            "0": 9,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 257921564638,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 15,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 61,
+          "selectedTiers": {
+            "0": 15,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 9,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 62,
+          "selectedTiers": {
+            "0": 9,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 0,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 63,
+          "selectedTiers": {
+            "0": 0,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 27,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 64,
+          "selectedTiers": {
+            "0": 27,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 29,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 65,
+          "selectedTiers": {
+            "0": 29,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 22,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 66,
+          "selectedTiers": {
+            "0": 22,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 21,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 67,
+          "selectedTiers": {
+            "0": 21,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 17,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 68,
+          "selectedTiers": {
+            "0": 17,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:17 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 16,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 69,
+          "selectedTiers": {
+            "0": 16,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 29,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 70,
+          "selectedTiers": {
+            "0": 29,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:29 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 0,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 71,
+          "selectedTiers": {
+            "0": 0,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:0 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 6,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 72,
+          "selectedTiers": {
+            "0": 6,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 25,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 73,
+          "selectedTiers": {
+            "0": 25,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:25 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 11,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 74,
+          "selectedTiers": {
+            "0": 11,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 24,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 75,
+          "selectedTiers": {
+            "0": 24,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 1,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 76,
+          "selectedTiers": {
+            "0": 1,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 16,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 77,
+          "selectedTiers": {
+            "0": 16,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 16,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 78,
+          "selectedTiers": {
+            "0": 16,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 257921564659,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 13,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 79,
+          "selectedTiers": {
+            "0": 13,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:13 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 19,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 80,
+          "selectedTiers": {
+            "0": 19,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 19,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 81,
+          "selectedTiers": {
+            "0": 19,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 257921564668,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 4,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 82,
+          "selectedTiers": {
+            "0": 4,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": "Target combination cannot be selected because Variation button 0:4 is disabled.",
+          "errorCode": "VARIATION_COMBINATION_UNAVAILABLE",
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 27,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 83,
+          "selectedTiers": {
+            "0": 27,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 5,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 84,
+          "selectedTiers": {
+            "0": 5,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 28,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 85,
+          "selectedTiers": {
+            "0": 28,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 2,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 86,
+          "selectedTiers": {
+            "0": 2,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 257921564498,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 23,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 87,
+          "selectedTiers": {
+            "0": 23,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 20,
+              "1": 0
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 88,
+          "selectedTiers": {
+            "0": 20,
+            "1": 0
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 20,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 89,
+          "selectedTiers": {
+            "0": 20,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 3,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 90,
+          "selectedTiers": {
+            "0": 3,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 20,
+              "1": 2
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 91,
+          "selectedTiers": {
+            "0": 20,
+            "1": 2
+          }
+        },
+        "response": {
+          "error": null,
+          "errorCode": null,
+          "ok": true,
+          "payload": {
+            "error": null,
+            "error_msg": null,
+            "data": {
+              "price_breakdown": null,
+              "product_price": {
+                "discount": null,
+                "installment_info": null,
+                "spl_installment_info": null,
+                "pack_size": "",
+                "hide_price": false,
+                "price": {
+                  "single_value": 24800000000,
+                  "range_min": -1,
+                  "range_max": -1,
+                  "price_mask": null
+                },
+                "price_before_discount": null,
+                "presale_price": null,
+                "lowest_past_price": null,
+                "labels": null,
+                "hide_discount": false,
+                "discount_text": null,
+                "show_final_price_indicator": null,
+                "final_price_vouchers": null,
+                "has_final_price": true,
+                "final_price_info": null,
+                "price_subtext": null,
+                "price_model": {
+                  "price_single_model_id": 257921564671,
+                  "price_min_model_id": null,
+                  "price_max_model_id": null
+                },
+                "price_promotion": {
+                  "price_single_promotion_id": 0,
+                  "price_single_promotion_type": 0,
+                  "price_min_promotion_id": null,
+                  "price_min_promotion_type": null,
+                  "price_max_promotion_id": null,
+                  "price_max_promotion_type": null
+                },
+                "instalment_cta_action": null
+              }
+            }
+          },
+          "status": 200
+        }
+      },
+      {
+        "endpoint": "/api/v4/pdp/cart_panel/select_variation_pc",
+        "request": {
+          "body": {
+            "item_id": 23307713229,
+            "quantity": 1,
+            "selected_tiers": {
+              "0": 13,
+              "1": 1
+            },
+            "shop_id": 760215
+          },
+          "modelIndex": 92,
+          "selectedTiers": {
+            "0": 13,
+            "1": 1
+          }
+        },
+        "response": {
+          "error": "Shopee did not issue a variation-price request for this model.",
+          "errorCode": null,
+          "ok": false,
+          "payload": null,
+          "status": null
+        }
+      }
+    ]
+  }
+}

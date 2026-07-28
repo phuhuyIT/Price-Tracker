@@ -2,10 +2,14 @@ const assert = require("node:assert/strict");
 
 const apiFailureFixture = require("./fixtures/shopee-api-failure.derived.json");
 const boxerFixture = require("./fixtures/shopee-boxer-user-session.json");
+const boxerAvailabilityFixture = require("./fixtures/shopee-boxer-targeted-availability-user-session.json");
+const flashSaleFixture = require("./fixtures/shopee-flash-sale-user-session.json");
 const fixture = require("./fixtures/shopee-multi-variant-user-session.json");
 const partialFixture = require("./fixtures/shopee-partial-selected-variation.derived.json");
+const shopVoucherFixture = require("./fixtures/shopee-shop-voucher-user-session.json");
 const suspiciousEmptyFixture = require("./fixtures/shopee-suspicious-empty-catalogue.derived.json");
 const unrecognisedPriceFixture = require("./fixtures/shopee-unrecognised-price-shape.derived.json");
+const variantlessFixture = require("./fixtures/shopee-variantless-user-session.json");
 const variantPriceFailureFixture = require("./fixtures/shopee-variant-price-failure.derived.json");
 const {
   convertRawPriceToVnd,
@@ -57,11 +61,15 @@ function main() {
 
   for (const savedFixture of [
     apiFailureFixture,
+    boxerAvailabilityFixture,
     boxerFixture,
+    flashSaleFixture,
     fixture,
     partialFixture,
+    shopVoucherFixture,
     suspiciousEmptyFixture,
     unrecognisedPriceFixture,
+    variantlessFixture,
     variantPriceFailureFixture,
   ]) {
     assertNoSensitiveKeys(savedFixture);
@@ -150,6 +158,26 @@ function main() {
     assert.equal(variant.priceObservation.shippingIncluded, false);
   }
 
+  const variantlessSnapshot =
+    normalizeFixtureToSnapshot(variantlessFixture);
+  assert.equal(variantlessSnapshot.expectedVariantCount, 1);
+  assert.equal(variantlessSnapshot.observedVariantCount, 1);
+  assert.equal(variantlessSnapshot.pricedVariantCount, 1);
+  assert.equal(variantlessSnapshot.variants[0].modelId, "default");
+  assert.equal(variantlessSnapshot.variants[0].name, "Default");
+  assert.equal(
+    variantlessSnapshot.variants[0].priceObservation.priceAmount,
+    25_600,
+  );
+  assert.equal(
+    variantlessSnapshot.variants[0].priceObservation.priceSource,
+    "product_detail_fallback",
+  );
+  assert.equal(
+    variantlessSnapshot.variants[0].priceObservation.voucherStatus,
+    "not_applied",
+  );
+
   const failedVariantSnapshot = normalizeFixtureToSnapshot(
     variantPriceFailureFixture,
   );
@@ -168,13 +196,13 @@ function main() {
   const boxerSnapshot = normalizeFixtureToSnapshot(boxerFixture);
   assert.equal(boxerSnapshot.expectedVariantCount, 93);
   assert.equal(boxerSnapshot.observedVariantCount, 93);
-  assert.equal(boxerSnapshot.pricedVariantCount, 2);
+  assert.equal(boxerSnapshot.pricedVariantCount, 3);
   assert.equal(
     boxerSnapshot.variants.filter(
       (variant) =>
         variant.priceObservation.reason === "variation_option_disabled",
     ).length,
-    91,
+    90,
   );
 
   for (const variant of boxerSnapshot.variants) {
@@ -193,12 +221,149 @@ function main() {
   )) {
     assert.equal(variant.priceObservation.priceAmount, 233_000);
     assert.equal(variant.priceObservation.voucherStatus, "applied");
-    assert.equal(
-      variant.priceObservation.priceSource,
-      "variation_price_breakdown",
+    assert.ok(
+      [
+        "product_detail_fallback",
+        "variation_price_breakdown",
+      ].includes(variant.priceObservation.priceSource),
     );
     assert.ok(variant.priceObservation.priceAmount > 0);
   }
+
+  const boxerAvailabilitySnapshot = normalizeFixtureToSnapshot(
+    boxerAvailabilityFixture,
+  );
+  assert.equal(boxerAvailabilitySnapshot.expectedVariantCount, 93);
+  assert.equal(boxerAvailabilitySnapshot.observedVariantCount, 93);
+  assert.equal(boxerAvailabilitySnapshot.pricedVariantCount, 12);
+  assert.equal(
+    boxerAvailabilitySnapshot.variants.filter(
+      (variant) => variant.availability === "unavailable",
+    ).length,
+    21,
+  );
+  assert.equal(
+    boxerAvailabilitySnapshot.variants.filter(
+      (variant) =>
+        variant.priceObservation.reason ===
+        "variation_combination_unavailable",
+    ).length,
+    21,
+  );
+  assert.deepEqual(
+    boxerAvailabilitySnapshot.variants
+      .filter(
+        (variant) => variant.priceObservation.status === "observed",
+      )
+      .map((variant) => variant.modelId),
+    [
+      "227534004080",
+      "223959288907",
+      "223959288901",
+      "227534004086",
+      "257921564639",
+      "257921564637",
+      "257921564656",
+      "257921564638",
+      "257921564659",
+      "257921564668",
+      "257921564498",
+      "257921564671",
+    ],
+  );
+
+  const shopVoucherSnapshot =
+    normalizeFixtureToSnapshot(shopVoucherFixture);
+  assert.equal(shopVoucherSnapshot.expectedVariantCount, 40);
+  assert.equal(shopVoucherSnapshot.observedVariantCount, 40);
+  assert.equal(shopVoucherSnapshot.pricedVariantCount, 40);
+  assert.equal(
+    shopVoucherSnapshot.variants.every(
+      (variant) =>
+        variant.priceObservation.status === "observed" &&
+        variant.priceObservation.voucherStatus === "applied" &&
+        variant.priceObservation.priceSource ===
+          "variation_price_breakdown",
+    ),
+    true,
+  );
+  assert.equal(
+    Math.min(
+      ...shopVoucherSnapshot.variants.map(
+        (variant) => variant.priceObservation.priceAmount,
+      ),
+    ),
+    113_819,
+  );
+  assert.equal(
+    Math.max(
+      ...shopVoucherSnapshot.variants.map(
+        (variant) => variant.priceObservation.priceAmount,
+      ),
+    ),
+    119_000,
+  );
+
+  for (const evidence of
+    shopVoucherFixture.endpointEvidence.selectedVariations) {
+    const priceBreakdown =
+      evidence.response.payload.data.price_breakdown;
+    const productPrice =
+      evidence.response.payload.data.product_price;
+    const shopDiscount = priceBreakdown.discount_breakdown.find(
+      (discount) => discount.price_source === "Shop Voucher Discount",
+    );
+
+    assert.ok(shopDiscount?.shop_voucher);
+    assert.equal(shopDiscount.platform_voucher, null);
+    assert.equal(shopDiscount.discount_amount, 14_000_000_000);
+    assert.equal(
+      productPrice.final_price_info.final_price_vouchers
+        .platform_voucher,
+      null,
+    );
+    assert.ok(
+      productPrice.final_price_info.final_price_vouchers
+        .shop_voucher,
+    );
+    assert.deepEqual(
+      productPrice.final_price_vouchers.map(
+        (voucher) => voucher.voucher_type,
+      ),
+      [1],
+    );
+  }
+
+  const flashSaleSnapshot =
+    normalizeFixtureToSnapshot(flashSaleFixture);
+  assert.equal(flashSaleSnapshot.expectedVariantCount, 6);
+  assert.equal(flashSaleSnapshot.observedVariantCount, 6);
+  assert.equal(flashSaleSnapshot.pricedVariantCount, 1);
+  const flashSaleObservation = flashSaleSnapshot.variants.find(
+    (variant) => variant.priceObservation.status === "observed",
+  );
+  assert.equal(flashSaleObservation.modelId, "227853273170");
+  assert.equal(flashSaleObservation.priceObservation.priceAmount, 146_740);
+  assert.equal(
+    flashSaleObservation.priceObservation.priceSource,
+    "product_detail_fallback",
+  );
+  assert.equal(
+    flashSaleObservation.priceObservation.voucherStatus,
+    "not_applied",
+  );
+  assert.equal(
+    flashSaleFixture.endpointEvidence.productDetail.response.data.pricing
+      .data.product_price.price_promotion
+      .price_single_promotion_type,
+    302,
+  );
+  assert.equal(
+    flashSaleSnapshot.variants.filter(
+      (variant) => variant.priceObservation.status === "not_observed",
+    ).length,
+    5,
+  );
 
   const changedShapeSnapshot = normalizeFixtureToSnapshot(
     unrecognisedPriceFixture,
