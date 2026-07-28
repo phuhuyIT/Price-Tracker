@@ -2,12 +2,15 @@
 
 ## Status
 
-Phase 1 is in progress. Two sanitised live fixtures now prove the current
+Phase 1 is complete as of 2026-07-28. Six sanitised live fixtures prove the current
 multi-variant public-promotion flow, the platform-voucher flow, and the
 important case where a complete catalogue contains many variants whose prices
-cannot be collected. Shop-voucher, flash-sale, sold-out, variantless, and
-malformed live response shapes still need evidence before their mappings can
-be called verified.
+cannot be collected. The variantless fixture proves Shopee's implicit-model
+representation for a product with no visible variant choices, and the
+shop-voucher fixture distinguishes seller-funded vouchers from platform
+vouchers. An active flash-sale capture identifies promotion type `302` and
+demonstrates safe exact-model product-detail fallback. Sold-out and future
+malformed live response shapes remain optional hardening evidence.
 
 ## Evidence sources
 
@@ -35,7 +38,11 @@ pricing fields.
 | Fixture | Provenance | Purpose |
 | --- | --- | --- |
 | `shopee-multi-variant-user-session.json` | Sanitised live capture | Complete three-model catalogue and three observed prices |
-| `shopee-boxer-user-session.json` | Sanitised live capture | Complete 93-model catalogue, two platform-voucher prices, and 91 disabled-selection price failures |
+| `shopee-boxer-user-session.json` | Sanitised live capture | Complete 93-model catalogue, two selected platform-voucher prices, one exact product-detail fallback, and 90 unpriced models |
+| `shopee-boxer-targeted-availability-user-session.json` | Compact sanitised live capture | Complete 93-model catalogue with 12 targeted observed prices, 21 targeted unavailable combinations, and 60 deliberately untargeted models |
+| `shopee-variantless-user-session.json` | Sanitised live capture | One implicit Shopee model with empty tier labels and one verified product-detail fallback price |
+| `shopee-shop-voucher-user-session.json` | Sanitised live capture | Complete 40-model catalogue with 40 exact shop-voucher prices |
+| `shopee-flash-sale-user-session.json` | Sanitised live capture | Complete six-model catalogue with one exact product-detail flash-sale fallback and five unpriced variants |
 | `shopee-variant-price-failure.derived.json` | Derived from live capture | Complete catalogue remains present when one price request fails |
 | `shopee-partial-selected-variation.derived.json` | Derived from live capture | Selected response alone is partial and lifecycle-neutral |
 | `shopee-suspicious-empty-catalogue.derived.json` | Derived from live capture | Empty catalogue after three known models is suspicious, not mass removal |
@@ -204,6 +211,50 @@ used 248,000 VND as the pre-voucher amount and 233,000 VND as the post-platform
 voucher amount. A raw zero `price_before_discount` means that this optional
 comparison price is absent; it is not a valid zero-VND price observation.
 
+The shop-voucher fixture proves a distinct applied-voucher source across all
+40 exact model responses:
+
+```text
+price_breakdown.discount_breakdown[].price_source =
+  "Shop Voucher Discount"
+price_breakdown.discount_breakdown[].shop_voucher.discount_value =
+  14000000000
+price_breakdown.discount_breakdown[].platform_voucher = null
+product_price.final_price_vouchers[].voucher_type = 1
+product_price.final_price_info.hint_text = "After Voucher"
+product_price.final_price_info.final_price_vouchers.shop_voucher =
+  <present>
+product_price.final_price_info.final_price_vouchers.platform_voucher =
+  null
+```
+
+The shop voucher subtracts 140,000 VND after applying the `100000` price scale.
+Depending on the selected model, the captured final displayed price was
+113,819–119,000 VND. This distinguishes shop voucher type `1` from the
+previously captured platform voucher type `2`.
+
+The active flash-sale fixture proves this product-detail pricing shape:
+
+```text
+product_price.discount = 33
+product_price.price.single_value = 14674000000
+product_price.price_before_discount.single_value = 21780000000
+product_price.final_price_vouchers = null
+product_price.price_model.price_single_model_id = 227853273170
+product_price.price_promotion.price_single_promotion_type = 302
+```
+
+The page was displaying an active flash sale at capture time. Its promotion
+type `302` is therefore recorded as a live Shopee mapping, isolated in the
+Shopee adapter because marketplace promotion enums may change.
+
+The page's variation controls did not match the demo's current button selector,
+so no selected-variation responses were captured. The normaliser uses the
+146,740 VND product-detail price only for model `227853273170`, whose ID matches
+`price_single_model_id`. The other five catalogue variants remain present with
+`priceObservation.status = not_observed`; their shared catalogue price is not
+copied into price history.
+
 No shipping or delivery-price field appears in the allowlisted product pricing
 block. The demo does not collect shipping, and the normalised observation
 explicitly marks the selected product price as shipping-excluded. Checkout
@@ -219,6 +270,30 @@ enum.
 The offline normaliser therefore uses `availability = unknown` for these
 models. It does not guess `available`, and it keeps availability separate from
 variant catalogue presence and price-observation success.
+
+## Products without visible variants
+
+The variantless live fixture proves that Shopee may still return one internal
+model when the product page has no selectable variant controls:
+
+```text
+item.models.length = 1
+item.models[0].model_id = 80061566833
+item.models[0].name = ""
+item.models[0].extinfo.tier_index = [0]
+item.tier_variations[0].name = ""
+item.tier_variations[0].options = [""]
+```
+
+The model price, product price, minimum price, and maximum price all matched
+`2560000000`, or 25,600 VND after applying the verified `100000` scale. The
+normaliser treats this empty single-model and empty-tier structure as positive
+evidence of a product without explicit variants. It emits one shared
+`modelId = default`, `name = Default` variant and records the valid displayed
+price with `priceSource = product_detail_fallback`.
+
+An arbitrary empty or malformed `models` array remains suspicious and does not
+qualify for this rule.
 
 ## Missing-price behavior
 
@@ -238,16 +313,27 @@ are observed.
 The second live fixture provides the real version of this case:
 
 - `get_pc` contained 93 stable model identities.
-- Only two exact selections returned an observed final price.
+- Two exact selections returned an observed final price.
 - The other 91 attempts reported a disabled variation button.
 - Stock fields remained null.
 
 A disabled button can result from the current multi-tier selection state. It
 does not prove that the model was removed or sold out. All 93 identities remain
-present with complete catalogue coverage; the 91 failed prices use
-`priceObservation.status = not_observed` and
-`reason = variation_option_disabled`. Their availability remains `unknown`.
-No price log, zero price, or missing-variant miss is created.
+present with complete catalogue coverage. The product-detail payload also
+contains a valid 233,000 VND post-voucher price tied to one exact model ID, so
+that model uses `priceSource = product_detail_fallback`. The remaining 90
+failed prices use `priceObservation.status = not_observed` and
+`reason = variation_option_disabled`. Their availability remains `unknown`;
+no price log, zero price, or missing-variant miss is created for them.
+
+A follow-up targeted capture first cleared all selected tier buttons before
+testing each combination. It selected the two user-confirmed M and L models and
+all 31 XL models. Twelve responses returned a valid displayed price whose
+`price_single_model_id` matched the requested catalogue model, while 21 target
+combinations remained disabled after the reset and were classified as
+`variation_combination_unavailable`. The other 60 catalogue models were
+deliberately not requested and remain `unknown`, not unavailable. This compact
+fixture excludes the DOM diagnostics used during debugging.
 
 ## Fixture sanitisation
 
@@ -273,18 +359,17 @@ npm.cmd start -- "<Shopee URL>" --fixture "tests/fixtures/<name>.json"
 
 The destination is created without overwriting an existing fixture.
 
-## Remaining evidence gaps
+## Optional future evidence gaps
 
-Live or safely derived fixtures are still required for:
+Additional live evidence would improve future mappings for:
 
-- a genuinely variantless product;
-- applied shop voucher;
-- flash-sale price;
-- sold-out or unavailable variant;
+- a sold-out variant distinct from the now-verified unavailable-combination
+  case;
 - a real request failure;
 - a real changed or unrecognised response structure.
 
 Partial-response, failure, empty-catalogue, and malformed-shape fixtures have
 been derived from the sanitised live capture and are explicitly labelled.
-Voucher, flash-sale, variantless, and availability mappings must not be
-invented; they require suitable live evidence.
+Sold-out mappings must not be invented; they require suitable live evidence.
+Public discounts, shop and platform vouchers, flash sales, variantless
+products, and unavailable combinations now have sanitised live evidence.

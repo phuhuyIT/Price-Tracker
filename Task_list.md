@@ -194,22 +194,32 @@ Completed:
   response, suspicious empty catalogue, API failure, and unrecognised price
   shape.
 * [x] Added offline fixture normalisation and raw-price tests.
-* [x] Captured a live 93-model catalogue where only two prices were observed;
-  retained all identities and classified 91 disabled selections as
-  `not_observed`, not missing, sold out, or zero-priced.
+* [x] Captured a live 93-model catalogue with two selected-variation prices
+  and one exact product-detail fallback; retained all identities and classified
+  the other 90 disabled selections as `not_observed`, not missing, sold out,
+  or zero-priced.
 * [x] Verified an applied platform-voucher price and its
   `price_breakdown.discount_breakdown` and `product_price.final_price_info`
   mappings.
 * [x] Verified a no-public-discount product where
   `models[].price_before_discount = 0`; zero is treated as an absent optional
   comparison price, never as an observed price.
+* [x] Captured a genuinely variantless product represented by one implicit
+  Shopee model with empty tier and option labels; normalised it to the shared
+  `default` variant with a verified product-detail fallback price.
+* [x] Re-ran targeted multi-tier selection after clearing prior UI state;
+  verified 12 exact model-price responses and 21 unavailable combinations
+  while leaving 60 deliberately untargeted models lifecycle-neutral.
+* [x] Captured an applied shop voucher across 40 exact model responses;
+  verified `Shop Voucher Discount`, a populated `shop_voucher`, no platform
+  voucher, and `voucher_type = 1`.
+* [x] Captured an active flash-sale product with promotion type `302`; used the
+  product-detail fallback only for the exact matching
+  `price_single_model_id`, leaving five variants unpriced when their selection
+  controls could not be collected.
 
-Still requiring live evidence:
-
-* [ ] Genuinely variantless product.
-* [ ] Applied shop voucher.
-* [ ] Flash-sale price.
-* [ ] Sold-out or unavailable variant.
+All required Phase 1 live evidence is complete. Sold-out state and future real
+response-shape changes remain optional hardening evidence.
 
 See `docs/phase-1-shopee-analysis.md` for verified mappings, provenance, and
 remaining evidence gaps.
