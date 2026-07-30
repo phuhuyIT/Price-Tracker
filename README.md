@@ -4,18 +4,77 @@
 > Shopee Price Tracker MVP described in [Task_list.md](Task_list.md). The Phase
 > 0 product decisions are recorded in
 > [docs/phase-0-mvp-definition.md](docs/phase-0-mvp-definition.md), and the
-> target system design is in [docs/architecture.md](docs/architecture.md).
-> Existing collector behavior is intentionally preserved for Phase 1 analysis.
+> Phase 1 evidence is recorded in
+> [docs/phase-1-shopee-analysis.md](docs/phase-1-shopee-analysis.md). The target
+> system design is in [docs/architecture.md](docs/architecture.md), and the new
+> project foundation is documented in
+> [docs/phase-2-project-foundation.md](docs/phase-2-project-foundation.md).
+> Existing collector behavior is intentionally preserved as legacy discovery
+> tooling.
 > The persistent-profile Playwright mode described below is legacy discovery
 > behavior; the target MVP uses anonymous Playwright contexts and relies on the
 > extension for prices from the user's current Shopee session.
 
+## Phase 2 foundation
+
+The new application is organised as npm workspaces:
+
+```text
+apps/server       ESM Node.js/Express application
+apps/extension    loadable Manifest V3 extension source
+packages/shared   ESM package for contracts introduced in Phase 3
+tests/unit        Vitest unit tests
+tests/integration Vitest integration tests
+```
+
+Requirements:
+
+- Node.js 20 or newer
+- npm
+- Playwright Chromium for the preserved browser integration tests
+
+Install and prepare local configuration:
+
+```powershell
+npm.cmd install
+Copy-Item .env.example .env
+npm.cmd run playwright:install
+```
+
+Foundation commands:
+
+```powershell
+npm.cmd run dev
+npm.cmd start
+npm.cmd test
+npm.cmd run test:watch
+npm.cmd run lint
+npm.cmd run format
+npm.cmd run db:migrate
+npm.cmd run extension:build
+```
+
+The server binds to `127.0.0.1:3000` by default. With `AUTH_ENABLED=false`, the
+configuration validator rejects non-loopback binding. After running
+`npm.cmd run extension:build`, load `dist/extension` as an unpacked extension
+from `chrome://extensions`.
+
+For a manual isolated-browser connectivity check:
+
+```powershell
+npm.cmd run collector:manual -- "https://shopee.vn/product-i.shop.item"
+```
+
+This Phase 2 command opens a fresh anonymous browser context and verifies page
+navigation only; Shopee response extraction is implemented in a later phase.
+
 This project has two browser modes:
 
-- `npm.cmd start` (also available as `npm.cmd run current`) uses the exact
+- `npm.cmd run legacy:current` (also available as `npm.cmd run current`) uses the exact
   Chrome profile/window in which you click the extension icon. This is the
   default and is the right mode for your currently logged-in Shopee session.
-- `npm.cmd run playwright` uses Playwright attachment or a separate persistent
+- `npm.cmd run legacy:playwright` (also available as `npm.cmd run playwright`)
+  uses Playwright attachment or a separate persistent
   automation profile.
 
 Both modes now collect two kinds of prices:

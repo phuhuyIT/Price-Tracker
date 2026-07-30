@@ -1,6 +1,13 @@
 .agents/
 node_modules/
 AGENTS.md
+.env
+.env.*
+!.env.example
+coverage/
+data/
+dist/
+*.log
 
 # Local live-capture diagnostics retained outside repository history.
 tests/fixtures/*-debug*.json

@@ -232,6 +232,8 @@ You must be able to convert a saved Shopee fixture into a normalised product sna
 
 # Phase 2 — Create the Project Foundation
 
+Status: **complete — verified 2026-07-28**
+
 ## Objective
 
 Set up a maintainable repository before implementing business logic.

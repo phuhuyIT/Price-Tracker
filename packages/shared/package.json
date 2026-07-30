@@ -1,0 +1,13 @@
+{
+  "name": "@shopee-price-tracker/shared",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}

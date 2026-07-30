@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Shopee Price Tracker",
+  "version": "0.2.0",
+  "description": "Local Shopee price tracker foundation.",
+  "minimum_chrome_version": "116",
+  "action": {
+    "default_title": "Shopee Price Tracker",
+    "default_popup": "popup/popup.html"
+  },
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "permissions": ["storage"]
+}

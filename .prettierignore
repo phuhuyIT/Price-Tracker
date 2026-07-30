@@ -1,0 +1,12 @@
+coverage/
+data/
+dist/
+node_modules/
+chrome-extension/
+phase1/
+tests/fixtures/
+current-profile.js
+demo.js
+playwright-browser.js
+product.js
+variant-pricing.js
