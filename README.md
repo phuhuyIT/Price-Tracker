@@ -8,7 +8,9 @@
 > [docs/phase-1-shopee-analysis.md](docs/phase-1-shopee-analysis.md). The target
 > system design is in [docs/architecture.md](docs/architecture.md), and the new
 > project foundation is documented in
-> [docs/phase-2-project-foundation.md](docs/phase-2-project-foundation.md).
+> [docs/phase-2-project-foundation.md](docs/phase-2-project-foundation.md), and
+> the shared validation contract is documented in
+> [docs/phase-3-shared-contracts.md](docs/phase-3-shared-contracts.md).
 > Existing collector behavior is intentionally preserved as legacy discovery
 > tooling.
 > The persistent-profile Playwright mode described below is legacy discovery
@@ -67,6 +69,23 @@ npm.cmd run collector:manual -- "https://shopee.vn/product-i.shop.item"
 
 This Phase 2 command opens a fresh anonymous browser context and verifies page
 navigation only; Shopee response extraction is implemented in a later phase.
+
+## Phase 3 shared contracts
+
+The `@shopee-price-tracker/shared` workspace now owns strict Zod contracts for
+Shopee URLs, product snapshots, variants, observed and missing prices,
+catalogue coverage, API boundaries, and price-tracker authentication.
+
+Run only the shared-contract tests with:
+
+```powershell
+npm.cmd run test:phase3
+```
+
+An example accepted payload is available at
+`packages/shared/examples/valid-product-snapshot.json`. New snapshots must use
+either `extension` + `user_session` or `playwright` + `anonymous`; an unknown
+pricing context is rejected.
 
 This project has two browser modes:
 

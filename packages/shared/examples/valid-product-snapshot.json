@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "platform": "shopee",
+  "shopId": "1259293184",
+  "itemId": "26882883164",
+  "title": "Cà Phê Đặc Sản Fine Robusta Honey",
+  "canonicalUrl": "https://shopee.vn/ca-phe-fine-robusta-i.1259293184.26882883164",
+  "imageUrl": "https://down-vn.img.susercontent.com/file/example-image",
+  "currency": "VND",
+  "capturedAt": "2026-07-30T10:00:00.000Z",
+  "source": "extension",
+  "pricingContext": "user_session",
+  "pricingContextKey": "extension_install_example_01",
+  "variantCoverage": "complete",
+  "coverageConfidence": "verified",
+  "expectedVariantCount": 2,
+  "observedVariantCount": 2,
+  "pricedVariantCount": 1,
+  "lifecycleEligible": true,
+  "variants": [
+    {
+      "modelId": "280758809721",
+      "identityType": "shopee_model",
+      "name": "200g - Pha Máy",
+      "availability": "available",
+      "priceObservation": {
+        "status": "observed",
+        "priceAmount": 199000,
+        "currency": "VND",
+        "priceType": "listed",
+        "priceDefinition": "displayed_post_voucher_excluding_shipping",
+        "priceSource": "variation_price_breakdown",
+        "voucherStatus": "applied",
+        "shippingIncluded": false
+      }
+    },
+    {
+      "modelId": "280758809722",
+      "identityType": "shopee_model",
+      "name": "500g - Pha Phin",
+      "availability": "unknown",
+      "priceObservation": {
+        "status": "not_observed",
+        "reason": "variation_response_missing"
+      }
+    }
+  ]
+}

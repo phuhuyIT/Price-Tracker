@@ -250,6 +250,9 @@ function normalizeVariant(
     selectedResponse?.payload?.data?.selected_model_id;
   const base = {
     availability: inferAvailability(model, selectedResponse),
+    identityType: implicitDefault
+      ? "synthetic_default"
+      : "shopee_model",
     modelId: implicitDefault ? "default" : externalModelId,
     name: implicitDefault
       ? "Default"
@@ -293,13 +296,13 @@ function normalizeVariant(
   return {
     ...base,
     priceObservation: {
-      availability: base.availability,
       currency: "VND",
       priceAmount: convertRawPriceToVnd(rawPrice, priceScale),
       priceDefinition: PRICE_DEFINITION,
       priceSource: implicitDefault
         ? "product_detail_fallback"
         : identifyPriceSource(response.payload, response),
+      priceType: "listed",
       shippingIncluded: false,
       status: "observed",
       voucherStatus: inferVoucherStatus(response.payload),
@@ -425,10 +428,15 @@ function normalizeFixtureToSnapshot(fixture, options = {}) {
     expectedVariantCount: models.length,
     imageUrl: normalizeImageUrl(item.image),
     itemId,
+    lifecycleEligible: true,
     observedVariantCount: models.length,
     platform: "shopee",
     pricedVariantCount,
     pricingContext: fixture.pricingContext,
+    pricingContextKey:
+      options.pricingContextKey ??
+      `phase1_fixture_${fixture.pricingContext}`,
+    schemaVersion: 1,
     shopId,
     source: "extension",
     title: item.title,

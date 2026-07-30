@@ -310,6 +310,8 @@ The server starts, the test command succeeds and the extension can be built or l
 
 # Phase 3 — Implement Shared Data Contracts
 
+Status: **complete — verified 2026-07-30**
+
 ## Objective
 
 Ensure the extension, backend and Playwright collector all use the same data format.

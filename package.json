@@ -1,6 +1,6 @@
 {
   "name": "shopee-price-tracker",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Local-first Shopee Vietnam variant price tracker.",
   "engines": {
@@ -20,6 +20,7 @@
     "test": "npm run check && npm run test:foundation && npm run test:legacy",
     "test:watch": "vitest",
     "test:foundation": "vitest run",
+    "test:phase3": "vitest run tests/unit/shared",
     "test:legacy": "npm run test:arguments && npm run test:phase1 && npm run test:selection && npm run test:variant && npm run test:playwright-variant && npm run test:current",
     "test:arguments": "node tests/current-profile-arguments.test.js",
     "test:current": "node tests/current-profile.integration.js",

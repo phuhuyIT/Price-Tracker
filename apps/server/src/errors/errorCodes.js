@@ -1,5 +1,1 @@
-export const ERROR_CODES = Object.freeze({
-  INTERNAL_ERROR: 'INTERNAL_ERROR',
-  INVALID_CONFIGURATION: 'INVALID_CONFIGURATION',
-  ROUTE_NOT_FOUND: 'ROUTE_NOT_FOUND',
-});
+export { ERROR_CODES } from '@shopee-price-tracker/shared';
