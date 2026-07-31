@@ -21,6 +21,7 @@
     "test:watch": "vitest",
     "test:foundation": "vitest run",
     "test:phase3": "vitest run tests/unit/shared",
+    "test:phase4": "vitest run tests/integration/database-migrations.test.js tests/integration/auth-repositories.test.js tests/integration/product-persistence.test.js",
     "test:legacy": "npm run test:arguments && npm run test:phase1 && npm run test:selection && npm run test:variant && npm run test:playwright-variant && npm run test:current",
     "test:arguments": "node tests/current-profile-arguments.test.js",
     "test:current": "node tests/current-profile.integration.js",
