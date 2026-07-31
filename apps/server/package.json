@@ -2,5 +2,8 @@
   "name": "@shopee-price-tracker/server",
   "version": "0.3.0",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "better-sqlite3": "^12.11.1"
+  }
 }
