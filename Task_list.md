@@ -441,6 +441,8 @@ All data entering the backend can be validated using one shared contract.
 
 # Phase 4 — Implement the Database Layer
 
+Status: **complete — verified 2026-07-31**
+
 ## Objective
 
 Create reliable persistence before implementing extraction workflows.
@@ -539,6 +541,31 @@ Test:
 * Database connection module.
 * Repository modules.
 * Integration tests.
+
+## Implementation status — 2026-07-31
+
+Completed:
+
+* [x] Added the Node.js 20-compatible `better-sqlite3` dependency and one
+  shared connection with foreign keys, WAL and a busy timeout.
+* [x] Added an ordered initial migration, migration metadata, checksum
+  verification, duplicate detection, transactional application and
+  `user_version` tracking.
+* [x] Added owner-scoped users, revocable hashed sessions, products, variants,
+  checks, per-variant results, real price logs and notification events.
+* [x] Persisted pricing definition, context, context key, source, voucher,
+  shipping exclusion, catalogue evidence and lifecycle state.
+* [x] Added explicit variant presence, eligible-miss, reactivation and
+  suspicious mass-disappearance persistence operations.
+* [x] Added product-scoped check idempotency and exact successful-transition
+  notification deduplication.
+* [x] Added repository factories and a synchronous atomic transaction boundary
+  for the future tracking service.
+* [x] Added 22 focused integration assertions covering migration safety, local
+  user and sessions, owner isolation, upserts, lifecycle, history, rollback,
+  failed checks, deduplication and cascade deletion.
+
+See `docs/phase-4-database-layer.md` for the schema and repository boundary.
 
 ## Exit condition
 

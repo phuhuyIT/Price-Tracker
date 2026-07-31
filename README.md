@@ -11,6 +11,9 @@
 > [docs/phase-2-project-foundation.md](docs/phase-2-project-foundation.md), and
 > the shared validation contract is documented in
 > [docs/phase-3-shared-contracts.md](docs/phase-3-shared-contracts.md).
+> The SQLite schema, migrations, repository contracts, and persistence
+> safeguards are documented in
+> [docs/phase-4-database-layer.md](docs/phase-4-database-layer.md).
 > Existing collector behavior is intentionally preserved as legacy discovery
 > tooling.
 > The persistent-profile Playwright mode described below is legacy discovery
@@ -86,6 +89,28 @@ An example accepted payload is available at
 `packages/shared/examples/valid-product-snapshot.json`. New snapshots must use
 either `extension` + `user_session` or `playwright` + `anonymous`; an unknown
 pricing context is rejected.
+
+## Phase 4 database layer
+
+The server now uses one shared `better-sqlite3` connection with foreign keys
+and WAL mode. Ordered, checksummed migrations run automatically before the
+server listens and are also available through:
+
+```powershell
+npm.cmd run db:migrate
+```
+
+The initial schema stores owner-scoped products, stable variants and lifecycle
+state, grouped checks, per-variant gaps, real positive-integer VND prices,
+successful notification transitions, users, and revocable hashed sessions.
+No Shopee credentials, cookies, headers, or null/zero price placeholders are
+stored.
+
+Run only the Phase 4 persistence tests with:
+
+```powershell
+npm.cmd run test:phase4
+```
 
 This project has two browser modes:
 
