@@ -30,10 +30,10 @@ currency, collection provenance, catalogue evidence and at least one variant.
 
 Collector and pricing context are fixed pairs:
 
-| Snapshot source | Pricing context | Meaning |
-| --- | --- | --- |
-| `extension` | `user_session` | Price observed in the user's active Chrome session |
-| `playwright` | `anonymous` | Price observed in a fresh anonymous browser context |
+| Snapshot source | Pricing context  | Meaning                                             |
+| --------------- | ---------------- | --------------------------------------------------- |
+| `extension`   | `user_session` | Price observed in the user's active Chrome session  |
+| `playwright`  | `anonymous`    | Price observed in a fresh anonymous browser context |
 
 Each snapshot includes an opaque application-generated `pricingContextKey`.
 It must not contain a Shopee account ID or credential. The enum retains
@@ -69,12 +69,12 @@ only when all of these are true:
 
 Coverage rules:
 
-| Coverage | Confidence | Lifecycle eligible |
-| --- | --- | --- |
-| `complete` | `verified` | yes |
-| `complete` | `likely_complete` | no |
-| `partial` | `partial` | no |
-| `unknown` | `unknown` | no |
+| Coverage     | Confidence          | Lifecycle eligible |
+| ------------ | ------------------- | ------------------ |
+| `complete` | `verified`        | yes                |
+| `complete` | `likely_complete` | no                 |
+| `partial`  | `partial`         | no                 |
+| `unknown`  | `unknown`         | no                 |
 
 `observedVariantCount` must equal the number of variants in the snapshot.
 `pricedVariantCount` must equal the number of `observed` prices. Complete
