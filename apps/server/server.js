@@ -1,11 +1,16 @@
 import { createApp } from './src/app.js';
 import { config } from './src/config/index.js';
+import { closeDatabase, getDatabase } from './src/db/connection.js';
+import { runMigrations } from './src/db/migrate.js';
 import { logger } from './src/logging/logger.js';
 
+const database = getDatabase();
+const migrationResult = runMigrations(database);
 const app = createApp();
 const server = app.listen(config.port, config.host, () => {
   logger.info(
     {
+      databaseVersion: migrationResult.currentVersion,
       authEnabled: config.auth.enabled,
       host: config.host,
       port: config.port,
@@ -37,6 +42,7 @@ function shutDown(signal) {
 
   server.close((error) => {
     clearTimeout(forceExitTimer);
+    closeDatabase();
 
     if (error) {
       logger.error({ err: error, signal }, 'Server shutdown failed');
