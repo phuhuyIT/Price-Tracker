@@ -112,6 +112,57 @@ Run only the Phase 4 persistence tests with:
 npm.cmd run test:phase4
 ```
 
+## Phase 5 core backend services
+
+The server now has HTTP-independent services for transactional snapshot
+tracking, comparable-price evaluation, owner-scoped product queries, and
+price-tracker authentication. Exact snapshot replays are idempotent; partial or
+suspicious catalogues cannot incorrectly deactivate variants; and chart gaps
+come from check results without storing null or zero prices.
+
+Current product prices remain separated by pricing context and context key. If
+both contexts exist, summaries prefer the extension's `user_session` price and
+retain the anonymous Playwright price with its provenance.
+
+Authentication still defaults to disabled local mode. When enabled, passwords
+use a local offline denylist and versioned asynchronous scrypt hashes, while
+SQLite stores only hashes of random opaque session tokens.
+
+Run only the Phase 5 service tests with:
+
+```powershell
+npm.cmd run test:phase5
+```
+
+See `docs/phase-5-core-services.md` for the service and security boundaries.
+
+## Phase 6 REST API
+
+The Express server now exposes the complete authentication and product API at
+`/api`. Product routes transparently use the reserved local owner while
+`AUTH_ENABLED=false`; when authentication is enabled they require either the
+dashboard's HTTP-only cookie or the extension's bearer session.
+
+HTTP protections include a 64 KiB JSON limit, Helmet security headers and CSP,
+exact-origin CORS, request IDs, structured request logs, stricter authentication
+throttling, and rate limiting for every product mutation. Snapshot requests are
+strictly validated and reject raw responses, cookies, headers, and
+authentication data.
+
+The required `POST /api/products/track` and manual-refresh contracts are in
+place. Until Phase 8 injects the anonymous Playwright collector, a new URL or
+refresh returns the explicit `COLLECTOR_UNAVAILABLE` response. Tracking a URL
+that already exists returns its stored summary without invoking a collector.
+
+Run only the Phase 6 API tests with:
+
+```powershell
+npm.cmd run test:phase6
+```
+
+See `docs/phase-6-rest-api.md` for endpoint behavior, authentication transports,
+and the collector handoff.
+
 This project has two browser modes:
 
 - `npm.cmd run legacy:current` (also available as `npm.cmd run current`) uses the exact

@@ -575,6 +575,8 @@ A normalised snapshot can be saved and retrieved correctly without using the ext
 
 # Phase 5 — Implement Core Backend Services
 
+Status: **complete — verified 2026-08-01**
+
 ## Objective
 
 Create the business-logic layer independently from HTTP routes.
@@ -684,6 +686,29 @@ Test:
 * Authentication service.
 * Unit and integration tests.
 
+## Implementation status — 2026-08-01
+
+Completed:
+
+* [x] Added strict shared-snapshot validation before persistence and a
+  deterministic SHA-256 idempotency key for exact snapshot replays.
+* [x] Added one synchronous tracking transaction for product and variant
+  upserts, grouped checks, per-variant results, real prices, lifecycle changes,
+  and suspicious mass-disappearance confirmation.
+* [x] Added exact comparable-price selection by variant, currency, definition,
+  type, pricing context, context key, and price source, including threshold and
+  successful-transition deduplication policy.
+* [x] Added owner-scoped product summaries, details, pagination, per-context
+  latest and lowest prices, user-session display priority, and check-aligned
+  Chart.js points with real gaps.
+* [x] Added price-tracker registration, login, current-user, logout, revocation,
+  expiry, reserved-local-owner resolution, an offline common-password denylist,
+  versioned asynchronous scrypt hashes, and opaque hashed sessions.
+* [x] Added 25 focused Phase 5 assertions covering service policy, rollback,
+  authentication, contexts, lifecycle, comparisons, queries, and chart gaps.
+
+See `docs/phase-5-core-services.md` for service contracts and Phase 6 handoff.
+
 ## Exit condition
 
 Business logic works using fixture snapshots without HTTP, Playwright or extension dependencies.
@@ -691,6 +716,8 @@ Business logic works using fixture snapshots without HTTP, Playwright or extensi
 ---
 
 # Phase 6 — Build the Backend REST API
+
+Status: **complete — verified 2026-08-01**
 
 ## Objective
 
@@ -776,6 +803,33 @@ Test:
 * API validation.
 * API tests.
 * Health-check endpoint.
+
+## Implementation status — 2026-08-01
+
+Completed:
+
+* [x] Added the complete `/api/auth`, `/api/products`, and `/api/health` route
+  surface with thin controllers, shared Zod request validation, and standard
+  success/error envelopes.
+* [x] Added Helmet with a restrictive CSP, a 64 KiB JSON limit, exact-origin
+  CORS, request IDs, structured completion logs, mutation throttling, and
+  stricter authentication throttling.
+* [x] Added disabled-mode reserved-local ownership and enabled-mode dashboard
+  cookie or extension bearer authentication without accepting owner IDs from
+  clients.
+* [x] Kept dashboard tokens out of JSON responses and persisted only token
+  hashes; extension tokens are returned once and accepted only through the
+  bearer transport.
+* [x] Added owner-scoped listing, details, filtered history, pause/resume,
+  threshold updates, deletion, transactional snapshots, duplicate URL lookup,
+  and refresh coordination.
+* [x] Added the confirmed Phase 8 boundary: new URL collection and manual
+  refresh return `COLLECTOR_UNAVAILABLE` until an anonymous collector is
+  injected, while their stable endpoint contracts are already tested.
+* [x] Added 15 focused Phase 6 integration assertions covering the required
+  API, authentication, privacy, validation, throttling, and isolation cases.
+
+See `docs/phase-6-rest-api.md` for endpoint behavior and the Phase 7/8 handoff.
 
 ## Exit condition
 
