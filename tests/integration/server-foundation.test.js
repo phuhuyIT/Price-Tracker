@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { createApp } from '../../apps/server/src/app.js';
+import { createTestDatabase } from './databaseTestUtils.js';
 
 const servers = new Set();
+const databases = new Set();
 
 afterEach(async () => {
   await Promise.all(
@@ -20,10 +22,17 @@ afterEach(async () => {
         }),
     ),
   );
+
+  for (const database of databases) {
+    database.cleanup();
+  }
+  databases.clear();
 });
 
 async function startServer() {
-  const server = createApp().listen(0, '127.0.0.1');
+  const database = createTestDatabase();
+  databases.add(database);
+  const server = createApp({ database: database.database }).listen(0, '127.0.0.1');
   servers.add(server);
   await new Promise((resolve) => server.once('listening', resolve));
   const address = server.address();

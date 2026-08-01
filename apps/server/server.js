@@ -6,7 +6,7 @@ import { logger } from './src/logging/logger.js';
 
 const database = getDatabase();
 const migrationResult = runMigrations(database);
-const app = createApp();
+const app = createApp({ database });
 const server = app.listen(config.port, config.host, () => {
   logger.info(
     {
