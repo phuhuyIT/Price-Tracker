@@ -88,6 +88,61 @@ function mapPriceLog(row) {
   };
 }
 
+function mapCurrentPrice(row) {
+  const price = mapPriceLog(row);
+
+  if (!price) {
+    return null;
+  }
+
+  return {
+    ...price,
+    variantLifecycle: row.variant_lifecycle,
+    variantName: row.variant_name,
+  };
+}
+
+function mapLatestResult(row) {
+  const result = mapCheckResult(row);
+
+  if (!result) {
+    return null;
+  }
+
+  return {
+    ...result,
+    checkedAt: row.checked_at,
+    pricingContext: row.pricing_context,
+    pricingContextKey: row.pricing_context_key,
+    source: row.check_source,
+    variantName: row.variant_name,
+  };
+}
+
+function mapHistoryTimelinePoint(row) {
+  return {
+    availability: row.availability,
+    checkId: row.check_id,
+    checkedAt: row.checked_at,
+    currency: row.currency,
+    presence: row.presence,
+    priceAmount: row.price_amount,
+    priceDefinition: row.price_definition,
+    priceLogId: row.price_log_id,
+    priceSource: row.price_source,
+    priceStatus: row.price_status,
+    priceType: row.price_type,
+    pricingContext: row.pricing_context,
+    pricingContextKey: row.pricing_context_key,
+    reasonCode: row.reason_code,
+    source: row.check_source,
+    variantId: row.variant_id,
+    variantLifecycle: row.variant_lifecycle,
+    variantName: row.variant_name,
+    voucherStatus: row.voucher_status,
+  };
+}
+
 /**
  * Create owner-scoped check, gap, and price-history persistence operations.
  *
@@ -306,6 +361,99 @@ export function createPriceRepository(database) {
     ORDER BY pl.recorded_at ASC, pl.id ASC
     LIMIT @limit
   `);
+  const latestPricesByProductStatement = database.prepare(`
+    WITH ranked_prices AS (
+      SELECT
+        pl.*,
+        pv.lifecycle_status AS variant_lifecycle,
+        pv.name AS variant_name,
+        ROW_NUMBER() OVER (
+          PARTITION BY pl.variant_id, pl.pricing_context, pl.pricing_context_key
+          ORDER BY pl.recorded_at DESC, pl.id DESC
+        ) AS price_rank
+      FROM price_logs pl
+      JOIN product_variants pv ON pv.id = pl.variant_id
+      JOIN products p ON p.id = pv.product_id
+      WHERE pv.product_id = @productId AND p.owner_user_id = @ownerUserId
+    )
+    SELECT *
+    FROM ranked_prices
+    WHERE price_rank = 1
+    ORDER BY variant_id, pricing_context, pricing_context_key
+  `);
+  const latestResultsByProductStatement = database.prepare(`
+    WITH ranked_results AS (
+      SELECT
+        vcr.*,
+        pc.checked_at,
+        pc.pricing_context,
+        pc.pricing_context_key,
+        pc.source AS check_source,
+        pv.name AS variant_name,
+        ROW_NUMBER() OVER (
+          PARTITION BY vcr.variant_id, pc.pricing_context, pc.pricing_context_key
+          ORDER BY pc.checked_at DESC, pc.id DESC
+        ) AS result_rank
+      FROM variant_check_results vcr
+      JOIN price_checks pc ON pc.id = vcr.check_id
+      JOIN product_variants pv ON pv.id = vcr.variant_id
+      JOIN products p ON p.id = pc.product_id
+      WHERE pc.product_id = @productId
+        AND pc.status = 'success'
+        AND p.owner_user_id = @ownerUserId
+    )
+    SELECT *
+    FROM ranked_results
+    WHERE result_rank = 1
+    ORDER BY variant_id, pricing_context, pricing_context_key
+  `);
+  const historyTimelineStatement = database.prepare(`
+    WITH selected_checks AS (
+      SELECT pc.*
+      FROM price_checks pc
+      JOIN products p ON p.id = pc.product_id
+      WHERE pc.product_id = @productId
+        AND pc.status = 'success'
+        AND p.owner_user_id = @ownerUserId
+        AND (@fromTimestamp IS NULL OR pc.checked_at >= @fromTimestamp)
+        AND (@toTimestamp IS NULL OR pc.checked_at <= @toTimestamp)
+        AND EXISTS (
+          SELECT 1
+          FROM variant_check_results selected_result
+          WHERE selected_result.check_id = pc.id
+            AND (@variantId IS NULL OR selected_result.variant_id = @variantId)
+        )
+      ORDER BY pc.checked_at DESC, pc.id DESC
+      LIMIT @limit
+    )
+    SELECT
+      selected_checks.id AS check_id,
+      selected_checks.checked_at,
+      selected_checks.pricing_context,
+      selected_checks.pricing_context_key,
+      selected_checks.source AS check_source,
+      vcr.variant_id,
+      vcr.presence,
+      vcr.price_status,
+      vcr.availability,
+      vcr.reason_code,
+      vcr.variant_lifecycle,
+      pv.name AS variant_name,
+      pl.id AS price_log_id,
+      pl.price_amount,
+      pl.currency,
+      pl.price_definition,
+      pl.price_type,
+      pl.price_source,
+      pl.voucher_status
+    FROM selected_checks
+    JOIN variant_check_results vcr ON vcr.check_id = selected_checks.id
+    JOIN product_variants pv ON pv.id = vcr.variant_id
+    LEFT JOIN price_logs pl
+      ON pl.check_id = selected_checks.id AND pl.variant_id = vcr.variant_id
+    WHERE (@variantId IS NULL OR vcr.variant_id = @variantId)
+    ORDER BY selected_checks.checked_at ASC, selected_checks.id ASC, vcr.variant_id ASC
+  `);
 
   return Object.freeze({
     /**
@@ -417,6 +565,24 @@ export function createPriceRepository(database) {
         return mapCheck(findCheckByIdStatement.get({ checkId, ownerUserId }));
       } catch (error) {
         throwDatabaseError('Unable to find the price check', error);
+      }
+    },
+
+    /**
+     * Find one replay/idempotency record inside an owner product scope.
+     *
+     * @param {{idempotencyKey: string, ownerUserId: number, productId: number}} input
+     */
+    findCheckByIdempotency({ idempotencyKey, ownerUserId, productId }) {
+      assertIdentifier(ownerUserId, 'ownerUserId');
+      assertIdentifier(productId, 'productId');
+
+      try {
+        return mapCheck(
+          findCheckByIdempotencyStatement.get({ idempotencyKey, ownerUserId, productId }),
+        );
+      } catch (error) {
+        throwDatabaseError('Unable to find the idempotent price check', error);
       }
     },
 
@@ -655,6 +821,78 @@ export function createPriceRepository(database) {
           .map((row) => mapPriceLog(row));
       } catch (error) {
         throwDatabaseError('Unable to list price history', error);
+      }
+    },
+
+    /**
+     * List the latest real price for each variant and pricing-context stream.
+     *
+     * @param {{ownerUserId: number, productId: number}} input
+     */
+    listLatestPricesByProduct({ ownerUserId, productId }) {
+      assertIdentifier(ownerUserId, 'ownerUserId');
+      assertIdentifier(productId, 'productId');
+
+      try {
+        return latestPricesByProductStatement
+          .all({ ownerUserId, productId })
+          .map((row) => mapCurrentPrice(row));
+      } catch (error) {
+        throwDatabaseError('Unable to list current product prices', error);
+      }
+    },
+
+    /**
+     * List the latest check result for each variant and pricing-context stream.
+     *
+     * @param {{ownerUserId: number, productId: number}} input
+     */
+    listLatestResultsByProduct({ ownerUserId, productId }) {
+      assertIdentifier(ownerUserId, 'ownerUserId');
+      assertIdentifier(productId, 'productId');
+
+      try {
+        return latestResultsByProductStatement
+          .all({ ownerUserId, productId })
+          .map((row) => mapLatestResult(row));
+      } catch (error) {
+        throwDatabaseError('Unable to list current product check results', error);
+      }
+    },
+
+    /**
+     * List check-aligned variant outcomes and optional real price values.
+     *
+     * @param {object} input
+     */
+    listHistoryTimeline({
+      from: fromTimestamp = null,
+      limit = 500,
+      ownerUserId,
+      productId,
+      to: toTimestamp = null,
+      variantId = null,
+    }) {
+      assertIdentifier(ownerUserId, 'ownerUserId');
+      assertIdentifier(productId, 'productId');
+
+      if (variantId !== null) {
+        assertIdentifier(variantId, 'variantId');
+      }
+
+      try {
+        return historyTimelineStatement
+          .all({
+            fromTimestamp,
+            limit,
+            ownerUserId,
+            productId,
+            toTimestamp,
+            variantId,
+          })
+          .map((row) => mapHistoryTimelinePoint(row));
+      } catch (error) {
+        throwDatabaseError('Unable to list product history timeline', error);
       }
     },
 
