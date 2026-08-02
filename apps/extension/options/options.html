@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Shopee Price Tracker Options</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Shopee Price Tracker</p>
+        <h1>Extension options</h1>
+        <p>Configure the backend and how validated user-session prices are submitted.</p>
+      </header>
+
+      <section class="panel">
+        <h2>Collector</h2>
+        <form id="settings-form">
+          <label>
+            Backend URL
+            <input id="backend-url" name="backendUrl" type="url" required />
+          </label>
+          <label class="check-row">
+            <input id="automatic-capture" name="automaticCapture" type="checkbox" />
+            <span>Submit valid captures automatically</span>
+          </label>
+          <p class="hint">
+            Automatic capture is off by default. The popup still previews captured prices.
+          </p>
+          <label class="check-row">
+            <input id="debug-mode" name="debugMode" type="checkbox" />
+            <span>Show sanitised capture summaries in DevTools</span>
+          </label>
+          <button class="primary" type="submit">Save settings</button>
+        </form>
+        <p id="settings-status" class="status" role="status"></p>
+      </section>
+
+      <section class="panel">
+        <h2>Local pricing context</h2>
+        <p class="hint">
+          This random installation identifier separates price histories without containing a Shopee
+          account ID.
+        </p>
+        <output id="context-key" class="context-key"></output>
+        <button id="regenerate-context" class="secondary" type="button">
+          Regenerate identifier
+        </button>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Backend account</h2>
+          <button id="refresh-auth" class="text-button" type="button">Refresh status</button>
+        </div>
+        <p id="backend-status" class="status" role="status">Checking backend…</p>
+        <div id="auth-disabled" hidden>
+          <p class="hint">Application authentication is disabled. No bearer token will be sent.</p>
+        </div>
+        <div id="auth-enabled" hidden>
+          <form id="login-form">
+            <label>
+              Email
+              <input id="email" name="email" type="email" autocomplete="username" required />
+            </label>
+            <label>
+              Password
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                minlength="15"
+                maxlength="128"
+                required
+              />
+            </label>
+            <button class="primary" type="submit">Sign in</button>
+          </form>
+          <div id="signed-in" hidden>
+            <p>Signed in as <strong id="account-email"></strong></p>
+            <button id="logout" class="secondary" type="button">Sign out</button>
+          </div>
+        </div>
+        <p id="auth-status" class="status" role="status"></p>
+      </section>
+
+      <section class="panel">
+        <h2>Submission queue</h2>
+        <p id="queue-status" class="status"></p>
+        <div class="button-row">
+          <button id="retry-queue" class="secondary" type="button">Retry queue</button>
+          <button id="clear-failed" class="danger" type="button">Clear failed items</button>
+        </div>
+      </section>
+    </main>
+    <script src="options.js" type="module"></script>
+  </body>
+</html>
