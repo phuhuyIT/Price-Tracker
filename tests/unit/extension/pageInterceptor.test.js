@@ -1,0 +1,67 @@
+import { readFile } from 'node:fs/promises';
+
+import { describe, expect, it, vi } from 'vitest';
+
+import { installPageInterceptor } from '../../../apps/extension/content/page-interceptor.js';
+
+describe('page interceptor', () => {
+  it('returns the original fetch response while inspecting only a cloned payload', async () => {
+    const sourceFixture = JSON.parse(
+      await readFile(
+        new URL('../../fixtures/shopee-multi-variant-user-session.json', import.meta.url),
+        'utf8',
+      ),
+    );
+    const rawPayload = sourceFixture.endpointEvidence.productDetail.response;
+    const response = {
+      clone: vi.fn(() => ({ json: vi.fn(async () => rawPayload) })),
+      ok: true,
+      status: 200,
+      url: 'https://shopee.vn/api/v4/pdp/get_pc?item_id=26882883164',
+    };
+    const originalFetch = vi.fn(async () => response);
+    const postMessage = vi.fn();
+    const target = {
+      fetch: originalFetch,
+      location: {
+        href: sourceFixture.sourceUrl,
+        origin: 'https://shopee.vn',
+      },
+      postMessage,
+    };
+
+    installPageInterceptor(target);
+    const result = await target.fetch(response.url);
+    await vi.waitFor(() => expect(postMessage).toHaveBeenCalledOnce());
+
+    expect(result).toBe(response);
+    expect(response.clone).toHaveBeenCalledOnce();
+    expect(postMessage.mock.calls[0][0]).toMatchObject({
+      endpoint: '/api/v4/pdp/get_pc',
+      kind: 'product_detail',
+      type: 'SHOPEE_PRICE_TRACKER_CAPTURE',
+    });
+    expect(postMessage.mock.calls[0][1]).toBe('https://shopee.vn');
+  });
+
+  it('does not clone or inspect unrelated responses', async () => {
+    const response = {
+      clone: vi.fn(),
+      ok: true,
+      status: 200,
+      url: 'https://shopee.vn/api/v4/search/search_items',
+    };
+    const target = {
+      fetch: vi.fn(async () => response),
+      location: { href: 'https://shopee.vn/', origin: 'https://shopee.vn' },
+      postMessage: vi.fn(),
+    };
+
+    installPageInterceptor(target);
+    expect(await target.fetch(response.url)).toBe(response);
+    await Promise.resolve();
+
+    expect(response.clone).not.toHaveBeenCalled();
+    expect(target.postMessage).not.toHaveBeenCalled();
+  });
+});
