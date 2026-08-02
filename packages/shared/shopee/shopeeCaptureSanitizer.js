@@ -1,0 +1,293 @@
+import {
+  EXTENSION_CAPTURE_KINDS,
+  EXTENSION_CAPTURE_MESSAGE_TYPE,
+} from '../constants/extensionProtocol.js';
+import { EXTENSION_MESSAGE_PROTOCOL_VERSION } from '../constants/contractValues.js';
+import { SHOPEE_PRODUCT_ENDPOINTS } from '../constants/shopeeEndpoints.js';
+
+const [PRODUCT_DETAIL_ENDPOINT, SELECTED_VARIATION_ENDPOINT] = SHOPEE_PRODUCT_ENDPOINTS;
+
+const FINAL_PRICE_PATHS = Object.freeze([
+  ['price', 'singlevalue'],
+  ['price', 'single_value'],
+]);
+
+function readPath(value, path) {
+  return path.reduce(
+    (current, key) => (current !== null && current !== undefined ? current[key] : undefined),
+    value,
+  );
+}
+
+function positiveId(value) {
+  const result = String(value ?? '').trim();
+  return /^[1-9]\d{0,29}$/u.test(result) ? result : null;
+}
+
+function positiveSafeInteger(value) {
+  const result = Number(value);
+  return Number.isSafeInteger(result) && result > 0 ? result : null;
+}
+
+function safeTimestamp(value) {
+  return typeof value === 'string' && Number.isFinite(Date.parse(value))
+    ? new Date(value).toISOString()
+    : new Date().toISOString();
+}
+
+function normaliseSelectedTiers(value) {
+  const entries = Array.isArray(value)
+    ? value.map((option, tier) => [String(tier), option])
+    : value && typeof value === 'object'
+      ? Object.entries(value)
+      : [];
+  const result = {};
+
+  for (const [tier, option] of entries) {
+    const tierNumber = Number(tier);
+    const optionNumber = Number(option);
+
+    if (
+      !Number.isSafeInteger(tierNumber) ||
+      tierNumber < 0 ||
+      !Number.isSafeInteger(optionNumber) ||
+      optionNumber < 0
+    ) {
+      return null;
+    }
+
+    result[String(tierNumber)] = optionNumber;
+  }
+
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+function inferAvailability(model) {
+  const stock = model?.stock ?? model?.normal_stock;
+
+  if (stock !== null && stock !== undefined && stock !== '' && Number.isFinite(Number(stock))) {
+    return Number(stock) > 0 ? 'available' : 'sold_out';
+  }
+
+  if (model?.status === 0 || model?.item_status === 'unavailable') {
+    return 'unavailable';
+  }
+
+  return 'unknown';
+}
+
+function normaliseVoucherStatus(priceContainer) {
+  const discounts = priceContainer?.discount_breakdown;
+
+  if (
+    Array.isArray(discounts) &&
+    discounts.some(
+      (discount) =>
+        discount?.shop_voucher === true ||
+        discount?.platform_voucher === true ||
+        discount?.ads_voucher === true,
+    )
+  ) {
+    return 'applied';
+  }
+
+  if (priceContainer && Object.hasOwn(priceContainer, 'final_price_vouchers')) {
+    const vouchers = priceContainer.final_price_vouchers;
+
+    if (Array.isArray(vouchers)) {
+      return vouchers.length > 0 ? 'applied' : 'not_applied';
+    }
+
+    if (vouchers === null) {
+      return 'not_applied';
+    }
+  }
+
+  return 'unknown';
+}
+
+function findPriceContainer(payload) {
+  const priceBreakdown = payload?.data?.price_breakdown ?? payload?.price_breakdown;
+
+  if (priceBreakdown && typeof priceBreakdown === 'object') {
+    return { container: priceBreakdown, source: 'variation_price_breakdown' };
+  }
+
+  const productPrice = payload?.data?.product_price;
+
+  if (productPrice && typeof productPrice === 'object') {
+    return { container: productPrice, source: 'verified_display_field' };
+  }
+
+  return { container: null, source: null };
+}
+
+/** Extract only price fields required by the normalised snapshot contract. */
+export function sanitisePriceEvidence(payload, { forcedSource } = {}) {
+  const { container, source } = findPriceContainer(payload);
+  let rawPrice = null;
+
+  for (const path of FINAL_PRICE_PATHS) {
+    rawPrice = positiveSafeInteger(readPath(container, path));
+
+    if (rawPrice !== null) {
+      break;
+    }
+  }
+
+  const modelId = positiveId(
+    container?.price_model?.price_single_model_id ?? payload?.data?.selected_model_id,
+  );
+
+  return {
+    modelId,
+    priceSource: rawPrice === null ? null : (forcedSource ?? source),
+    rawPrice,
+    voucherStatus: normaliseVoucherStatus(container),
+  };
+}
+
+function sanitiseTierVariations(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((tier) => ({
+    name: typeof tier?.name === 'string' ? tier.name.slice(0, 200) : '',
+    options: Array.isArray(tier?.options)
+      ? tier.options.map((option) =>
+          String(
+            typeof option === 'string' ? option : (option?.name ?? option?.option ?? ''),
+          ).slice(0, 300),
+        )
+      : [],
+  }));
+}
+
+function sanitiseModels(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((model) => {
+    const selectedTiers = normaliseSelectedTiers(model?.extinfo?.tier_index);
+
+    return {
+      availability: inferAvailability(model),
+      modelId: positiveId(model?.modelid ?? model?.model_id),
+      name: typeof model?.name === 'string' ? model.name.slice(0, 300) : '',
+      tierIndex: selectedTiers ? Object.values(selectedTiers) : [],
+    };
+  });
+}
+
+function captureEnvelope({ capturedAt, endpoint, kind }) {
+  return {
+    capturedAt: safeTimestamp(capturedAt),
+    endpoint,
+    kind,
+    protocolVersion: EXTENSION_MESSAGE_PROTOCOL_VERSION,
+    type: EXTENSION_CAPTURE_MESSAGE_TYPE,
+  };
+}
+
+/** Create an allowlisted product-detail capture without retaining the raw response. */
+export function sanitiseProductDetailCapture(payload, { capturedAt } = {}) {
+  const item = payload?.data?.item;
+
+  if (!item || typeof item !== 'object') {
+    return null;
+  }
+
+  const models = sanitiseModels(item.models);
+
+  return {
+    ...captureEnvelope({
+      capturedAt,
+      endpoint: PRODUCT_DETAIL_ENDPOINT,
+      kind: EXTENSION_CAPTURE_KINDS.PRODUCT_DETAIL,
+    }),
+    priceEvidence: sanitisePriceEvidence(payload?.data?.pricing, {
+      forcedSource: 'product_detail_fallback',
+    }),
+    product: {
+      currency: String(item.currency ?? '').toUpperCase(),
+      image: typeof item.image === 'string' ? item.image.slice(0, 2_048) : null,
+      itemId: positiveId(item.itemid ?? item.item_id),
+      models,
+      shopId: positiveId(item.shopid ?? item.shop_id),
+      tierVariations: sanitiseTierVariations(item.tier_variations),
+      title: String(item.title ?? item.name ?? '').slice(0, 500),
+    },
+  };
+}
+
+function safeErrorCode(payload) {
+  const value = payload?.error_code ?? payload?.error;
+
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  return String(value).trim().slice(0, 96) || null;
+}
+
+/** Create allowlisted selected-variation evidence without request headers or credentials. */
+export function sanitiseSelectedVariationCapture(
+  payload,
+  { capturedAt, ok, requestBody, status } = {},
+) {
+  const selectedTiers = normaliseSelectedTiers(requestBody?.selected_tiers);
+  const itemId = positiveId(requestBody?.item_id);
+  const shopId = positiveId(requestBody?.shop_id);
+  const quantity = positiveSafeInteger(requestBody?.quantity ?? 1);
+
+  if (!selectedTiers || !itemId || !shopId || !quantity) {
+    return null;
+  }
+
+  return {
+    ...captureEnvelope({
+      capturedAt,
+      endpoint: SELECTED_VARIATION_ENDPOINT,
+      kind: EXTENSION_CAPTURE_KINDS.SELECTED_VARIATION,
+    }),
+    priceEvidence: sanitisePriceEvidence(payload),
+    request: { itemId, quantity, selectedTiers, shopId },
+    response: {
+      errorCode: safeErrorCode(payload),
+      ok: ok === true,
+      status: Number.isInteger(status) && status >= 0 && status <= 599 ? status : null,
+    },
+  };
+}
+
+/** Parse a variation request body without reading headers or credentials. */
+export function parseVariationRequestBody(value) {
+  if (value && typeof value === 'object' && !(value instanceof URLSearchParams)) {
+    return value;
+  }
+
+  const text = value instanceof URLSearchParams ? value.toString() : value;
+
+  if (typeof text !== 'string' || text.length > 32_768) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    try {
+      const parameters = new URLSearchParams(text);
+      const body = Object.fromEntries(parameters.entries());
+
+      if (typeof body.selected_tiers === 'string') {
+        body.selected_tiers = JSON.parse(body.selected_tiers);
+      }
+
+      return body;
+    } catch {
+      return null;
+    }
+  }
+}

@@ -8,7 +8,8 @@
     ".": "./index.js",
     "./constants/*": "./constants/*.js",
     "./errors/*": "./errors/*.js",
-    "./schemas/*": "./schemas/*.js"
+    "./schemas/*": "./schemas/*.js",
+    "./shopee/*": "./shopee/*.js"
   },
   "dependencies": {
     "zod": "^3.25.76"
