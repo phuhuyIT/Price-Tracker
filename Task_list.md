@@ -939,6 +939,20 @@ Verify:
 * Authentication enabled and disabled.
 * Revoked price-tracker session.
 
+Implementation status (2026-08-01):
+
+* [x] Added the loadable MV3 manifest, `MAIN` fetch/XHR interceptor, isolated
+  validated bridge, shared capture schemas/normaliser, persistent bounded
+  service-worker queue, popup, options, local icons, and bundled build.
+* [x] Kept automatic capture off by default and generated the opaque local
+  pricing-context key per installation.
+* [x] Added 22 focused assertions for capture privacy, catalogue/price
+  correctness, interceptor preservation, queue policy, and settings, plus the
+  manifest-reference and remote-code build validation.
+* [ ] Complete the live Chrome scenarios in
+  `docs/phase-7-chrome-extension.md` before treating the Phase 7 exit condition
+  as manually verified.
+
 ## Deliverables
 
 * Loadable Chrome extension.
@@ -947,6 +961,9 @@ Verify:
 * Persistent submission queue.
 * Popup and options page.
 * Manual extension test checklist.
+
+See `docs/phase-7-chrome-extension.md` for the implemented boundaries, queue
+semantics, authentication behavior, setup, and manual checklist.
 
 ## Exit condition
 

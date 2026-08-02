@@ -14,6 +14,8 @@
 > The SQLite schema, migrations, repository contracts, and persistence
 > safeguards are documented in
 > [docs/phase-4-database-layer.md](docs/phase-4-database-layer.md).
+> The current-session MV3 collector is documented in
+> [docs/phase-7-chrome-extension.md](docs/phase-7-chrome-extension.md).
 > Existing collector behavior is intentionally preserved as legacy discovery
 > tooling.
 > The persistent-profile Playwright mode described below is legacy discovery
@@ -163,6 +165,35 @@ npm.cmd run test:phase6
 See `docs/phase-6-rest-api.md` for endpoint behavior, authentication transports,
 and the collector handoff.
 
+## Phase 7 Chrome extension collector
+
+Build and verify the price-tracker extension:
+
+```powershell
+npm.cmd run test:phase7
+```
+
+Load `dist/extension` from `chrome://extensions`. This is the new MVP collector;
+the separate `chrome-extension` folder below remains legacy exact-profile
+discovery tooling.
+
+After loading the MVP extension, copy its ID and restart the backend with:
+
+```powershell
+$env:EXTENSION_ALLOWED_ORIGIN = "chrome-extension://<extension-id>"
+npm.cmd start
+```
+
+The extension previews valid captures in its popup. Automatic submission is off
+by default; click **Track Product** to submit. The options page configures the
+backend, debug summaries, the generated local pricing-context key, queue retry,
+and optional price-tracker sign-in. It never captures or sends Shopee cookies,
+headers, or authentication data.
+
+The full manual procedure, including variant, voucher, quantity, offline queue,
+browser restart, and enabled/disabled authentication cases, is in
+`docs/phase-7-chrome-extension.md`.
+
 This project has two browser modes:
 
 - `npm.cmd run legacy:current` (also available as `npm.cmd run current`) uses the exact
@@ -218,16 +249,16 @@ the temporary product tab that it creates.
 
 ### Run with the current profile
 
-Start the local bridge:
+Start the legacy local bridge:
 
 ```powershell
-npm.cmd start
+npm.cmd run legacy:current
 ```
 
 Or provide another Shopee URL:
 
 ```powershell
-npm.cmd start -- "https://shopee.vn/your-product-i.123.456"
+npm.cmd run legacy:current -- "https://shopee.vn/your-product-i.123.456"
 ```
 
 Then:
