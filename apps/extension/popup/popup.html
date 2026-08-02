@@ -8,8 +8,53 @@
   </head>
   <body>
     <main>
-      <h1>Shopee Price Tracker</h1>
-      <p id="status">Foundation ready. Product capture is implemented in a later phase.</p>
+      <header>
+        <div>
+          <p class="eyebrow">Shopee Vietnam</p>
+          <h1>Price Tracker</h1>
+        </div>
+        <span id="page-badge" class="badge badge-neutral">Checking</span>
+      </header>
+
+      <section class="card capture-card" aria-live="polite">
+        <p id="capture-placeholder" class="muted">
+          Open a supported Shopee product page and wait for its price to load.
+        </p>
+        <div id="capture-details" hidden>
+          <h2 id="product-title"></h2>
+          <p id="displayed-price" class="price">—</p>
+          <dl>
+            <div>
+              <dt>Selected variant</dt>
+              <dd id="selected-variant">—</dd>
+            </div>
+            <div>
+              <dt>Voucher</dt>
+              <dd id="voucher-status">—</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="status-grid" aria-label="Connection and queue status">
+        <div class="status-item">
+          <span>Backend</span>
+          <strong id="backend-status">Checking</strong>
+        </div>
+        <div class="status-item">
+          <span>Queue</span>
+          <strong id="queue-status">0</strong>
+        </div>
+      </section>
+
+      <p id="submission-status" class="notice" role="status"></p>
+
+      <button id="track-button" class="primary" type="button" disabled>Track Product</button>
+
+      <footer>
+        <button id="dashboard-button" class="link-button" type="button">Open dashboard</button>
+        <button id="options-button" class="link-button" type="button">Options</button>
+      </footer>
     </main>
     <script src="popup.js" type="module"></script>
   </body>
