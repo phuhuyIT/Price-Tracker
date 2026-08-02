@@ -1,10 +1,30 @@
 import { cp, mkdir, readFile, readdir, rm, stat } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { build } from 'esbuild';
+
+import { generateExtensionIcons } from './generate-extension-icons.mjs';
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sourceDirectory = join(repositoryRoot, 'apps', 'extension');
 const outputDirectory = join(repositoryRoot, 'dist', 'extension');
+
+const scriptEntryPoints = [
+  'service-worker.js',
+  'content/page-interceptor.js',
+  'content/content-bridge.js',
+  'popup/popup.js',
+  'options/options.js',
+];
+const staticFiles = [
+  'manifest.json',
+  'popup/popup.html',
+  'popup/popup.css',
+  'options/options.html',
+  'options/options.css',
+  'icons/README.md',
+];
 
 async function listFiles(directory) {
   const entries = await readdir(directory);
@@ -24,11 +44,26 @@ async function listFiles(directory) {
   return files;
 }
 
-/**
- * Validate and copy the unpacked MV3 extension to the generated dist directory.
- *
- * @returns {Promise<{fileCount: number, outputDirectory: string}>}
- */
+async function copyStaticFile(filePath) {
+  const destination = join(outputDirectory, filePath);
+  await mkdir(dirname(destination), { recursive: true });
+  await cp(join(sourceDirectory, filePath), destination);
+}
+
+async function rejectRemoteExecutable(files) {
+  for (const filePath of files.filter((value) => /\.(?:html|js)$/u.test(value))) {
+    const source = await readFile(filePath, 'utf8');
+    const hasRemoteExecutable =
+      /<script[^>]+src=["']https?:\/\//iu.test(source) ||
+      /\bimport\s*(?:\(|[^'";]*from\s*)["']https?:\/\//u.test(source);
+
+    if (hasRemoteExecutable) {
+      throw new Error(`Remote executable code is not allowed: ${filePath}`);
+    }
+  }
+}
+
+/** Bundle and validate the loadable MV3 extension in the generated dist directory. */
 export async function buildExtension() {
   const manifestPath = join(sourceDirectory, 'manifest.json');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
@@ -37,28 +72,45 @@ export async function buildExtension() {
     throw new Error('Extension manifest_version must be 3');
   }
 
-  const sourceFiles = await listFiles(sourceDirectory);
-  const executableFiles = sourceFiles.filter((filePath) => /\.(?:html|js)$/u.test(filePath));
+  await rm(outputDirectory, { force: true, recursive: true });
+  await mkdir(outputDirectory, { recursive: true });
+  await Promise.all(staticFiles.map(copyStaticFile));
+  await build({
+    bundle: true,
+    entryPoints: scriptEntryPoints.map((entry) => join(sourceDirectory, entry)),
+    format: 'iife',
+    legalComments: 'none',
+    outbase: sourceDirectory,
+    outdir: outputDirectory,
+    platform: 'browser',
+    target: ['chrome116'],
+  });
 
-  for (const filePath of executableFiles) {
-    const source = await readFile(filePath, 'utf8');
-    const hasRemoteExecutable =
-      /<script[^>]+src=["']https?:\/\//iu.test(source) ||
-      /\bimport\s*(?:\(|[^'"]*from\s*)["']https?:\/\//u.test(source);
+  const iconDirectory = join(outputDirectory, 'icons');
+  await mkdir(iconDirectory, { recursive: true });
+  await generateExtensionIcons(iconDirectory);
 
-    if (hasRemoteExecutable) {
-      throw new Error(`Remote executable code is not allowed: ${filePath}`);
+  const outputFiles = await listFiles(outputDirectory);
+  await rejectRemoteExecutable(outputFiles);
+
+  const requiredManifestFiles = [
+    manifest.background.service_worker,
+    manifest.action.default_popup,
+    manifest.options_page,
+    ...Object.values(manifest.icons),
+    ...manifest.content_scripts.flatMap((contentScript) => contentScript.js),
+  ];
+  const outputRelativePaths = new Set(
+    outputFiles.map((filePath) => relative(outputDirectory, filePath).replaceAll('\\', '/')),
+  );
+
+  for (const requiredFile of requiredManifestFiles) {
+    if (!outputRelativePaths.has(requiredFile)) {
+      throw new Error(`Manifest references a missing extension file: ${requiredFile}`);
     }
   }
 
-  await rm(outputDirectory, { force: true, recursive: true });
-  await mkdir(dirname(outputDirectory), { recursive: true });
-  await cp(sourceDirectory, outputDirectory, { recursive: true });
-
-  return {
-    fileCount: sourceFiles.length,
-    outputDirectory,
-  };
+  return { fileCount: outputFiles.length, outputDirectory };
 }
 
 const result = await buildExtension();
