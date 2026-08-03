@@ -1,3 +1,4 @@
+import { createCollectionJobRepository } from './collectionJobRepository.js';
 import { createNotificationRepository } from './notificationRepository.js';
 import { createPriceRepository } from './priceRepository.js';
 import { createProductRepository } from './productRepository.js';
@@ -15,6 +16,7 @@ import { createVariantRepository } from './variantRepository.js';
  */
 export function createRepositories(database) {
   const repositories = Object.freeze({
+    collectionJobs: createCollectionJobRepository(database),
     notifications: createNotificationRepository(database),
     prices: createPriceRepository(database),
     products: createProductRepository(database),
@@ -54,6 +56,7 @@ export function createRepositories(database) {
 }
 
 export { createNotificationRepository } from './notificationRepository.js';
+export { createCollectionJobRepository } from './collectionJobRepository.js';
 export { createPriceRepository } from './priceRepository.js';
 export { createProductRepository } from './productRepository.js';
 export { createSessionRepository } from './sessionRepository.js';

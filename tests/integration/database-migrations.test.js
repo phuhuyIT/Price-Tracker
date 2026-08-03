@@ -24,8 +24,8 @@ describe('database migrations', () => {
 
     expect(harness.database.pragma('foreign_keys', { simple: true })).toBe(1);
     expect(harness.database.pragma('journal_mode', { simple: true })).toBe('wal');
-    expect(harness.database.pragma('user_version', { simple: true })).toBe(1);
-    expect(harness.migrationResult.applied).toEqual(['001-initial.sql']);
+    expect(harness.database.pragma('user_version', { simple: true })).toBe(2);
+    expect(harness.migrationResult.applied).toEqual(['001-initial.sql', '002-collection-jobs.sql']);
 
     const tables = harness.database
       .prepare(
@@ -35,6 +35,7 @@ describe('database migrations', () => {
       .map((row) => row.name);
 
     expect(tables).toEqual([
+      'collection_jobs',
       'notification_events',
       'price_checks',
       'price_logs',
@@ -54,10 +55,10 @@ describe('database migrations', () => {
     const secondRun = runMigrations(harness.database);
 
     expect(secondRun.applied).toEqual([]);
-    expect(secondRun.skipped).toEqual(['001-initial.sql']);
+    expect(secondRun.skipped).toEqual(['001-initial.sql', '002-collection-jobs.sql']);
     expect(
       harness.database.prepare('SELECT COUNT(*) AS count FROM schema_migrations').get().count,
-    ).toBe(1);
+    ).toBe(2);
   });
 
   it('rejects duplicate migration versions before changing the database', () => {
@@ -85,6 +86,8 @@ describe('database migrations', () => {
       join(directory, originalMigration.filename),
       `${readFileSync(new URL('../../apps/server/src/db/migrations/001-initial.sql', import.meta.url), 'utf8')}\nSELECT 1;\n`,
     );
+    const secondMigration = loadMigrations()[1];
+    writeFileSync(join(directory, secondMigration.filename), secondMigration.sql);
 
     expect(() => runMigrations(harness.database, { directory })).toThrow(/no longer matches/u);
 
