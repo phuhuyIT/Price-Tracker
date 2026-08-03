@@ -1,5 +1,6 @@
 import { createRepositories } from '../repositories/index.js';
 import { createAuthenticationService } from './authenticationService.js';
+import { createCollectionJobService } from './collectionJobService.js';
 import { createProductCollectionService } from './productCollectionService.js';
 import { createProductManagementService } from './productManagementService.js';
 import { createProductQueryService } from './productQueryService.js';
@@ -10,18 +11,11 @@ import { createTrackingService } from './trackingService.js';
  *
  * @param {object} input
  * @param {object} input.applicationConfig
- * @param {((url: string) => Promise<unknown>) | null} [input.collectProduct]
  * @param {() => Date} [input.clock]
  * @param {import('better-sqlite3').Database} input.database
  * @param {object} [input.passwordHasher]
  */
-export function createApplicationServices({
-  applicationConfig,
-  clock,
-  collectProduct = null,
-  database,
-  passwordHasher,
-}) {
+export function createApplicationServices({ applicationConfig, clock, database, passwordHasher }) {
   const repositories = createRepositories(database);
   const authentication = createAuthenticationService({
     authConfig: applicationConfig.auth,
@@ -36,11 +30,16 @@ export function createApplicationServices({
     priceDropThresholdPercent: applicationConfig.priceDropThresholdPercent,
     repositories,
   });
-  const productCollection = createProductCollectionService({
-    collectProduct,
-    productQueryService: productQuery,
+  const collectionJobs = createCollectionJobService({
+    clock,
+    leaseMs: applicationConfig.collection.leaseMs,
     repositories,
     trackingService: tracking,
+  });
+  const productCollection = createProductCollectionService({
+    collectionJobService: collectionJobs,
+    productQueryService: productQuery,
+    repositories,
   });
   const productManagement = createProductManagementService({
     productQueryService: productQuery,
@@ -49,6 +48,7 @@ export function createApplicationServices({
 
   return Object.freeze({
     authentication,
+    collectionJobs,
     productCollection,
     productManagement,
     productQuery,

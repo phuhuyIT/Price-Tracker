@@ -33,7 +33,6 @@ function createTestPasswordHasher() {
 export async function createApiHarness({
   allowRegistration = false,
   authEnabled = false,
-  collectProduct = null,
   extensionAllowedOrigin = 'chrome-extension://abcdefghijklmnop',
   rateLimitMax = 1_000,
 } = {}) {
@@ -52,7 +51,6 @@ export async function createApiHarness({
     applicationConfig,
     applicationLogger: silentLogger,
     clock: createClock(),
-    collectProduct,
     database: databaseHarness.database,
     passwordHasher: createTestPasswordHasher(),
   });

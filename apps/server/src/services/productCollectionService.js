@@ -1,8 +1,8 @@
 import {
+  COLLECTION_JOB_TYPES,
   ERROR_CODES,
+  canonicaliseShopeeProductUrl,
   getShopeeProductIdentity,
-  PRICING_CONTEXTS,
-  SNAPSHOT_SOURCES,
 } from '@shopee-price-tracker/shared';
 
 import { AppError } from '../errors/AppError.js';
@@ -15,69 +15,18 @@ function invalidUrl() {
   });
 }
 
-function collectorUnavailable() {
-  return new AppError({
-    code: ERROR_CODES.COLLECTOR_UNAVAILABLE,
-    message: 'Anonymous collection will be available after the Phase 8 collector is installed',
-    statusCode: 503,
-  });
-}
-
-function assertCollectedIdentity(snapshot, expectedIdentity) {
-  if (
-    !snapshot ||
-    snapshot.source !== SNAPSHOT_SOURCES.PLAYWRIGHT ||
-    snapshot.pricingContext !== PRICING_CONTEXTS.ANONYMOUS ||
-    snapshot.shopId !== expectedIdentity.shopId ||
-    snapshot.itemId !== expectedIdentity.itemId
-  ) {
-    throw new AppError({
-      code: ERROR_CODES.INVALID_SHOPEE_PAYLOAD,
-      message: 'The anonymous collector returned a snapshot for an unexpected product or context',
-      statusCode: 422,
-    });
-  }
-}
-
-/**
- * Coordinate URL tracking and manual refresh around an injected anonymous
- * collector. Phase 8 supplies `collectProduct`; Phase 6 keeps the HTTP contract
- * stable while reporting that the collector is unavailable.
- *
- * @param {object} input
- * @param {((url: string) => Promise<unknown>) | null} [input.collectProduct]
- * @param {object} input.productQueryService
- * @param {object} input.repositories
- * @param {object} input.trackingService
- */
+/** Queue owner-scoped collection work for the installed Chrome extension. */
 export function createProductCollectionService({
-  collectProduct = null,
+  collectionJobService,
   productQueryService,
   repositories,
-  trackingService,
 }) {
-  const activeRefreshes = new Set();
-
-  async function collectAndSave({ identity, ownerUserId, url }) {
-    if (typeof collectProduct !== 'function') {
-      throw collectorUnavailable();
-    }
-
-    const snapshot = await collectProduct(url);
-    assertCollectedIdentity(snapshot, identity);
-
-    return trackingService.saveSnapshot({ ownerUserId, snapshot });
-  }
-
   return Object.freeze({
-    /**
-     * Return an already tracked URL without invoking the collector, otherwise
-     * collect and persist its first anonymous snapshot.
-     */
-    async trackProduct({ ownerUserId, url }) {
+    trackProduct({ ownerUserId, url }) {
       const identity = getShopeeProductIdentity(url);
+      const canonicalUrl = canonicaliseShopeeProductUrl(url);
 
-      if (!identity) {
+      if (!identity || !canonicalUrl) {
         throw invalidUrl();
       }
 
@@ -89,54 +38,53 @@ export function createProductCollectionService({
 
       if (existing) {
         return {
-          check: null,
-          comparisons: [],
           created: false,
-          product: productQueryService.getProduct({
-            ownerUserId,
-            productId: existing.id,
-          }),
+          job: null,
+          product: productQueryService.getProduct({ ownerUserId, productId: existing.id }),
+          queued: false,
         };
       }
 
-      return collectAndSave({ identity, ownerUserId, url });
+      const queued = collectionJobService.create({
+        canonicalUrl,
+        itemId: identity.itemId,
+        jobType: COLLECTION_JOB_TYPES.TRACK,
+        ownerUserId,
+        productId: null,
+        shopId: identity.shopId,
+        targetContextKey: repositories.collectionJobs.findLatestTargetContextKey({
+          itemId: identity.itemId,
+          ownerUserId,
+          shopId: identity.shopId,
+        }),
+      });
+
+      return { ...queued, product: null, queued: true };
     },
 
-    /**
-     * Run at most one manual anonymous refresh for an owner/product pair.
-     */
-    async refreshProduct({ ownerUserId, productId }) {
+    refreshProduct({ ownerUserId, productId }) {
       const product = productQueryService.getProduct({ ownerUserId, productId });
-      const refreshKey = `${ownerUserId}:${productId}`;
-
-      if (activeRefreshes.has(refreshKey)) {
-        throw new AppError({
-          code: ERROR_CODES.REFRESH_IN_PROGRESS,
-          message: 'A refresh is already running for this product',
-          statusCode: 409,
-        });
-      }
-
-      if (typeof collectProduct !== 'function') {
-        throw collectorUnavailable();
-      }
-
-      const identity = {
-        itemId: product.itemId,
-        shopId: product.shopId,
-      };
-
-      activeRefreshes.add(refreshKey);
-
-      try {
-        return await collectAndSave({
-          identity,
+      const targetContextKey =
+        repositories.collectionJobs.findLatestTargetContextKey({
+          itemId: product.itemId,
           ownerUserId,
-          url: product.canonicalUrl,
+          shopId: product.shopId,
+        }) ??
+        repositories.prices.findLatestUserSessionContextKey({
+          ownerUserId,
+          productId,
         });
-      } finally {
-        activeRefreshes.delete(refreshKey);
-      }
+      const queued = collectionJobService.create({
+        canonicalUrl: product.canonicalUrl,
+        itemId: product.itemId,
+        jobType: COLLECTION_JOB_TYPES.REFRESH,
+        ownerUserId,
+        productId,
+        shopId: product.shopId,
+        targetContextKey,
+      });
+
+      return { ...queued, product, queued: true };
     },
   });
 }

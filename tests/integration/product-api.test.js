@@ -32,20 +32,6 @@ function secondProductSnapshot() {
   return snapshot;
 }
 
-function anonymousSnapshot({ capturedAt, priceAmount } = {}) {
-  const snapshot = loadValidSnapshot();
-  snapshot.capturedAt = capturedAt ?? snapshot.capturedAt;
-  snapshot.pricingContext = 'anonymous';
-  snapshot.pricingContextKey = 'anonymous-default';
-  snapshot.source = 'playwright';
-
-  if (priceAmount !== undefined) {
-    snapshot.variants[0].priceObservation.priceAmount = priceAmount;
-  }
-
-  return snapshot;
-}
-
 describe('product REST API', () => {
   it('stores valid snapshots, makes exact replays idempotent, and returns duplicate URL tracks', async () => {
     const { baseUrl } = await startApi();
@@ -68,12 +54,13 @@ describe('product REST API', () => {
     });
     expect(duplicateTrack.response.status).toBe(200);
     expect(duplicateTrack.payload.data).toMatchObject({
-      created: false,
+      job: null,
       product: { id: created.payload.data.product.id },
+      queued: false,
     });
   });
 
-  it('rejects invalid URLs and reports the accepted Phase 8 collector boundary', async () => {
+  it('rejects invalid URLs and queues new products for the Chrome extension', async () => {
     const { baseUrl } = await startApi();
     const invalid = await requestJson(baseUrl, '/api/products/track', {
       body: { url: 'https://example.com/not-shopee' },
@@ -82,12 +69,16 @@ describe('product REST API', () => {
     expect(invalid.response.status).toBe(400);
     expect(invalid.payload.error.code).toBe('INVALID_URL');
 
-    const unavailable = await requestJson(baseUrl, '/api/products/track', {
+    const queued = await requestJson(baseUrl, '/api/products/track', {
       body: { url: loadValidSnapshot().canonicalUrl },
       method: 'POST',
     });
-    expect(unavailable.response.status).toBe(503);
-    expect(unavailable.payload.error.code).toBe('COLLECTOR_UNAVAILABLE');
+    expect(queued.response.status).toBe(202);
+    expect(queued.payload.data).toMatchObject({
+      job: { jobType: 'track', status: 'pending', targetContextKey: null },
+      product: null,
+      queued: true,
+    });
   });
 
   it('rejects invalid, unsafe, and oversized snapshot bodies', async () => {
@@ -180,31 +171,118 @@ describe('product REST API', () => {
     expect(missing.payload.error.code).toBe('PRODUCT_NOT_FOUND');
   });
 
-  it('supports injected Phase 8 collection contracts for new tracking and refresh', async () => {
-    let callCount = 0;
-    const { baseUrl } = await startApi({
-      collectProduct: async () => {
-        callCount += 1;
-        return anonymousSnapshot({
-          capturedAt: `2026-08-01T00:0${callCount}:00.000Z`,
-          priceAmount: callCount === 1 ? 199_000 : 189_000,
-        });
-      },
+  it('claims, completes, and binds collection jobs to one extension profile', async () => {
+    const { baseUrl, databaseHarness } = await startApi();
+    const snapshot = loadValidSnapshot();
+    const tracked = await requestJson(baseUrl, '/api/products/track', {
+      body: { url: `${snapshot.canonicalUrl}?from=dashboard#track` },
+      method: 'POST',
     });
+    const claim = await requestJson(baseUrl, '/api/collection-jobs/claim', {
+      body: { pricingContextKey: snapshot.pricingContextKey },
+      method: 'POST',
+    });
+    expect(claim.payload.data).toMatchObject({
+      job: {
+        id: tracked.payload.data.job.id,
+        status: 'claimed',
+        targetContextKey: snapshot.pricingContextKey,
+      },
+      leaseToken: expect.stringMatching(/^[a-f0-9]{64}$/u),
+    });
+    const storedLease = databaseHarness.database
+      .prepare('SELECT lease_token_hash FROM collection_jobs WHERE id = ?')
+      .get(claim.payload.data.job.id).lease_token_hash;
+    expect(storedLease).toMatch(/^[a-f0-9]{64}$/u);
+    expect(storedLease).not.toBe(claim.payload.data.leaseToken);
+    const completed = await requestJson(
+      baseUrl,
+      `/api/collection-jobs/${claim.payload.data.job.id}/complete`,
+      {
+        body: { leaseToken: claim.payload.data.leaseToken, snapshot },
+        method: 'POST',
+      },
+    );
+    expect(completed.response.status).toBe(200);
+    expect(completed.payload.data).toMatchObject({
+      job: { status: 'completed' },
+      product: { preferredPricingContext: 'user_session' },
+    });
+
+    const refreshed = await requestJson(
+      baseUrl,
+      `/api/products/${completed.payload.data.product.id}/refresh`,
+      { body: {}, method: 'POST' },
+    );
+    expect(refreshed.response.status).toBe(202);
+    expect(refreshed.payload.data.job.targetContextKey).toBe(snapshot.pricingContextKey);
+
+    const wrongProfile = await requestJson(baseUrl, '/api/collection-jobs/claim', {
+      body: { pricingContextKey: 'extension:other-profile' },
+      method: 'POST',
+    });
+    expect(wrongProfile.payload.data).toBeNull();
+
+    const sameProfile = await requestJson(baseUrl, '/api/collection-jobs/claim', {
+      body: { pricingContextKey: snapshot.pricingContextKey },
+      method: 'POST',
+    });
+    expect(sameProfile.payload.data.job.id).toBe(refreshed.payload.data.job.id);
+  });
+
+  it('rejects invalid leases and records authentication-required job failures', async () => {
+    const { baseUrl } = await startApi();
     const tracked = await requestJson(baseUrl, '/api/products/track', {
       body: { url: loadValidSnapshot().canonicalUrl },
       method: 'POST',
     });
-    expect(tracked.response.status).toBe(201);
-    expect(tracked.payload.data.product.preferredPricingContext).toBe('anonymous');
-
-    const refreshed = await requestJson(
+    const claimed = await requestJson(baseUrl, '/api/collection-jobs/claim', {
+      body: { pricingContextKey: loadValidSnapshot().pricingContextKey },
+      method: 'POST',
+    });
+    const invalidLease = await requestJson(
       baseUrl,
-      `/api/products/${tracked.payload.data.product.id}/refresh`,
-      { body: {}, method: 'POST' },
+      `/api/collection-jobs/${tracked.payload.data.job.id}/fail`,
+      {
+        body: {
+          errorCode: 'AUTHENTICATION_REQUIRED',
+          errorMessage: 'Shopee sign-in required',
+          leaseToken: '0'.repeat(64),
+        },
+        method: 'POST',
+      },
     );
-    expect(refreshed.response.status).toBe(200);
-    expect(refreshed.payload.data.product.currentLowestPrice.priceAmount).toBe(189_000);
+    expect(invalidLease.response.status).toBe(409);
+    expect(invalidLease.payload.error.code).toBe('COLLECTION_LEASE_INVALID');
+
+    const failed = await requestJson(
+      baseUrl,
+      `/api/collection-jobs/${tracked.payload.data.job.id}/fail`,
+      {
+        body: {
+          errorCode: 'AUTHENTICATION_REQUIRED',
+          errorMessage: 'Shopee sign-in required',
+          leaseToken: claimed.payload.data.leaseToken,
+        },
+        method: 'POST',
+      },
+    );
+    expect(failed.payload.data.job).toMatchObject({
+      errorCode: 'AUTHENTICATION_REQUIRED',
+      status: 'failed',
+    });
+
+    const job = await requestJson(baseUrl, `/api/collection-jobs/${tracked.payload.data.job.id}`);
+    expect(job.payload.data.job.status).toBe('failed');
+
+    const retried = await requestJson(baseUrl, '/api/products/track', {
+      body: { url: loadValidSnapshot().canonicalUrl },
+      method: 'POST',
+    });
+    expect(retried.payload.data.job).toMatchObject({
+      status: 'pending',
+      targetContextKey: loadValidSnapshot().pricingContextKey,
+    });
   });
 
   it('rate limits mutation endpoints with a standard error envelope', async () => {

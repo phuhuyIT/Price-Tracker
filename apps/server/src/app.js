@@ -10,6 +10,7 @@ import { createErrorHandler } from './middleware/errorHandler.js';
 import { requestId } from './middleware/requestId.js';
 import { createRequestLogger } from './middleware/requestLogger.js';
 import { createAuthRoutes } from './routes/authRoutes.js';
+import { createCollectionJobRoutes } from './routes/collectionJobRoutes.js';
 import { createProductRoutes } from './routes/productRoutes.js';
 import { createApplicationServices } from './services/applicationServices.js';
 import { createSuccessResponse } from './utils/apiResponse.js';
@@ -30,7 +31,6 @@ function healthResponse() {
  * @param {object} [input.applicationConfig]
  * @param {object} [input.applicationLogger]
  * @param {() => Date} [input.clock]
- * @param {((url: string) => Promise<unknown>) | null} [input.collectProduct]
  * @param {import('better-sqlite3').Database} [input.database]
  * @param {object} [input.passwordHasher]
  * @param {object} [input.services]
@@ -40,7 +40,6 @@ export function createApp({
   applicationConfig = config,
   applicationLogger = logger,
   clock,
-  collectProduct = null,
   database,
   passwordHasher,
   services,
@@ -54,7 +53,6 @@ export function createApp({
     createApplicationServices({
       applicationConfig,
       clock,
-      collectProduct,
       database,
       passwordHasher,
     });
@@ -82,6 +80,10 @@ export function createApp({
   app.get('/health', (_request, response) => response.json(healthResponse()));
   app.get('/api/health', (_request, response) => response.json(healthResponse()));
   app.use('/api/auth', createAuthRoutes({ applicationConfig, services: resolvedServices }));
+  app.use(
+    '/api/collection-jobs',
+    createCollectionJobRoutes({ applicationConfig, services: resolvedServices }),
+  );
   app.use('/api/products', createProductRoutes({ applicationConfig, services: resolvedServices }));
 
   app.use((request, _response, next) => {

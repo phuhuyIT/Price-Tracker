@@ -44,16 +44,17 @@ export function createProductController(services) {
       response.json(createSuccessResponse(result.items, { pagination: result.pagination }));
     },
 
-    /** Run an injected anonymous collector for one known product. */
-    async refreshProduct(request, response) {
-      const result = await services.productCollection.refreshProduct({
+    /** Queue one logged-in extension refresh for a known product. */
+    refreshProduct(request, response) {
+      const result = services.productCollection.refreshProduct({
         ownerUserId: request.auth.user.id,
         productId: request.validated.params.productId,
       });
-      response.json(
+      response.status(202).json(
         createSuccessResponse({
-          created: result.created,
+          job: result.job,
           product: result.product,
+          queued: true,
         }),
       );
     },
@@ -72,16 +73,17 @@ export function createProductController(services) {
       );
     },
 
-    /** Return an existing URL or collect a new anonymous product. */
-    async trackProduct(request, response) {
-      const result = await services.productCollection.trackProduct({
+    /** Return an existing URL or queue collection in the user's Chrome profile. */
+    trackProduct(request, response) {
+      const result = services.productCollection.trackProduct({
         ownerUserId: request.auth.user.id,
         url: request.validated.body.url,
       });
-      response.status(result.created ? 201 : 200).json(
+      response.status(result.queued ? 202 : 200).json(
         createSuccessResponse({
-          created: result.created,
+          job: result.job,
           product: result.product,
+          queued: result.queued,
         }),
       );
     },
