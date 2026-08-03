@@ -4,9 +4,11 @@ const elements = {
   backendStatus: document.querySelector('#backend-status'),
   captureDetails: document.querySelector('#capture-details'),
   capturePlaceholder: document.querySelector('#capture-placeholder'),
+  collectionStatus: document.querySelector('#collection-status'),
   dashboardButton: document.querySelector('#dashboard-button'),
   displayedPrice: document.querySelector('#displayed-price'),
   optionsButton: document.querySelector('#options-button'),
+  pollCollectionJobs: document.querySelector('#poll-collection-jobs'),
   pageBadge: document.querySelector('#page-badge'),
   productTitle: document.querySelector('#product-title'),
   queueStatus: document.querySelector('#queue-status'),
@@ -77,6 +79,9 @@ function render(state) {
     state.lastSubmission,
     state.automaticCapture,
   );
+  elements.collectionStatus.textContent = state.collectionStatus.error
+    ? `Background collection: ${state.collectionStatus.error}`
+    : `Background collection: ${state.collectionStatus.state}.`;
   elements.dashboardButton.disabled = !state.dashboardUrl;
 
   if (state.capture) {
@@ -132,6 +137,17 @@ elements.trackButton.addEventListener('click', async () => {
 elements.dashboardButton.addEventListener('click', () => {
   if (popupState?.dashboardUrl) {
     void chrome.tabs.create({ url: popupState.dashboardUrl });
+  }
+});
+
+elements.pollCollectionJobs.addEventListener('click', async () => {
+  elements.collectionStatus.textContent = 'Checking for queued jobs...';
+
+  try {
+    await callServiceWorker({ type: RUNTIME_MESSAGES.POLL_COLLECTION_JOBS });
+    await loadPopupState();
+  } catch (error) {
+    elements.collectionStatus.textContent = error.message;
   }
 });
 

@@ -9,13 +9,17 @@ const elements = {
   automaticCapture: document.querySelector('#automatic-capture'),
   backendStatus: document.querySelector('#backend-status'),
   backendUrl: document.querySelector('#backend-url'),
+  backgroundCollectionEnabled: document.querySelector('#background-collection-enabled'),
   clearFailed: document.querySelector('#clear-failed'),
+  collectionPollInterval: document.querySelector('#collection-poll-interval'),
+  collectionStatus: document.querySelector('#collection-status'),
   contextKey: document.querySelector('#context-key'),
   debugMode: document.querySelector('#debug-mode'),
   email: document.querySelector('#email'),
   loginForm: document.querySelector('#login-form'),
   logout: document.querySelector('#logout'),
   password: document.querySelector('#password'),
+  pollCollectionJobs: document.querySelector('#poll-collection-jobs'),
   queueStatus: document.querySelector('#queue-status'),
   refreshAuth: document.querySelector('#refresh-auth'),
   regenerateContext: document.querySelector('#regenerate-context'),
@@ -60,6 +64,11 @@ function renderAuth(auth, backend) {
 function render(state) {
   elements.backendUrl.value = state.settings.backendBaseUrl;
   elements.automaticCapture.checked = state.settings.automaticCapture;
+  elements.backgroundCollectionEnabled.checked = state.settings.backgroundCollectionEnabled;
+  elements.collectionPollInterval.value = String(state.settings.collectionPollIntervalMinutes);
+  elements.collectionStatus.textContent = state.settings.backgroundCollectionEnabled
+    ? (state.collectionStatus.error ?? `Background collector: ${state.collectionStatus.state}.`)
+    : 'Background price checks are disabled.';
   elements.debugMode.checked = state.settings.debugMode;
   elements.contextKey.textContent = state.settings.pricingContextKey;
   renderAuth(state.auth, state.backend);
@@ -102,6 +111,8 @@ elements.settingsForm.addEventListener('submit', async (event) => {
       settings: {
         automaticCapture: elements.automaticCapture.checked,
         backendBaseUrl,
+        backgroundCollectionEnabled: elements.backgroundCollectionEnabled.checked,
+        collectionPollIntervalMinutes: Number(elements.collectionPollInterval.value),
         debugMode: elements.debugMode.checked,
       },
       type: RUNTIME_MESSAGES.SAVE_SETTINGS,
@@ -114,9 +125,22 @@ elements.settingsForm.addEventListener('submit', async (event) => {
   }
 });
 
+elements.pollCollectionJobs.addEventListener('click', async () => {
+  elements.collectionStatus.textContent = 'Checking for queued collection jobs...';
+
+  try {
+    await callServiceWorker({ type: RUNTIME_MESSAGES.POLL_COLLECTION_JOBS });
+    await loadState();
+  } catch (error) {
+    elements.collectionStatus.textContent = error.message;
+  }
+});
+
 elements.regenerateContext.addEventListener('click', async () => {
   if (
-    !window.confirm('Use a new pricing context for future captures? Existing history is unchanged.')
+    !window.confirm(
+      'Use a new pricing context? Existing history stays unchanged, but jobs bound to this Chrome profile will require their original identifier.',
+    )
   ) {
     return;
   }

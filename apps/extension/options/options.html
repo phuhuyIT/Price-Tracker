@@ -29,12 +29,42 @@
             Automatic capture is off by default. The popup still previews captured prices.
           </p>
           <label class="check-row">
+            <input
+              id="background-collection-enabled"
+              name="backgroundCollectionEnabled"
+              type="checkbox"
+            />
+            <span>Allow background price checks in inactive Shopee tabs</span>
+          </label>
+          <p class="hint">
+            Disabled by default. Temporary tabs stay inactive, may appear briefly in the tab strip,
+            and close automatically.
+          </p>
+          <label>
+            Background polling interval (minutes)
+            <input
+              id="collection-poll-interval"
+              max="1440"
+              min="1"
+              name="collectionPollIntervalMinutes"
+              type="number"
+            />
+          </label>
+          <label class="check-row">
             <input id="debug-mode" name="debugMode" type="checkbox" />
             <span>Show sanitised capture summaries in DevTools</span>
           </label>
           <button class="primary" type="submit">Save settings</button>
         </form>
         <p id="settings-status" class="status" role="status"></p>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <h2>Background collection</h2>
+          <button id="poll-collection-jobs" class="text-button" type="button">Check now</button>
+        </div>
+        <p id="collection-status" class="status" role="status"></p>
       </section>
 
       <section class="panel">
