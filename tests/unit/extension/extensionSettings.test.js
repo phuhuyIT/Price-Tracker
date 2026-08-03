@@ -8,15 +8,34 @@ import {
 } from '../../../apps/extension/lib/extensionSettings.js';
 
 describe('extension settings', () => {
-  it('keeps automatic capture off by default and generates an opaque context key', () => {
+  it('keeps automatic and background collection off with 30-minute polling by default', () => {
     const settings = normaliseExtensionSettings({}, { randomUuid: () => 'fixed-uuid' });
 
     expect(settings).toEqual({
       automaticCapture: false,
       backendBaseUrl: 'http://127.0.0.1:3000',
+      backgroundCollectionEnabled: false,
+      collectionPollIntervalMinutes: 30,
       debugMode: false,
       pricingContextKey: 'extension:fixed-uuid',
     });
+  });
+
+  it('accepts an explicit bounded background polling interval', () => {
+    expect(
+      normaliseExtensionSettings({
+        backgroundCollectionEnabled: true,
+        collectionPollIntervalMinutes: 45,
+      }).backgroundCollectionEnabled,
+    ).toBe(true);
+    expect(
+      normaliseExtensionSettings({ collectionPollIntervalMinutes: 45 })
+        .collectionPollIntervalMinutes,
+    ).toBe(45);
+    expect(
+      normaliseExtensionSettings({ collectionPollIntervalMinutes: 0 })
+        .collectionPollIntervalMinutes,
+    ).toBe(30);
   });
 
   it('accepts loopback HTTP and HTTPS while rejecting remote plaintext backends', () => {

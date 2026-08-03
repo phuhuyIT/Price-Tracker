@@ -7,12 +7,15 @@ function createMemoryStore(overrides = {}) {
   const state = {
     auth: { expiresAt: null, mode: 'disabled', token: null, user: null },
     backend: { checkedAt: null, error: null, status: 'unknown' },
+    collectionStatus: { at: null, error: null, jobId: null, state: 'idle' },
     captures: {},
     lastSubmission: { at: null, error: null, productId: null, state: 'idle' },
     queue: [],
     settings: {
       automaticCapture: false,
       backendBaseUrl: 'http://127.0.0.1:3000',
+      backgroundCollectionEnabled: false,
+      collectionPollIntervalMinutes: 30,
       debugMode: false,
       pricingContextKey: 'extension:test-installation',
     },
@@ -21,6 +24,7 @@ function createMemoryStore(overrides = {}) {
   const keyToProperty = {
     [STORAGE_KEYS.AUTH]: 'auth',
     [STORAGE_KEYS.BACKEND]: 'backend',
+    [STORAGE_KEYS.COLLECTION_STATUS]: 'collectionStatus',
     [STORAGE_KEYS.LAST_SUBMISSION]: 'lastSubmission',
     [STORAGE_KEYS.LATEST_CAPTURES]: 'captures',
     [STORAGE_KEYS.QUEUE]: 'queue',

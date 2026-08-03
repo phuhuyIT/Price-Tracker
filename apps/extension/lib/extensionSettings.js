@@ -1,4 +1,5 @@
 export const DEFAULT_BACKEND_BASE_URL = 'http://127.0.0.1:3000';
+export const DEFAULT_COLLECTION_POLL_INTERVAL_MINUTES = 30;
 
 /** Generate an opaque local context key that contains no Shopee identity. */
 export function createPricingContextKey(randomUuid = () => crypto.randomUUID()) {
@@ -49,6 +50,13 @@ export function normaliseExtensionSettings(value = {}, { randomUuid } = {}) {
   return {
     automaticCapture: value.automaticCapture === true,
     backendBaseUrl: backendBaseUrl ?? DEFAULT_BACKEND_BASE_URL,
+    backgroundCollectionEnabled: value.backgroundCollectionEnabled === true,
+    collectionPollIntervalMinutes:
+      Number.isInteger(Number(value.collectionPollIntervalMinutes)) &&
+      Number(value.collectionPollIntervalMinutes) >= 1 &&
+      Number(value.collectionPollIntervalMinutes) <= 1_440
+        ? Number(value.collectionPollIntervalMinutes)
+        : DEFAULT_COLLECTION_POLL_INTERVAL_MINUTES,
     debugMode: value.debugMode === true,
     pricingContextKey,
   };

@@ -2,12 +2,21 @@ import { normaliseExtensionSettings } from './extensionSettings.js';
 import { SUBMISSION_STATES } from './runtimeMessages.js';
 
 export const STORAGE_KEYS = Object.freeze({
+  ACTIVE_COLLECTION: 'activeCollection',
   AUTH: 'extensionAuth',
   BACKEND: 'backendStatus',
+  COLLECTION_STATUS: 'collectionStatus',
   LAST_SUBMISSION: 'lastSubmissionStatus',
   LATEST_CAPTURES: 'latestCaptures',
   QUEUE: 'snapshotQueue',
   SETTINGS: 'extensionSettings',
+});
+
+export const DEFAULT_COLLECTION_STATUS = Object.freeze({
+  at: null,
+  error: null,
+  jobId: null,
+  state: 'idle',
 });
 
 export const DEFAULT_AUTH_STATE = Object.freeze({
@@ -67,6 +76,7 @@ export function createServiceWorkerStore(chromeApi) {
 
     const stored = await chromeApi.storage.local.get(Object.values(STORAGE_KEYS));
     await chromeApi.storage.local.set({
+      [STORAGE_KEYS.ACTIVE_COLLECTION]: stored[STORAGE_KEYS.ACTIVE_COLLECTION] ?? null,
       [STORAGE_KEYS.AUTH]: {
         ...DEFAULT_AUTH_STATE,
         ...(stored[STORAGE_KEYS.AUTH] ?? {}),
@@ -74,6 +84,10 @@ export function createServiceWorkerStore(chromeApi) {
       [STORAGE_KEYS.BACKEND]: {
         ...DEFAULT_BACKEND_STATUS,
         ...(stored[STORAGE_KEYS.BACKEND] ?? {}),
+      },
+      [STORAGE_KEYS.COLLECTION_STATUS]: {
+        ...DEFAULT_COLLECTION_STATUS,
+        ...(stored[STORAGE_KEYS.COLLECTION_STATUS] ?? {}),
       },
       [STORAGE_KEYS.LAST_SUBMISSION]: {
         ...DEFAULT_SUBMISSION_STATUS,
@@ -95,8 +109,13 @@ export function createServiceWorkerStore(chromeApi) {
       await ready;
       const stored = await chromeApi.storage.local.get(Object.values(STORAGE_KEYS));
       return {
+        activeCollection: stored[STORAGE_KEYS.ACTIVE_COLLECTION] ?? null,
         auth: { ...DEFAULT_AUTH_STATE, ...(stored[STORAGE_KEYS.AUTH] ?? {}) },
         backend: { ...DEFAULT_BACKEND_STATUS, ...(stored[STORAGE_KEYS.BACKEND] ?? {}) },
+        collectionStatus: {
+          ...DEFAULT_COLLECTION_STATUS,
+          ...(stored[STORAGE_KEYS.COLLECTION_STATUS] ?? {}),
+        },
         captures: stored[STORAGE_KEYS.LATEST_CAPTURES] ?? {},
         lastSubmission: {
           ...DEFAULT_SUBMISSION_STATUS,
