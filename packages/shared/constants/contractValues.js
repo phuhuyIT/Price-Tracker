@@ -83,3 +83,15 @@ export const PRODUCT_TRACKING_STATUSES = Object.freeze({
   ACTIVE: 'active',
   PAUSED: 'paused',
 });
+
+export const COLLECTION_JOB_TYPES = Object.freeze({
+  REFRESH: 'refresh',
+  TRACK: 'track',
+});
+
+export const COLLECTION_JOB_STATUSES = Object.freeze({
+  CLAIMED: 'claimed',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+  PENDING: 'pending',
+});

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  canonicaliseShopeeProductUrl,
   canonicalShopeeProductUrlSchema,
   getShopeeProductIdentity,
   shopeeProductUrlSchema,
@@ -22,6 +23,7 @@ describe('Shopee product URL schema', () => {
 
     expect(shopeeProductUrlSchema.safeParse(input).success).toBe(true);
     expect(canonicalShopeeProductUrlSchema.safeParse(input).success).toBe(false);
+    expect(canonicaliseShopeeProductUrl(input)).toBe(canonicalUrl);
   });
 
   it.each([
@@ -29,6 +31,8 @@ describe('Shopee product URL schema', () => {
     'https://example.com/product-i.1.2',
     'https://shopee.vn/product',
     'https://shopee.vn/product-i.0.2',
+    'https://user:password@shopee.vn/product-i.1.2',
+    'https://shopee.vn:444/product-i.1.2',
     'not-a-url',
   ])('rejects unsupported URL %s', (url) => {
     expect(shopeeProductUrlSchema.safeParse(url).success).toBe(false);

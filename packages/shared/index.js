@@ -6,6 +6,7 @@ export * from './errors/errorCodes.js';
 export * from './schemas/apiSchemas.js';
 export * from './schemas/authSchemas.js';
 export * from './schemas/commonSchemas.js';
+export * from './schemas/collectionJobSchemas.js';
 export * from './schemas/enumSchemas.js';
 export * from './schemas/extensionCaptureSchema.js';
 export * from './schemas/productSnapshotSchema.js';

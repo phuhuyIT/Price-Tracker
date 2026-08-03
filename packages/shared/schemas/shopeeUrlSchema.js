@@ -26,7 +26,13 @@ export function getShopeeProductIdentity(value) {
   try {
     const url = new URL(value);
 
-    if (url.protocol !== 'https:' || !isShopeeVietnamHostname(url.hostname)) {
+    if (
+      url.protocol !== 'https:' ||
+      !isShopeeVietnamHostname(url.hostname) ||
+      url.username ||
+      url.password ||
+      url.port
+    ) {
       return null;
     }
 
@@ -46,6 +52,21 @@ export function getShopeeProductIdentity(value) {
   } catch {
     return null;
   }
+}
+
+/** Return a canonical public Shopee Vietnam product URL. */
+export function canonicaliseShopeeProductUrl(value) {
+  const identity = getShopeeProductIdentity(value);
+
+  if (!identity) {
+    return null;
+  }
+
+  const url = new URL(value);
+  url.hash = '';
+  url.hostname = SHOPEE_HOSTNAME;
+  url.search = '';
+  return url.toString();
 }
 
 export const shopeeProductUrlSchema = z
