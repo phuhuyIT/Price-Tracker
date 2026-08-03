@@ -1,9 +1,16 @@
+import { COLLECTION_JOB_FAILURE_CODES } from '../../packages/shared/schemas/collectionJobSchemas.js';
 import { productSnapshotSchema } from '../../packages/shared/schemas/productSnapshotSchema.js';
 import {
   getShopeeProductIdentity,
   isShopeeVietnamHostname,
 } from '../../packages/shared/schemas/shopeeUrlSchema.js';
 import { createBackendClient } from './lib/backendClient.js';
+import {
+  COLLECTION_POLL_ALARM_NAME,
+  COLLECTION_RETRY_ALARM_NAME,
+  COLLECTION_TIMEOUT_ALARM_PREFIX,
+  createBackgroundCollectionAgent,
+} from './lib/backgroundCollection.js';
 import {
   createPricingContextKey,
   normaliseBackendBaseUrl,
@@ -27,6 +34,15 @@ const submissionQueue = createServiceWorkerQueue({
   alarms: chrome.alarms,
   backendClient,
   store,
+});
+const backgroundCollection = createBackgroundCollectionAgent({
+  action: chrome.action,
+  alarms: chrome.alarms,
+  backendClient,
+  notifications: chrome.notifications,
+  store,
+  tabs: chrome.tabs,
+  windows: chrome.windows,
 });
 
 function success(data) {
@@ -55,6 +71,14 @@ function isSupportedProductPage(value) {
     return (
       isShopeeVietnamHostname(url.hostname) && getShopeeProductIdentity(url.toString()) !== null
     );
+  } catch {
+    return false;
+  }
+}
+
+function isSupportedShopeePage(value) {
+  try {
+    return isShopeeVietnamHostname(new URL(value).hostname);
   } catch {
     return false;
   }
@@ -138,7 +162,13 @@ async function storeLatestCapture(message, sender) {
   );
   await store.set({ [STORAGE_KEYS.LATEST_CAPTURES]: trimmedCaptures });
 
-  if (state.settings.automaticCapture && previous?.semanticHash !== message.semanticHash) {
+  const isBackgroundCollectionTab = state.activeCollection?.tabId === sender.tab.id;
+
+  if (
+    !isBackgroundCollectionTab &&
+    state.settings.automaticCapture &&
+    previous?.semanticHash !== message.semanticHash
+  ) {
     await submissionQueue.enqueue(snapshot, message.semanticHash);
   }
 
@@ -206,6 +236,7 @@ async function getPopupState(message) {
       ? { receivedAt: matchingCapture.receivedAt, summary: matchingCapture.summary }
       : null,
     dashboardUrl: state.settings.backendBaseUrl,
+    collectionStatus: state.collectionStatus,
     lastSubmission: state.lastSubmission,
     queue: queueSummary(state.queue),
     supportedPage,
@@ -231,6 +262,7 @@ async function getOptionsState() {
   return {
     auth: publicAuthState(state.auth),
     backend: state.backend,
+    collectionStatus: state.collectionStatus,
     queue: queueSummary(state.queue),
     settings: state.settings,
   };
@@ -252,6 +284,8 @@ async function saveSettings(input) {
     ...state.settings,
     automaticCapture: input.automaticCapture,
     backendBaseUrl,
+    backgroundCollectionEnabled: input.backgroundCollectionEnabled,
+    collectionPollIntervalMinutes: input.collectionPollIntervalMinutes,
     debugMode: input.debugMode,
   });
   const update = { [STORAGE_KEYS.SETTINGS]: settings };
@@ -262,6 +296,12 @@ async function saveSettings(input) {
   }
 
   await store.set(update);
+  await backgroundCollection.configureAlarm();
+
+  if (settings.backgroundCollectionEnabled) {
+    void backgroundCollection.poll();
+  }
+
   return settings;
 }
 
@@ -284,17 +324,55 @@ async function handleMessage(message, sender) {
   switch (message?.type) {
     case RUNTIME_MESSAGES.CAPTURE_UPDATED:
       return storeLatestCapture(message, sender);
+    case RUNTIME_MESSAGES.BACKGROUND_COLLECTION_COMPLETED: {
+      const validation = productSnapshotSchema.safeParse(message.snapshot);
+
+      if (
+        sender.id !== chrome.runtime.id ||
+        !sender.tab?.id ||
+        !sender.tab.url ||
+        !validation.success ||
+        !sameSnapshotPage(validation.data, sender.tab.url)
+      ) {
+        throw extensionError('The background collection result is invalid', 'INVALID_CAPTURE');
+      }
+
+      return backgroundCollection.complete({ snapshot: validation.data, tabId: sender.tab.id });
+    }
+    case RUNTIME_MESSAGES.BACKGROUND_COLLECTION_FAILED:
+      if (
+        sender.id !== chrome.runtime.id ||
+        !sender.tab?.id ||
+        !COLLECTION_JOB_FAILURE_CODES.includes(message.errorCode) ||
+        typeof message.errorMessage !== 'string'
+      ) {
+        throw extensionError('The background collection failure is invalid', 'INVALID_CAPTURE');
+      }
+
+      return backgroundCollection.fail({
+        errorCode: message.errorCode,
+        errorMessage: message.errorMessage.slice(0, 500),
+        tabId: sender.tab.id,
+      });
     case RUNTIME_MESSAGES.GET_COLLECTOR_CONFIG: {
       if (
         sender.id !== chrome.runtime.id ||
-        !sender.tab?.url ||
-        !isSupportedProductPage(sender.tab.url)
+        !sender.tab?.id ||
+        !sender.tab.url ||
+        !isSupportedShopeePage(sender.tab.url)
       ) {
-        throw extensionError('Collector configuration is restricted to Shopee product pages');
+        throw extensionError('Collector configuration is restricted to Shopee pages');
       }
 
       const state = await store.load();
+      const isActiveCollectionTab = state.activeCollection?.tabId === sender.tab.id;
+
+      if (!isActiveCollectionTab && !isSupportedProductPage(sender.tab.url)) {
+        throw extensionError('Collector configuration is restricted to Shopee product pages');
+      }
+
       return {
+        collectionJobId: isActiveCollectionTab ? state.activeCollection.job.id : null,
         debugMode: state.settings.debugMode,
         pricingContextKey: state.settings.pricingContextKey,
       };
@@ -332,6 +410,9 @@ async function handleMessage(message, sender) {
     case RUNTIME_MESSAGES.CLEAR_FAILED_QUEUE:
       requireExtensionPage(sender);
       return submissionQueue.clearFailed();
+    case RUNTIME_MESSAGES.POLL_COLLECTION_JOBS:
+      requireExtensionPage(sender);
+      return backgroundCollection.pollNow();
     default:
       throw extensionError('Unknown extension message', 'UNKNOWN_MESSAGE');
   }
@@ -348,14 +429,25 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === RETRY_ALARM_NAME) {
     void submissionQueue.process();
   }
+
+  if (
+    alarm.name === COLLECTION_POLL_ALARM_NAME ||
+    alarm.name === COLLECTION_RETRY_ALARM_NAME ||
+    alarm.name.startsWith(COLLECTION_TIMEOUT_ALARM_PREFIX)
+  ) {
+    void backgroundCollection.handleAlarm(alarm.name);
+  }
 });
 
 chrome.runtime.onInstalled.addListener(() => {
   void submissionQueue.initialise();
+  void backgroundCollection.initialise();
 });
 
 chrome.runtime.onStartup.addListener(() => {
   void submissionQueue.initialise();
+  void backgroundCollection.initialise();
 });
 
 void submissionQueue.initialise();
+void backgroundCollection.initialise();

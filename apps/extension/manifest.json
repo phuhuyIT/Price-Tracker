@@ -47,5 +47,5 @@
   },
   "options_page": "options/options.html",
   "optional_host_permissions": ["https://*/*"],
-  "permissions": ["activeTab", "alarms", "storage"]
+  "permissions": ["activeTab", "alarms", "notifications", "storage"]
 }
