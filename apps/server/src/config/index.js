@@ -29,6 +29,8 @@ const environmentSchema = z
     AUTH_ALLOW_REGISTRATION: booleanString.default('false'),
     AUTH_SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(8_760).default(720),
 
+    COLLECTION_JOB_LEASE_MS: z.coerce.number().int().min(30_000).max(900_000).default(120_000),
+
     CRON_ENABLED: booleanString.default('true'),
     CRON_SCHEDULE: z.string().trim().min(1).default('0 */12 * * *'),
 
@@ -120,6 +122,9 @@ export function loadConfig(environment = process.env) {
     cron: Object.freeze({
       enabled: value.CRON_ENABLED,
       schedule: value.CRON_SCHEDULE,
+    }),
+    collection: Object.freeze({
+      leaseMs: value.COLLECTION_JOB_LEASE_MS,
     }),
     databasePath: value.DATABASE_PATH,
     environment: value.NODE_ENV,

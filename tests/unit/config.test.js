@@ -13,6 +13,7 @@ describe('environment configuration', () => {
       enabled: false,
       sessionTtlHours: 720,
     });
+    expect(result.collection).toEqual({ leaseMs: 120_000 });
     expect(result.lifecycle).toEqual({
       massMissingConfirmations: 2,
       maxMissingRatio: 0.5,
@@ -54,5 +55,9 @@ describe('environment configuration', () => {
         SCRAPE_DELAY_MIN_MS: '10',
       }),
     ).toThrow(/SCRAPE_DELAY_MIN_MS must not exceed SCRAPE_DELAY_MAX_MS/u);
+  });
+
+  it('rejects unsafe collection lease durations', () => {
+    expect(() => loadConfig({ COLLECTION_JOB_LEASE_MS: '29999' })).toThrow(ConfigurationError);
   });
 });

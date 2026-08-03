@@ -348,6 +348,18 @@ export function createPriceRepository(database) {
     ORDER BY pl.recorded_at DESC, pl.id DESC
     LIMIT 1
   `);
+  const latestUserSessionContextStatement = database.prepare(`
+    SELECT pc.pricing_context_key
+    FROM price_checks pc
+    INNER JOIN products p ON p.id = pc.product_id
+    WHERE pc.product_id = @productId
+      AND p.owner_user_id = @ownerUserId
+      AND pc.status = 'success'
+      AND pc.source = 'extension'
+      AND pc.pricing_context = 'user_session'
+    ORDER BY pc.checked_at DESC, pc.id DESC
+    LIMIT 1
+  `);
   const historyStatement = database.prepare(`
     SELECT pl.*
     FROM price_logs pl
@@ -621,6 +633,21 @@ export function createPriceRepository(database) {
         );
       } catch (error) {
         throwDatabaseError('Unable to find the latest comparable price', error);
+      }
+    },
+
+    /** Return the most recent extension installation key for one product. */
+    findLatestUserSessionContextKey({ ownerUserId, productId }) {
+      assertIdentifier(ownerUserId, 'ownerUserId');
+      assertIdentifier(productId, 'productId');
+
+      try {
+        return (
+          latestUserSessionContextStatement.get({ ownerUserId, productId })?.pricing_context_key ??
+          null
+        );
+      } catch (error) {
+        throwDatabaseError('Unable to find the latest user-session context', error);
       }
     },
 

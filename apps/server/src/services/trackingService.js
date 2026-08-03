@@ -91,9 +91,10 @@ export function createTrackingService({
      *
      * @param {object} input
      * @param {number} input.ownerUserId
+     * @param {object} [input.repositoryScope]
      * @param {unknown} input.snapshot
      */
-    saveSnapshot({ ownerUserId, snapshot: unvalidatedSnapshot }) {
+    saveSnapshot({ ownerUserId, repositoryScope = null, snapshot: unvalidatedSnapshot }) {
       const validation = productSnapshotSchema.safeParse(unvalidatedSnapshot);
 
       if (!validation.success) {
@@ -103,7 +104,7 @@ export function createTrackingService({
       const snapshot = validation.data;
       const checkedAt = clock().toISOString();
       const idempotencyKey = deriveSnapshotIdempotencyKey(snapshot);
-      const transactionResult = repositories.transaction((transactionRepositories) => {
+      const persistSnapshot = (transactionRepositories) => {
         const existingProduct = transactionRepositories.products.findByIdentity({
           itemId: snapshot.itemId,
           ownerUserId,
@@ -305,7 +306,10 @@ export function createTrackingService({
           created: true,
           productId: product.id,
         };
-      });
+      };
+      const transactionResult = repositoryScope
+        ? persistSnapshot(repositoryScope)
+        : repositories.transaction(persistSnapshot);
 
       return {
         ...transactionResult,
