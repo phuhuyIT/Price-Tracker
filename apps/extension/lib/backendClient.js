@@ -42,6 +42,38 @@ export function createBackendClient(fetchImplementation = fetch) {
   }
 
   return Object.freeze({
+    /** Atomically claim the next job available to this Chrome profile. */
+    async claimCollectionJob(settings, auth, pricingContextKey) {
+      try {
+        const { body, response } = await fetchJson(
+          `${settings.backendBaseUrl}/api/collection-jobs/claim`,
+          {
+            body: JSON.stringify({ pricingContextKey }),
+            headers: requestHeaders(auth, { includeJson: true }),
+            method: 'POST',
+          },
+        );
+
+        if (response.ok && body?.success === true) {
+          return { claim: body.data, kind: 'success' };
+        }
+
+        const errorCode = body?.error?.code ?? null;
+        return {
+          error: body?.error?.message ?? `Backend returned HTTP ${response.status}`,
+          errorCode,
+          kind: classifySubmissionFailure({ errorCode, status: response.status }),
+        };
+      } catch (error) {
+        return {
+          error:
+            error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
+          errorCode: null,
+          kind: 'temporary',
+        };
+      }
+    },
+
     /** Return connection state from the public backend health endpoint. */
     async checkHealth(settings) {
       try {
@@ -54,6 +86,73 @@ export function createBackendClient(fetchImplementation = fetch) {
           'unavailable',
           error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
         );
+      }
+    },
+
+    /** Complete a claimed job with one validated extension snapshot. */
+    async completeCollectionJob(settings, auth, jobId, leaseToken, snapshot) {
+      try {
+        const { body, response } = await fetchJson(
+          `${settings.backendBaseUrl}/api/collection-jobs/${jobId}/complete`,
+          {
+            body: JSON.stringify({ leaseToken, snapshot }),
+            headers: requestHeaders(auth, { includeJson: true }),
+            method: 'POST',
+          },
+        );
+
+        if (response.ok && body?.success === true) {
+          return { body, kind: 'success' };
+        }
+
+        const errorCode = body?.error?.code ?? null;
+        return {
+          error: body?.error?.message ?? `Backend returned HTTP ${response.status}`,
+          errorCode,
+          kind: classifySubmissionFailure({ errorCode, status: response.status }),
+        };
+      } catch (error) {
+        return {
+          error:
+            error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
+          errorCode: null,
+          kind: 'temporary',
+        };
+      }
+    },
+
+    /** Record a typed collection failure for one valid lease. */
+    async failCollectionJob(settings, auth, jobId, leaseToken, errorCode, errorMessage) {
+      try {
+        const { body, response } = await fetchJson(
+          `${settings.backendBaseUrl}/api/collection-jobs/${jobId}/fail`,
+          {
+            body: JSON.stringify({ errorCode, errorMessage, leaseToken }),
+            headers: requestHeaders(auth, { includeJson: true }),
+            method: 'POST',
+          },
+        );
+
+        if (response.ok && body?.success === true) {
+          return { body, kind: 'success' };
+        }
+
+        const responseErrorCode = body?.error?.code ?? null;
+        return {
+          error: body?.error?.message ?? `Backend returned HTTP ${response.status}`,
+          errorCode: responseErrorCode,
+          kind: classifySubmissionFailure({
+            errorCode: responseErrorCode,
+            status: response.status,
+          }),
+        };
+      } catch (error) {
+        return {
+          error:
+            error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
+          errorCode: null,
+          kind: 'temporary',
+        };
       }
     },
 
