@@ -64,4 +64,32 @@ describe('page interceptor', () => {
     expect(response.clone).not.toHaveBeenCalled();
     expect(target.postMessage).not.toHaveBeenCalled();
   });
+
+  it('emits only a typed authentication status for Shopee error 90309999', async () => {
+    const response = {
+      clone: vi.fn(() => ({ json: vi.fn(async () => ({ error: 90_309_999 })) })),
+      ok: true,
+      status: 200,
+      url: 'https://shopee.vn/api/v4/pdp/get_pc?item_id=26882883164',
+    };
+    const target = {
+      fetch: vi.fn(async () => response),
+      location: {
+        href: 'https://shopee.vn/product-i.1259293184.26882883164',
+        origin: 'https://shopee.vn',
+      },
+      postMessage: vi.fn(),
+    };
+
+    installPageInterceptor(target);
+    await target.fetch(response.url);
+    await vi.waitFor(() => expect(target.postMessage).toHaveBeenCalledOnce());
+
+    expect(target.postMessage.mock.calls[0][0]).toEqual({
+      capturedAt: expect.any(String),
+      code: 'AUTHENTICATION_REQUIRED',
+      protocolVersion: 1,
+      type: 'SHOPEE_PRICE_TRACKER_COLLECTION_STATUS',
+    });
+  });
 });

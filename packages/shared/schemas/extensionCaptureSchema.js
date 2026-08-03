@@ -3,6 +3,8 @@ import { z } from 'zod';
 import {
   EXTENSION_CAPTURE_KINDS,
   EXTENSION_CAPTURE_MESSAGE_TYPE,
+  EXTENSION_COLLECTION_STATUS_CODES,
+  EXTENSION_COLLECTION_STATUS_MESSAGE_TYPE,
 } from '../constants/extensionProtocol.js';
 import { EXTENSION_MESSAGE_PROTOCOL_VERSION } from '../constants/contractValues.js';
 import { SHOPEE_PRODUCT_ENDPOINTS } from '../constants/shopeeEndpoints.js';
@@ -42,6 +44,15 @@ const captureEnvelopeFields = {
   protocolVersion: z.literal(EXTENSION_MESSAGE_PROTOCOL_VERSION),
   type: z.literal(EXTENSION_CAPTURE_MESSAGE_TYPE),
 };
+
+export const extensionCollectionStatusSchema = z
+  .object({
+    capturedAt: isoTimestampSchema,
+    code: z.enum(Object.values(EXTENSION_COLLECTION_STATUS_CODES)),
+    protocolVersion: z.literal(EXTENSION_MESSAGE_PROTOCOL_VERSION),
+    type: z.literal(EXTENSION_COLLECTION_STATUS_MESSAGE_TYPE),
+  })
+  .strict();
 
 const productModelEvidenceSchema = z
   .object({

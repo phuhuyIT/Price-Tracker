@@ -1,3 +1,8 @@
+import { EXTENSION_MESSAGE_PROTOCOL_VERSION } from '../../../packages/shared/constants/contractValues.js';
+import {
+  EXTENSION_COLLECTION_STATUS_CODES,
+  EXTENSION_COLLECTION_STATUS_MESSAGE_TYPE,
+} from '../../../packages/shared/constants/extensionProtocol.js';
 import { SHOPEE_PRODUCT_ENDPOINTS } from '../../../packages/shared/constants/shopeeEndpoints.js';
 import {
   parseVariationRequestBody,
@@ -39,6 +44,40 @@ function postCapture(target, capture) {
   }
 }
 
+function collectionStatusCode(status, payload) {
+  const shopeeError = String(payload?.error ?? payload?.error_code ?? '');
+
+  if ([401, 403].includes(status) || shopeeError === '90309999') {
+    return EXTENSION_COLLECTION_STATUS_CODES.AUTHENTICATION_REQUIRED;
+  }
+
+  if (status === 429) {
+    return EXTENSION_COLLECTION_STATUS_CODES.RATE_LIMITED;
+  }
+
+  if ([404, 410].includes(status)) {
+    return EXTENSION_COLLECTION_STATUS_CODES.PRODUCT_UNAVAILABLE;
+  }
+
+  return null;
+}
+
+function postCollectionStatus(target, status, payload, capturedAt) {
+  const code = collectionStatusCode(status, payload);
+
+  if (code) {
+    target.postMessage(
+      {
+        capturedAt,
+        code,
+        protocolVersion: EXTENSION_MESSAGE_PROTOCOL_VERSION,
+        type: EXTENSION_COLLECTION_STATUS_MESSAGE_TYPE,
+      },
+      target.location.origin,
+    );
+  }
+}
+
 async function inspectFetchResponse(target, input, init, response) {
   const path = endpointPath(response.url || input?.url || input, target.location.href);
 
@@ -53,6 +92,7 @@ async function inspectFetchResponse(target, input, init, response) {
   try {
     const [payload, requestBody] = await Promise.all([clone.json(), requestBodyPromise]);
     const capturedAt = new Date().toISOString();
+    postCollectionStatus(target, response.status, payload, capturedAt);
     const capture =
       path === PRODUCT_DETAIL_ENDPOINT
         ? sanitiseProductDetailCapture(payload, { capturedAt })
@@ -130,6 +170,7 @@ export function installPageInterceptor(target = window) {
           try {
             const payload = readXhrPayload(this);
             const capturedAt = new Date().toISOString();
+            postCollectionStatus(target, this.status, payload, capturedAt);
             const capture =
               path === PRODUCT_DETAIL_ENDPOINT
                 ? sanitiseProductDetailCapture(payload, { capturedAt })
