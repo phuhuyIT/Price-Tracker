@@ -11,8 +11,9 @@ The product owner confirmed these release decisions:
 
 1. The MVP is local-only.
 2. The extension observes Shopee through the user's current browser session.
-3. Playwright remains anonymous and must not reuse or authenticate a persistent
-   Shopee profile.
+3. Preserved Playwright discovery tooling remains anonymous and must not reuse
+   or authenticate a persistent Shopee profile; production jobs use the logged-in
+   extension profile defined by Phase 8.
 4. The MVP includes price-tracker accounts and sessions, but authentication
    enforcement is disabled by default for local testing.
 5. Authentication is only for the price-tracker system, never for Shopee
@@ -107,12 +108,16 @@ The shared contract recognises these contexts:
 | Context          | Meaning                                                                       | Context-key rule                                                               | MVP collection status                                                                          |
 | ---------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
 | `user_session` | Price observed in the user's active Chrome session by the extension           | Stable random local installation/profile identifier; never a Shopee account ID | Included                                                                                       |
-| `anonymous`    | Price observed by a fresh Playwright context without persisted authentication | Stable anonymous collector identifier or explicit default anonymous key        | Included                                                                                       |
+| `anonymous`    | Price observed by preserved fresh-context Playwright tooling                  | Stable anonymous collector identifier or explicit default anonymous key        | Contract-compatible legacy evidence; not used by production collection                         |
 | `unknown`      | Legacy or incomplete provenance                                               | No assumed compatibility                                                       | Accepted only where a schema explicitly permits legacy/diagnostic data; never alert-comparable |
 
 Prices from different pricing contexts are never compared directly. Context
 keys prevent two different user sessions within the same context type from
 being treated as equivalent.
+
+Phase 8 supersedes the original anonymous scheduling plan: production manual
+and scheduled jobs are completed by the explicitly enabled extension in the
+user's logged-in Chrome profile and remain `user_session` observations.
 
 `dedicated_profile` is not an MVP pricing context. Playwright must not load the
 user's Chrome profile, persist Shopee cookies, or authenticate a Shopee

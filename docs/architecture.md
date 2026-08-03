@@ -20,14 +20,11 @@ Shopee product page
   |   MV3 service worker
   |     persists bounded queue and submits snapshots
   |
-  +-- Playwright collector
-        uses an isolated anonymous context for manual/scheduled checks
-                |
-                v
-          Marketplace adapter
-          parses URL and normalises the same snapshot contract
+  +-- Background collection job
+        extension claims work by opaque profile context key
+        opens an inactive tab in the existing logged-in Chrome profile
 
-Both collectors
+Extension collection
   |
   v
 Express API -> controllers -> services -> repositories -> SQLite
@@ -36,12 +33,13 @@ Express API -> controllers -> services -> repositories -> SQLite
                               |
                               +-> product/history queries -> dashboard
 
-node-cron -> scheduler job -> collector -> tracking service
+node-cron -> scheduler job -> collection queue -> extension -> tracking service
 ```
 
 ## Collection boundary
 
-Both collectors produce the same validated normalised snapshot. Raw Shopee
+Extension collection produces the same validated normalised snapshot for
+visited and background tabs. Raw Shopee
 responses are allowed only inside the Shopee adapter long enough to select the
 required fields. They are not sent to the backend by the extension, persisted,
 or logged in production.
@@ -71,23 +69,22 @@ them.
    retries temporary failures with bounded backoff, and exposes status to the
    popup.
 
-### Playwright flow
+### Background session flow
 
-1. Parse and canonicalise the product URL before launching Chromium.
-2. Create a new isolated context and register response listeners before
-   navigation.
-3. Capture recognised product and variation responses.
-4. Normalise and validate an `anonymous` snapshot.
-5. Remove listeners and close page, context, and browser in `finally`.
-6. Return typed failures for invalid URLs, unavailable products, timeouts,
-   invalid payloads, rate limits, authentication requirements, and browser
-   failures.
+1. Parse and canonicalise the product URL before creating a persistent job.
+2. Let an explicitly enabled extension claim work with its opaque installation
+   context key and a bounded hashed lease.
+3. Open the product with `active: false` in the last-focused normal window of
+   that same Chrome profile.
+4. Capture recognised product and variation responses through the existing
+   sanitised extension pipeline.
+5. Normalise and validate an `extension` + `user_session` snapshot.
+6. Close the temporary tab on completion, failure, or timeout.
+7. Return typed failures and notify the user when Shopee sign-in is required.
 
-The production Playwright collector is anonymous-only. It must not load the
-user's normal Chrome profile, create an authenticated Shopee automation
-profile, or persist Shopee cookies. The extension is the only MVP collector
-that observes the user's current authenticated Shopee session, and it exports
-only a sanitised normalised snapshot.
+Playwright remains preserved discovery and integration-test tooling. It is not
+the production manual or scheduled collector and never receives the user's
+Chrome profile, Shopee cookies, or authenticated session data.
 
 ## Backend boundaries
 
@@ -112,7 +109,8 @@ only a sanitised normalised snapshot.
   Telegram events independently of the storage transaction.
 - Product-query service builds paginated summaries, details, and chart-ready
   history without exposing database rows directly.
-- Refresh coordination prevents concurrent refreshes of one product.
+- Persistent collection jobs prevent duplicate pending or claimed work and
+  keep refreshes bound to one extension context.
 - Authentication service registers price-tracker users, verifies credentials,
   creates opaque sessions, returns the current user, and revokes sessions.
 - Authentication never accepts or stores Shopee credentials.

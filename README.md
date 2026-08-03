@@ -16,11 +16,13 @@
 > [docs/phase-4-database-layer.md](docs/phase-4-database-layer.md).
 > The current-session MV3 collector is documented in
 > [docs/phase-7-chrome-extension.md](docs/phase-7-chrome-extension.md).
+> Logged-in background collection is documented in
+> [docs/phase-8-chrome-session-collector.md](docs/phase-8-chrome-session-collector.md).
 > Existing collector behavior is intentionally preserved as legacy discovery
 > tooling.
 > The persistent-profile Playwright mode described below is legacy discovery
-> behavior; the target MVP uses anonymous Playwright contexts and relies on the
-> extension for prices from the user's current Shopee session.
+> behavior. Production collection uses the installed extension and the exact
+> Chrome profile in which the user is already signed in to Shopee.
 
 ## Phase 2 foundation
 
@@ -66,14 +68,14 @@ configuration validator rejects non-loopback binding. After running
 `npm.cmd run extension:build`, load `dist/extension` as an unpacked extension
 from `chrome://extensions`.
 
-For a manual isolated-browser connectivity check:
+For the preserved anonymous Playwright connectivity check:
 
 ```powershell
-npm.cmd run collector:manual -- "https://shopee.vn/product-i.shop.item"
+npm.cmd run legacy:anonymous-connectivity -- "https://shopee.vn/product-i.shop.item"
 ```
 
-This Phase 2 command opens a fresh anonymous browser context and verifies page
-navigation only; Shopee response extraction is implemented in a later phase.
+This legacy command opens a fresh anonymous browser context and verifies page
+navigation only. It is not used by production tracking or refresh jobs.
 
 ## Phase 3 shared contracts
 
@@ -122,9 +124,9 @@ price-tracker authentication. Exact snapshot replays are idempotent; partial or
 suspicious catalogues cannot incorrectly deactivate variants; and chart gaps
 come from check results without storing null or zero prices.
 
-Current product prices remain separated by pricing context and context key. If
-both contexts exist, summaries prefer the extension's `user_session` price and
-retain the anonymous Playwright price with its provenance.
+Current product prices remain separated by pricing context and context key.
+Production checks remain bound to one extension installation so Shopee account,
+voucher, and session contexts are never silently mixed.
 
 Authentication still defaults to disabled local mode. When enabled, passwords
 use a local offline denylist and versioned asynchronous scrypt hashes, while
@@ -151,10 +153,10 @@ throttling, and rate limiting for every product mutation. Snapshot requests are
 strictly validated and reject raw responses, cookies, headers, and
 authentication data.
 
-The required `POST /api/products/track` and manual-refresh contracts are in
-place. Until Phase 8 injects the anonymous Playwright collector, a new URL or
-refresh returns the explicit `COLLECTOR_UNAVAILABLE` response. Tracking a URL
-that already exists returns its stored summary without invoking a collector.
+The required `POST /api/products/track` and manual-refresh contracts are
+asynchronous. A new URL or refresh creates a persistent collection job and
+returns `202 Accepted`; an existing tracked URL still returns its stored summary
+immediately.
 
 Run only the Phase 6 API tests with:
 
@@ -193,6 +195,38 @@ headers, or authentication data.
 The full manual procedure, including variant, voucher, quantity, offline queue,
 browser restart, and enabled/disabled authentication cases, is in
 `docs/phase-7-chrome-extension.md`.
+
+## Phase 8 logged-in Chrome session collector
+
+Background price checks are disabled by default. Enable **Allow background
+price checks** in extension options to let the extension poll the backend. The
+default interval is 30 minutes. **Check now** in the popup and options page can
+run one explicit check while periodic polling remains disabled.
+
+When work is queued, the extension uses its stable local pricing-context key to
+claim the job, opens the product in the last-focused normal Chrome window with
+`active: false`, captures sanitised Shopee product and variation responses, and
+closes the temporary tab after success or failure. The tab never receives focus,
+although Chrome may show it briefly in the tab strip.
+
+The first local extension that opts in or explicitly checks for work may claim a
+new unbound product. That profile binding is retained for retries and future
+refreshes. A different Chrome profile cannot silently collect the job, which
+prevents comparisons across different Shopee accounts or voucher contexts.
+
+If the bound Chrome profile is signed out of Shopee, no snapshot or zero price
+is stored. The job fails with `AUTHENTICATION_REQUIRED`, the extension displays
+a Chrome notification and badge, and the popup/options page asks the user to
+sign in to Shopee in that same profile.
+
+Run the focused automated checks:
+
+```powershell
+npm.cmd run test:phase8
+```
+
+See `docs/phase-8-chrome-session-collector.md` for the API, privacy boundaries,
+failure behavior, and manual verification checklist.
 
 This project has two browser modes:
 

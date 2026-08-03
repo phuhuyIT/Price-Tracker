@@ -9,10 +9,10 @@ lifecycle, comparison, or password rules into controllers. Controllers receive
 the trusted owner from middleware; request bodies, parameters, and query
 strings cannot select an owner.
 
-The anonymous Playwright collector remains Phase 8 work. The track and refresh
-contracts accept an injected collector, but the production application
-currently returns `COLLECTOR_UNAVAILABLE` for a new URL or manual refresh.
-Tracking an existing URL still returns its stored product without collection.
+Phase 8 replaces the old anonymous-collector handoff with persistent extension
+collection jobs. New tracking and refresh requests return `202 Accepted` while
+the installed extension completes work in the user's logged-in Chrome profile.
+Tracking an existing URL still returns its stored product without queueing work.
 
 ## Endpoints
 
@@ -22,12 +22,16 @@ Tracking an existing URL still returns its stored product without collection.
 | `POST` | `/api/auth/login` | Creates a dashboard cookie or extension bearer session |
 | `POST` | `/api/auth/logout` | Revokes the presented session |
 | `GET` | `/api/auth/me` | Returns the current user and non-secret session summary |
-| `POST` | `/api/products/track` | Returns an existing URL or invokes the injected anonymous collector |
+| `POST` | `/api/products/track` | Returns an existing URL or queues an extension collection job |
 | `POST` | `/api/products/snapshot` | Validates and transactionally stores one normalised snapshot |
 | `GET` | `/api/products` | Lists one owner page with context-safe prices |
 | `GET` | `/api/products/:productId` | Returns complete owner-scoped product details |
 | `GET` | `/api/products/:productId/history` | Returns filtered Chart.js-ready history |
-| `POST` | `/api/products/:productId/refresh` | Runs one non-overlapping injected anonymous refresh |
+| `POST` | `/api/products/:productId/refresh` | Queues one profile-bound extension refresh |
+| `POST` | `/api/collection-jobs/claim` | Atomically leases the next compatible job to an extension installation |
+| `POST` | `/api/collection-jobs/:jobId/complete` | Validates and stores the leased user-session snapshot |
+| `POST` | `/api/collection-jobs/:jobId/fail` | Records a typed leased collection failure |
+| `GET` | `/api/collection-jobs/:jobId` | Returns owner-scoped job state |
 | `PATCH` | `/api/products/:productId` | Changes active/paused state or alert threshold |
 | `DELETE` | `/api/products/:productId` | Deletes the product through foreign-key cascades |
 | `GET` | `/api/health` | Returns process health |
@@ -79,16 +83,16 @@ eligible misses, and malformed or zero prices never become price logs.
 
 ## Collector handoff
 
-Phase 8 should pass its anonymous collector as `collectProduct` when composing
-the app. The collection service verifies that the returned snapshot:
+Collection jobs store only the public product identity, canonical URL, opaque
+extension context key, job state, and a hash of the short-lived lease token.
+They never store Shopee cookies, headers, tokens, or account identifiers.
 
-1. Is a Playwright snapshot.
-2. Uses the anonymous pricing context.
-3. Matches the requested shop and item IDs.
-
-Manual refreshes are locked per owner/product pair and return
-`REFRESH_IN_PROGRESS` when a second refresh overlaps. Browser management,
-extraction errors, and failed-check persistence remain with Phases 8 and 9.
+An unbound new-product job is claimed by the first local extension that opts in
+or explicitly checks for work.
+Claiming binds the product identity to that extension context for retries.
+Refresh jobs use the latest successful `extension` + `user_session` context key.
+Completion requires the same lease, context key, product identity, and snapshot
+provenance. Duplicate pending or claimed work returns the existing job.
 
 ## Verification
 

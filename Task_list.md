@@ -179,41 +179,41 @@ Do not rely on this example mapping unless it matches the actual captured respon
 
 Completed:
 
-* [x] Captured and sanitised one live `user_session` fixture with a verified
+* [X] Captured and sanitised one live `user_session` fixture with a verified
   three-model `get_pc` catalogue and three selected-variation prices.
-* [x] Documented the two endpoint paths and separated complete catalogue
+* [X] Documented the two endpoint paths and separated complete catalogue
   evidence from partial selected-variation evidence.
-* [x] Verified the live displayed-price path
+* [X] Verified the live displayed-price path
   `data.product_price.price.single_value`.
-* [x] Verified the raw-price scale of `100000`.
-* [x] Documented the captured public discount, null applied-voucher field,
+* [X] Verified the raw-price scale of `100000`.
+* [X] Documented the captured public discount, null applied-voucher field,
   absent shipping field, and unknown availability evidence.
-* [x] Added allowlist-based local fixture capture without headers, cookies,
+* [X] Added allowlist-based local fixture capture without headers, cookies,
   Shopee authentication data, addresses, or account fields.
-* [x] Added derived fixtures for a failed variant price, partial variation
+* [X] Added derived fixtures for a failed variant price, partial variation
   response, suspicious empty catalogue, API failure, and unrecognised price
   shape.
-* [x] Added offline fixture normalisation and raw-price tests.
-* [x] Captured a live 93-model catalogue with two selected-variation prices
+* [X] Added offline fixture normalisation and raw-price tests.
+* [X] Captured a live 93-model catalogue with two selected-variation prices
   and one exact product-detail fallback; retained all identities and classified
   the other 90 disabled selections as `not_observed`, not missing, sold out,
   or zero-priced.
-* [x] Verified an applied platform-voucher price and its
+* [X] Verified an applied platform-voucher price and its
   `price_breakdown.discount_breakdown` and `product_price.final_price_info`
   mappings.
-* [x] Verified a no-public-discount product where
+* [X] Verified a no-public-discount product where
   `models[].price_before_discount = 0`; zero is treated as an absent optional
   comparison price, never as an observed price.
-* [x] Captured a genuinely variantless product represented by one implicit
+* [X] Captured a genuinely variantless product represented by one implicit
   Shopee model with empty tier and option labels; normalised it to the shared
   `default` variant with a verified product-detail fallback price.
-* [x] Re-ran targeted multi-tier selection after clearing prior UI state;
+* [X] Re-ran targeted multi-tier selection after clearing prior UI state;
   verified 12 exact model-price responses and 21 unavailable combinations
   while leaving 60 deliberately untargeted models lifecycle-neutral.
-* [x] Captured an applied shop voucher across 40 exact model responses;
+* [X] Captured an applied shop voucher across 40 exact model responses;
   verified `Shop Voucher Discount`, a populated `shop_voucher`, no platform
   voucher, and `voucher_type = 1`.
-* [x] Captured an active flash-sale product with promotion type `302`; used the
+* [X] Captured an active flash-sale product with promotion type `302`; used the
   product-detail fallback only for the exact matching
   `price_single_model_id`, leaving five variants unpriced when their selection
   controls could not be collected.
@@ -292,7 +292,7 @@ Include scripts for:
 * Database migration.
 * Playwright installation.
 * Extension build.
-* Manual anonymous Playwright collector test.
+* Manual legacy anonymous Playwright connectivity test.
 
 ## Deliverables
 
@@ -314,7 +314,7 @@ Status: **complete — verified 2026-07-30**
 
 ## Objective
 
-Ensure the extension, backend and Playwright collector all use the same data format.
+Ensure the extension, backend and preserved Playwright tooling use the same data format.
 
 ## Tasks
 
@@ -546,22 +546,22 @@ Test:
 
 Completed:
 
-* [x] Added the Node.js 20-compatible `better-sqlite3` dependency and one
+* [X] Added the Node.js 20-compatible `better-sqlite3` dependency and one
   shared connection with foreign keys, WAL and a busy timeout.
-* [x] Added an ordered initial migration, migration metadata, checksum
+* [X] Added an ordered initial migration, migration metadata, checksum
   verification, duplicate detection, transactional application and
   `user_version` tracking.
-* [x] Added owner-scoped users, revocable hashed sessions, products, variants,
+* [X] Added owner-scoped users, revocable hashed sessions, products, variants,
   checks, per-variant results, real price logs and notification events.
-* [x] Persisted pricing definition, context, context key, source, voucher,
+* [X] Persisted pricing definition, context, context key, source, voucher,
   shipping exclusion, catalogue evidence and lifecycle state.
-* [x] Added explicit variant presence, eligible-miss, reactivation and
+* [X] Added explicit variant presence, eligible-miss, reactivation and
   suspicious mass-disappearance persistence operations.
-* [x] Added product-scoped check idempotency and exact successful-transition
+* [X] Added product-scoped check idempotency and exact successful-transition
   notification deduplication.
-* [x] Added repository factories and a synchronous atomic transaction boundary
+* [X] Added repository factories and a synchronous atomic transaction boundary
   for the future tracking service.
-* [x] Added 22 focused integration assertions covering migration safety, local
+* [X] Added 22 focused integration assertions covering migration safety, local
   user and sessions, owner isolation, upserts, lifecycle, history, rollback,
   failed checks, deduplication and cascade deletion.
 
@@ -690,21 +690,21 @@ Test:
 
 Completed:
 
-* [x] Added strict shared-snapshot validation before persistence and a
+* [X] Added strict shared-snapshot validation before persistence and a
   deterministic SHA-256 idempotency key for exact snapshot replays.
-* [x] Added one synchronous tracking transaction for product and variant
+* [X] Added one synchronous tracking transaction for product and variant
   upserts, grouped checks, per-variant results, real prices, lifecycle changes,
   and suspicious mass-disappearance confirmation.
-* [x] Added exact comparable-price selection by variant, currency, definition,
+* [X] Added exact comparable-price selection by variant, currency, definition,
   type, pricing context, context key, and price source, including threshold and
   successful-transition deduplication policy.
-* [x] Added owner-scoped product summaries, details, pagination, per-context
+* [X] Added owner-scoped product summaries, details, pagination, per-context
   latest and lowest prices, user-session display priority, and check-aligned
   Chart.js points with real gaps.
-* [x] Added price-tracker registration, login, current-user, logout, revocation,
+* [X] Added price-tracker registration, login, current-user, logout, revocation,
   expiry, reserved-local-owner resolution, an offline common-password denylist,
   versioned asynchronous scrypt hashes, and opaque hashed sessions.
-* [x] Added 25 focused Phase 5 assertions covering service policy, rollback,
+* [X] Added 25 focused Phase 5 assertions covering service policy, rollback,
   authentication, contexts, lifecycle, comparisons, queries, and chart gaps.
 
 See `docs/phase-5-core-services.md` for service contracts and Phase 6 handoff.
@@ -808,25 +808,24 @@ Test:
 
 Completed:
 
-* [x] Added the complete `/api/auth`, `/api/products`, and `/api/health` route
+* [X] Added the complete `/api/auth`, `/api/products`, and `/api/health` route
   surface with thin controllers, shared Zod request validation, and standard
   success/error envelopes.
-* [x] Added Helmet with a restrictive CSP, a 64 KiB JSON limit, exact-origin
+* [X] Added Helmet with a restrictive CSP, a 64 KiB JSON limit, exact-origin
   CORS, request IDs, structured completion logs, mutation throttling, and
   stricter authentication throttling.
-* [x] Added disabled-mode reserved-local ownership and enabled-mode dashboard
+* [X] Added disabled-mode reserved-local ownership and enabled-mode dashboard
   cookie or extension bearer authentication without accepting owner IDs from
   clients.
-* [x] Kept dashboard tokens out of JSON responses and persisted only token
+* [X] Kept dashboard tokens out of JSON responses and persisted only token
   hashes; extension tokens are returned once and accepted only through the
   bearer transport.
-* [x] Added owner-scoped listing, details, filtered history, pause/resume,
+* [X] Added owner-scoped listing, details, filtered history, pause/resume,
   threshold updates, deletion, transactional snapshots, duplicate URL lookup,
   and refresh coordination.
-* [x] Added the confirmed Phase 8 boundary: new URL collection and manual
-  refresh return `COLLECTOR_UNAVAILABLE` until an anonymous collector is
-  injected, while their stable endpoint contracts are already tested.
-* [x] Added 15 focused Phase 6 integration assertions covering the required
+* [X] Added an explicit future-collector seam. Phase 8 later replaced the
+  unavailable response with persistent logged-in extension collection jobs.
+* [X] Added 15 focused Phase 6 integration assertions covering the required
   API, authentication, privacy, validation, throttling, and isolation cases.
 
 See `docs/phase-6-rest-api.md` for endpoint behavior and the Phase 7/8 handoff.
@@ -941,12 +940,12 @@ Verify:
 
 Implementation status (2026-08-01):
 
-* [x] Added the loadable MV3 manifest, `MAIN` fetch/XHR interceptor, isolated
+* [X] Added the loadable MV3 manifest, `MAIN` fetch/XHR interceptor, isolated
   validated bridge, shared capture schemas/normaliser, persistent bounded
   service-worker queue, popup, options, local icons, and bundled build.
-* [x] Kept automatic capture off by default and generated the opaque local
+* [X] Kept automatic capture off by default and generated the opaque local
   pricing-context key per installation.
-* [x] Added 22 focused assertions for capture privacy, catalogue/price
+* [X] Added 22 focused assertions for capture privacy, catalogue/price
   correctness, interceptor preservation, queue policy, and settings, plus the
   manifest-reference and remote-code build validation.
 * [ ] Complete the live Chrome scenarios in
@@ -971,87 +970,116 @@ Visiting a supported Shopee product page can create a valid `user_session` price
 
 ---
 
-# Phase 8 — Implement the Playwright Collector
+# Phase 8 — Implement the Logged-in Chrome Session Collector
 
 ## Objective
 
-Provide manual and scheduled price checks when the extension is not actively visiting the product page.
+Provide manual and future scheduled price checks through the user's installed
+extension and exact logged-in Chrome profile. Do not use anonymous Playwright
+for production collection.
 
 ## Tasks
 
-### Implement URL parsing
+### Implement persistent collection jobs
 
-Support:
+* Validate and canonicalise Shopee product URLs before queueing work.
+* Persist owner-scoped jobs for new-product tracking and product refreshes.
+* Return accepted job state without keeping an HTTP request open while Chrome
+  is unavailable.
+* Prevent duplicate pending or claimed jobs for the same owner and product.
+* Claim jobs atomically with a bounded lease.
+* Accept completion or failure only from the extension that owns the lease.
+* Keep completed and failed job state available for dashboard status.
 
-* Valid Shopee product URLs.
-* Query parameters.
-* URL fragments.
-* Encoded titles.
-* Canonical URL generation.
-* Invalid host rejection.
-* Missing identifier rejection.
+### Bind collection to one Chrome profile
 
-### Implement anonymous extraction
+* Use the extension installation's opaque `pricingContextKey` as the collector
+  identity; never store a Shopee account identifier.
+* Allow an unbound new-product job to be claimed by the first local extension
+  that opts in or explicitly checks for work.
+* Bind retries and refresh jobs to the same `pricingContextKey` that previously
+  claimed or collected the product.
+* Never let another Chrome profile silently claim a bound job.
+* Keep submitted snapshots as `extension` + `user_session` observations so
+  incompatible Shopee sessions are never compared.
 
-* Launch Chromium.
-* Register listeners before navigation.
-* Open the product URL.
-* Capture product-detail responses.
-* Capture variation-price responses.
-* Derive verified complete coverage only from a validated full product
-  catalogue; variation responses alone are partial.
-* Preserve every observed model identity when an individual price collection
-  fails.
-* Normalise the result.
-* Apply extraction timeout.
-* Close all browser resources in `finally`.
+### Poll only after explicit opt-in
 
-### Enforce anonymous Playwright collection
+* Add an `Allow background price checks` extension setting.
+* Keep background collection disabled by default.
+* Poll every 30 minutes by default while Chrome is running.
+* Poll once when Chrome starts after opt-in; allow an explicit one-time check
+  even while periodic polling is disabled.
+* Do not create a Chrome window when no normal browser window exists.
 
-* Create a fresh isolated context for every extraction.
-* Do not load the user's current Chrome profile.
-* Do not create or authenticate a persistent Shopee profile.
-* Do not persist Shopee cookies or local browser storage.
-* Assign the `anonymous` pricing context and its configured context key.
+### Collect through an inactive user-profile tab
 
-### Implement extraction fallbacks
+* Open the product in the existing Chrome profile with `active: false`.
+* Never focus the temporary tab or take over the user's current page.
+* Register capture logic before the product request runs.
+* Reuse the extension's sanitised product-detail and variation capture flow.
+* Select variants sequentially through the rendered Shopee controls.
+* Correlate selected-variation responses by exact `selected_tiers`.
+* Preserve verified catalogue identities when an individual price is not
+  observed; never create a zero price.
+* Close the temporary tab after success, failure or timeout.
 
-Priority:
+The temporary tab may appear briefly in Chrome's tab strip. Chrome extensions
+cannot load an authenticated external Shopee page in a fully invisible
+offscreen tab.
 
-1. Verified variant price breakdown.
-2. Other verified API price.
-3. Product-detail fallback.
-4. DOM display fallback.
-5. Extraction failure.
+### Detect login and collection failures
 
-### Implement typed errors
+Support invalid URLs, unavailable products, timeouts, invalid payloads, rate
+limits, Shopee authentication requirements, and extension unavailability.
 
-Support:
+When Shopee authentication is required:
 
-* Invalid URL.
-* Unsupported host.
-* Product unavailable.
-* Extraction timeout.
-* Invalid payload.
-* Rate limited.
-* Authentication required.
-* Browser failure.
+* Fail the job without storing a price check or zero price.
+* Show a Chrome notification.
+* Set an extension badge and popup/options status.
+* Ask the user to sign in to Shopee in the same Chrome profile and retry.
+* Do not add email notification delivery in Phase 8.
 
-### Add extractor tests
+### Add collector tests
 
-Use mocked or fixture responses for automated tests.
+Use mocked Chrome APIs and sanitised fixtures. Automated tests must not require
+live Shopee access, a real Chrome profile, or Shopee credentials.
 
-Do not require live Shopee access for the normal test suite.
+Implementation status (2026-08-02):
+
+* [x] Added persistent jobs, duplicate prevention, atomic profile claims, hashed
+  lease tokens, expiry recovery, and strict completion/failure validation.
+* [x] Bound retries and refreshes to the same opaque extension context key while
+  allowing only the first polling extension to claim a new unbound URL.
+* [x] Added explicit opt-in background collection, a configurable 30-minute
+  default poll, startup/manual polling, and inactive-tab creation in the
+  last-focused normal Chrome window.
+* [x] Reused the sanitised product/variation capture pipeline, added sequential
+  rendered-control selection, and closed temporary tabs after completion,
+  failure, or timeout.
+* [x] Added safe authentication-status classification, Chrome notification,
+  badge and popup/options status, plus fixture-driven API and mocked-Chrome
+  tests.
+* [ ] Complete the live Chrome-profile checklist in
+  `docs/phase-8-chrome-session-collector.md` before marking the exit condition
+  complete.
 
 ## Deliverables
 
-* Anonymous extractor.
-* Fixture-driven tests.
-* Manual live-test command.
+* Persistent collection-job API.
+* Opt-in extension polling.
+* Inactive-tab session collector.
+* Authentication-required user notification.
+* Fixture-driven server and extension tests.
+* Manual live-test checklist.
 
 ## Exit condition
 
-A manual refresh can retrieve and store a valid price with its correct pricing context, and Chromium always closes after completion or failure.
+With background collection enabled and Shopee signed in in that Chrome profile,
+a queued manual refresh can retrieve and store a valid `user_session` price
+without focusing the temporary tab, leaking Shopee credentials or leaving the
+temporary tab open.
 
 ---
 
@@ -1070,12 +1098,14 @@ Automatically refresh tracked products without overlapping jobs or corrupting pr
 * Prevent overlapping scheduler runs.
 * Generate a job-run ID.
 * Retrieve only active products.
+* Queue bound extension collection jobs instead of launching anonymous
+  Playwright.
 
 ### Process products safely
 
 * Process sequentially in the MVP.
 * Add random delay between products.
-* Apply extraction timeout.
+* Apply collection-job timeout and lease expiry.
 * Apply bounded retry for temporary failures.
 * Continue after an individual product failure.
 * Record every successful or failed check.
@@ -1102,7 +1132,7 @@ Handle:
 
 * `SIGINT`
 * `SIGTERM`
-* Active browser cleanup.
+* Active collection-job cleanup.
 * Database closure.
 * Scheduler shutdown.
 
@@ -1376,8 +1406,7 @@ Verify:
 
 Verify:
 
-* Browser instances close.
-* Browser contexts close.
+* Temporary extension tabs close.
 * Response listeners are removed.
 * Scheduler runs do not overlap.
 * Database transactions roll back correctly.

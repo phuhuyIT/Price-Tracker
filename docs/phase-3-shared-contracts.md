@@ -5,7 +5,7 @@ Status: **complete — verified 2026-07-30**
 ## Purpose
 
 `@shopee-price-tracker/shared` is the single validation boundary for data
-exchanged by the Chrome extension, anonymous Playwright collector and backend.
+exchanged by the Chrome extension, preserved Playwright tooling and backend.
 All schemas are strict Zod schemas: undeclared fields such as raw Shopee
 responses, cookies, request headers or debug payloads are rejected.
 
