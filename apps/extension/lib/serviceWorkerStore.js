@@ -8,14 +8,25 @@ export const STORAGE_KEYS = Object.freeze({
   COLLECTION_STATUS: 'collectionStatus',
   LAST_SUBMISSION: 'lastSubmissionStatus',
   LATEST_CAPTURES: 'latestCaptures',
+  MANUAL_COLLECTION_QUEUE: 'manualCollectionQueue',
   QUEUE: 'snapshotQueue',
   SETTINGS: 'extensionSettings',
 });
 
 export const DEFAULT_COLLECTION_STATUS = Object.freeze({
+  availability: 'unknown',
   at: null,
   error: null,
+  expectedVariantCount: null,
+  itemId: null,
   jobId: null,
+  lowestPriceAmount: null,
+  lowestPriceVariant: null,
+  pricedVariantCount: null,
+  processedVariantCount: null,
+  productId: null,
+  resolvedVariantCount: null,
+  shopId: null,
   state: 'idle',
 });
 
@@ -35,6 +46,8 @@ export const DEFAULT_BACKEND_STATUS = Object.freeze({
 export const DEFAULT_SUBMISSION_STATUS = Object.freeze({
   at: null,
   error: null,
+  expectedVariantCount: null,
+  pricedVariantCount: null,
   productId: null,
   state: SUBMISSION_STATES.IDLE,
 });
@@ -94,6 +107,11 @@ export function createServiceWorkerStore(chromeApi) {
         ...(stored[STORAGE_KEYS.LAST_SUBMISSION] ?? {}),
       },
       [STORAGE_KEYS.LATEST_CAPTURES]: stored[STORAGE_KEYS.LATEST_CAPTURES] ?? {},
+      [STORAGE_KEYS.MANUAL_COLLECTION_QUEUE]: Array.isArray(
+        stored[STORAGE_KEYS.MANUAL_COLLECTION_QUEUE],
+      )
+        ? stored[STORAGE_KEYS.MANUAL_COLLECTION_QUEUE]
+        : [],
       [STORAGE_KEYS.QUEUE]: Array.isArray(stored[STORAGE_KEYS.QUEUE])
         ? stored[STORAGE_KEYS.QUEUE]
         : [],
@@ -121,6 +139,9 @@ export function createServiceWorkerStore(chromeApi) {
           ...DEFAULT_SUBMISSION_STATUS,
           ...(stored[STORAGE_KEYS.LAST_SUBMISSION] ?? {}),
         },
+        manualCollectionQueue: Array.isArray(stored[STORAGE_KEYS.MANUAL_COLLECTION_QUEUE])
+          ? stored[STORAGE_KEYS.MANUAL_COLLECTION_QUEUE]
+          : [],
         queue: Array.isArray(stored[STORAGE_KEYS.QUEUE]) ? stored[STORAGE_KEYS.QUEUE] : [],
         settings: normaliseExtensionSettings(stored[STORAGE_KEYS.SETTINGS]),
       };

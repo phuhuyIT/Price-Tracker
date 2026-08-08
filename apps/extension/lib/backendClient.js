@@ -43,12 +43,22 @@ export function createBackendClient(fetchImplementation = fetch) {
 
   return Object.freeze({
     /** Atomically claim the next job available to this Chrome profile. */
-    async claimCollectionJob(settings, auth, pricingContextKey) {
+    async claimCollectionJob(
+      settings,
+      auth,
+      pricingContextKey,
+      resumeWaitingAuth = false,
+      jobId = null,
+    ) {
       try {
         const { body, response } = await fetchJson(
           `${settings.backendBaseUrl}/api/collection-jobs/claim`,
           {
-            body: JSON.stringify({ pricingContextKey }),
+            body: JSON.stringify({
+              ...(jobId === null ? {} : { jobId }),
+              pricingContextKey,
+              resumeWaitingAuth,
+            }),
             headers: requestHeaders(auth, { includeJson: true }),
             method: 'POST',
           },
@@ -70,6 +80,136 @@ export function createBackendClient(fetchImplementation = fetch) {
             error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
           errorCode: null,
           kind: 'temporary',
+        };
+      }
+    },
+
+    /** Read one owner-scoped job so local manual-queue state can be reconciled. */
+    async getCollectionJob(settings, auth, jobId) {
+      try {
+        const { body, response } = await fetchJson(
+          `${settings.backendBaseUrl}/api/collection-jobs/${jobId}`,
+          {
+            headers: requestHeaders(auth),
+          },
+        );
+
+        if (response.ok && body?.success === true) {
+          return { job: body.data?.job ?? null, kind: 'success' };
+        }
+
+        const errorCode = body?.error?.code ?? null;
+        return {
+          error: body?.error?.message ?? `Backend returned HTTP ${response.status}`,
+          errorCode,
+          kind: classifySubmissionFailure({ errorCode, status: response.status }),
+        };
+      } catch (error) {
+        return {
+          error:
+            error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
+          errorCode: null,
+          kind: 'temporary',
+        };
+      }
+    },
+
+    /** Explicitly move one unclaimed manual target to this extension context. */
+    async rebindCollectionJob(settings, auth, jobId, pricingContextKey) {
+      try {
+        const { body, response } = await fetchJson(
+          `${settings.backendBaseUrl}/api/collection-jobs/${jobId}/rebind`,
+          {
+            body: JSON.stringify({ pricingContextKey }),
+            headers: requestHeaders(auth, { includeJson: true }),
+            method: 'POST',
+          },
+        );
+
+        if (response.ok && body?.success === true) {
+          return { job: body.data?.job ?? null, kind: 'success' };
+        }
+
+        const errorCode = body?.error?.code ?? null;
+        return {
+          error: body?.error?.message ?? `Backend returned HTTP ${response.status}`,
+          errorCode,
+          kind: classifySubmissionFailure({ errorCode, status: response.status }),
+        };
+      } catch (error) {
+        return {
+          error:
+            error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
+          errorCode: null,
+          kind: 'temporary',
+        };
+      }
+    },
+
+    /** Queue first-time collection for one canonical Shopee product URL. */
+    async trackProduct(settings, auth, url) {
+      try {
+        const { body, response } = await fetchJson(
+          `${settings.backendBaseUrl}/api/products/track`,
+          {
+            body: JSON.stringify({ url }),
+            headers: requestHeaders(auth, { includeJson: true }),
+            method: 'POST',
+          },
+        );
+
+        if (response.ok && body?.success === true) {
+          return { body, kind: 'success' };
+        }
+
+        const errorCode = body?.error?.code ?? null;
+        return {
+          error: body?.error?.message ?? `Backend returned HTTP ${response.status}`,
+          errorCode,
+          kind: classifySubmissionFailure({ errorCode, status: response.status }),
+          status: response.status,
+        };
+      } catch (error) {
+        return {
+          error:
+            error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
+          errorCode: null,
+          kind: classifySubmissionFailure({ networkError: true }),
+          status: null,
+        };
+      }
+    },
+
+    /** Queue a full-price refresh for an existing tracked product. */
+    async refreshProduct(settings, auth, productId) {
+      try {
+        const { body, response } = await fetchJson(
+          `${settings.backendBaseUrl}/api/products/${productId}/refresh`,
+          {
+            body: '{}',
+            headers: requestHeaders(auth, { includeJson: true }),
+            method: 'POST',
+          },
+        );
+
+        if (response.ok && body?.success === true) {
+          return { body, kind: 'success' };
+        }
+
+        const errorCode = body?.error?.code ?? null;
+        return {
+          error: body?.error?.message ?? `Backend returned HTTP ${response.status}`,
+          errorCode,
+          kind: classifySubmissionFailure({ errorCode, status: response.status }),
+          status: response.status,
+        };
+      } catch (error) {
+        return {
+          error:
+            error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
+          errorCode: null,
+          kind: classifySubmissionFailure({ networkError: true }),
+          status: null,
         };
       }
     },

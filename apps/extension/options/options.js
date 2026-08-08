@@ -66,9 +66,11 @@ function render(state) {
   elements.automaticCapture.checked = state.settings.automaticCapture;
   elements.backgroundCollectionEnabled.checked = state.settings.backgroundCollectionEnabled;
   elements.collectionPollInterval.value = String(state.settings.collectionPollIntervalMinutes);
+  const collectorStatus =
+    state.collectionStatus.error ?? `Background collector: ${state.collectionStatus.state}.`;
   elements.collectionStatus.textContent = state.settings.backgroundCollectionEnabled
-    ? (state.collectionStatus.error ?? `Background collector: ${state.collectionStatus.state}.`)
-    : 'Background price checks are disabled.';
+    ? collectorStatus
+    : `Scheduled background price checks are disabled. ${collectorStatus}`;
   elements.debugMode.checked = state.settings.debugMode;
   elements.contextKey.textContent = state.settings.pricingContextKey;
   renderAuth(state.auth, state.backend);

@@ -87,6 +87,8 @@ export function createServiceWorkerQueue({ alarms, backendClient, store }) {
             [STORAGE_KEYS.LAST_SUBMISSION]: {
               at: new Date().toISOString(),
               error: null,
+              expectedVariantCount: record.snapshot.expectedVariantCount,
+              pricedVariantCount: record.snapshot.pricedVariantCount,
               productId: result.body.data?.product?.id ?? null,
               state: SUBMISSION_STATES.SUCCESS,
             },

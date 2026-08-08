@@ -16,6 +16,7 @@ import {
   normaliseBackendBaseUrl,
   normaliseExtensionSettings,
 } from './lib/extensionSettings.js';
+import { createFullProductCollectionCoordinator } from './lib/fullProductCollection.js';
 import { RUNTIME_MESSAGES } from './lib/runtimeMessages.js';
 import { createServiceWorkerQueue, RETRY_ALARM_NAME } from './lib/serviceWorkerQueue.js';
 import {
@@ -43,6 +44,11 @@ const backgroundCollection = createBackgroundCollectionAgent({
   store,
   tabs: chrome.tabs,
   windows: chrome.windows,
+});
+const fullProductCollection = createFullProductCollectionCoordinator({
+  backendClient,
+  backgroundCollection,
+  store,
 });
 
 function success(data) {
@@ -98,6 +104,11 @@ function sanitiseCaptureSummary(value, snapshot) {
 
   return {
     capturedAt,
+    displayedAvailability: ['available', 'sold_out', 'unavailable', 'unknown'].includes(
+      value?.displayedAvailability,
+    )
+      ? value.displayedAvailability
+      : 'unknown',
     displayedPriceAmount:
       Number.isSafeInteger(displayedPriceAmount) && displayedPriceAmount > 0
         ? displayedPriceAmount
@@ -257,6 +268,20 @@ async function trackCapture(message) {
   return submissionQueue.enqueue(capture.snapshot, capture.semanticHash);
 }
 
+async function startFullCollection(message) {
+  const state = await store.load();
+  const capture = state.captures[String(message.tabId)];
+
+  if (!capture || !sameSnapshotPage(capture.snapshot, message.pageUrl)) {
+    throw extensionError(
+      'No validated capture is available for this product page',
+      'CAPTURE_NOT_READY',
+    );
+  }
+
+  return fullProductCollection.start(capture.snapshot.canonicalUrl);
+}
+
 async function getOptionsState() {
   const state = await store.load();
   return {
@@ -354,6 +379,24 @@ async function handleMessage(message, sender) {
         errorMessage: message.errorMessage.slice(0, 500),
         tabId: sender.tab.id,
       });
+    case RUNTIME_MESSAGES.BACKGROUND_COLLECTION_PROGRESS:
+      if (
+        sender.id !== chrome.runtime.id ||
+        !sender.tab?.id ||
+        !Number.isSafeInteger(message.expectedVariantCount) ||
+        message.expectedVariantCount <= 0 ||
+        !Number.isSafeInteger(message.processedVariantCount) ||
+        message.processedVariantCount < 0 ||
+        message.processedVariantCount > message.expectedVariantCount
+      ) {
+        throw extensionError('The background collection progress is invalid', 'INVALID_CAPTURE');
+      }
+
+      return backgroundCollection.progress({
+        expectedVariantCount: message.expectedVariantCount,
+        processedVariantCount: message.processedVariantCount,
+        tabId: sender.tab.id,
+      });
     case RUNTIME_MESSAGES.GET_COLLECTOR_CONFIG: {
       if (
         sender.id !== chrome.runtime.id ||
@@ -372,6 +415,9 @@ async function handleMessage(message, sender) {
       }
 
       return {
+        collectionDeadlineAt: isActiveCollectionTab
+          ? (state.activeCollection.deadlineAt ?? null)
+          : null,
         collectionJobId: isActiveCollectionTab ? state.activeCollection.job.id : null,
         debugMode: state.settings.debugMode,
         pricingContextKey: state.settings.pricingContextKey,
@@ -383,6 +429,9 @@ async function handleMessage(message, sender) {
     case RUNTIME_MESSAGES.TRACK_CAPTURE:
       requireExtensionPage(sender);
       return trackCapture(message);
+    case RUNTIME_MESSAGES.START_FULL_COLLECTION:
+      requireExtensionPage(sender);
+      return startFullCollection(message);
     case RUNTIME_MESSAGES.CHECK_BACKEND:
       requireExtensionPage(sender);
       return checkBackend();
@@ -437,6 +486,10 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   ) {
     void backgroundCollection.handleAlarm(alarm.name);
   }
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  void backgroundCollection.handleTabRemoved(tabId);
 });
 
 chrome.runtime.onInstalled.addListener(() => {

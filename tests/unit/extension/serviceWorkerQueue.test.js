@@ -62,7 +62,9 @@ function createQueueHarness({ backendResult, state } = {}) {
 
 const snapshot = {
   capturedAt: '2026-08-01T00:00:00.000Z',
+  expectedVariantCount: 3,
   itemId: '26882883164',
+  pricedVariantCount: 0,
   shopId: '1259293184',
 };
 
@@ -78,6 +80,8 @@ describe('service-worker queue persistence', () => {
       snapshot,
     );
     expect(harness.store.state.lastSubmission).toMatchObject({
+      expectedVariantCount: 3,
+      pricedVariantCount: 0,
       productId: 17,
       state: 'success',
     });
