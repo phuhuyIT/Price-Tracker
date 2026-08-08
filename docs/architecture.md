@@ -109,8 +109,9 @@ Chrome profile, Shopee cookies, or authenticated session data.
   Telegram events independently of the storage transaction.
 - Product-query service builds paginated summaries, details, and chart-ready
   history without exposing database rows directly.
-- Persistent collection jobs prevent duplicate pending or claimed work and
-  keep refreshes bound to one extension context.
+- Persistent collection jobs prevent duplicate pending, claimed, retry-waiting,
+  or authentication-waiting work and keep refreshes bound to one extension
+  context.
 - Authentication service registers price-tracker users, verifies credentials,
   creates opaque sessions, returns the current user, and revokes sessions.
 - Authentication never accepts or stores Shopee credentials.
@@ -165,7 +166,8 @@ Rules:
   `observed` or `not_observed`, allowing chart gaps without null or zero rows
   in `price_logs`.
 - Notification delivery occurs after the price-history transaction commits.
-- Failed extractions create failed checks but never price logs.
+- Only terminal failed extractions create failed checks, and they never create
+  price logs. Retry waits and authentication waits create no check rows.
 - Migrations are ordered, versioned, idempotent, and tested.
 
 The baseline SQL in `AGENTS.md` must be extended during the database-design
@@ -196,13 +198,22 @@ The accepted lifecycle state machine and default safeguards are specified in
 ## Scheduler boundary
 
 - One process-level run lock prevents overlap.
-- Active products are processed sequentially.
-- Delay, jitter, timeout, and bounded retries come from validated
-  configuration.
-- A failure is recorded and processing continues with the next product.
+- The cron run is an asynchronous dispatcher: it queues profile-bound extension
+  work and never launches Playwright or waits for Chrome.
+- Active products are dispatched sequentially with configured random delay.
+- Claimed jobs use leases. Expired claims are recovered into retry wait or a
+  terminal failure according to their attempt count.
+- Four total attempts are allowed by default. Retryable transport, timeout,
+  rate-limit, Shopee 5xx, and premature-tab-close failures use capped
+  exponential backoff with additive jitter.
+- `AUTHENTICATION_REQUIRED` waits for explicit user sign-in and **Check now**;
+  it is neither a retryable failure nor a terminal failed check.
+- Terminal data, URL, and product-state failures are recorded once and
+  processing continues with other products.
 - Structured summary logs include the job-run ID and counts.
-- Shutdown stops new work, closes active browser resources, stops cron, and
-  closes the database connection.
+- Shutdown stops new dispatch, interrupts inter-product delay, waits for the
+  current dispatch loop, stops cron, and closes the database. Chrome owns its
+  temporary tabs; any surviving claimed job is recoverable through lease expiry.
 
 ## Target repository structure
 

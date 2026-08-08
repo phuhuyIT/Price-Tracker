@@ -239,8 +239,13 @@ A variant present in the catalogue remains `active` when it is sold out. Its
 availability becomes `sold_out`.
 
 A valid displayed price may be stored with `availability = sold_out`, but it
-is not eligible for a price-drop notification. An unmentioned variant's
-availability never changes because of a partial or unknown snapshot.
+is historical evidence, is not a purchasable current price, and is not eligible
+for a price-drop notification. An unmentioned variant's availability never
+changes because of a partial or unknown snapshot.
+
+The product `status` field remains the user's tracking control (`active` or
+`paused`). Product and variant API responses expose availability separately so
+an actively tracked sold-out product can continue being checked for a restock.
 
 ## Charts and dashboard
 

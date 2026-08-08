@@ -1,4 +1,3 @@
-
 # Phase 8 Logged-in Chrome Session Collector
 
 Status: implemented and automatically verified; live extension-profile verification remains pending.
@@ -67,22 +66,24 @@ extension protocol. Shopee error `90309999`, HTTP 401, and HTTP 403 become
 
 On authentication failure the extension:
 
-* sends the typed job failure to the backend;
-* stores no snapshot, price check, or zero price;
-* closes the temporary tab;
-* shows a Chrome notification;
-* sets an extension `!` badge; and
-* shows the error in popup and options status.
+- sends the typed collection result to the backend;
+- moves the job to `waiting_auth` without consuming another retry;
+- stores no snapshot, price check, or zero price;
+- closes the temporary tab;
+- shows a Chrome notification;
+- sets an extension `!` badge; and
+- shows the error in popup and options status.
 
-The user signs in to Shopee in the same Chrome profile and queues or retries the
-job. Email notification is outside Phase 8.
+The user signs in to Shopee in the same Chrome profile and clicks **Check now**.
+That explicit action resumes the same bound job. Periodic polling does not keep
+reopening authentication-blocked jobs. Email notification is outside Phase 8.
 
 ## Configuration
 
 Backend lease duration:
 
 ```text
-COLLECTION_JOB_LEASE_MS=120000
+COLLECTION_JOB_LEASE_MS=300000
 ```
 
 Extension defaults:
@@ -91,6 +92,49 @@ Extension defaults:
 backgroundCollectionEnabled=false
 collectionPollIntervalMinutes=30
 ```
+
+An explicit **Track & collect available prices** action runs even when periodic
+background collection is disabled. It queues the exact product job, opens an
+inactive tab, attempts every selectable catalogue model sequentially, and shows
+checked and priced coverage in the popup. The page deadline is derived from the
+claimed lease and remains shorter than both the extension timeout and lease.
+Targeted manual jobs are reconciled with their backend status when a concurrent
+poll already claimed or completed them. Terminal IDs are removed from local
+storage and retry-wait jobs schedule their next claim time. If an extension was
+reinstalled, the explicit manual action may move an unclaimed active job from
+the obsolete context to the current one. Claimed leases cannot move, and normal
+background polling never performs this reassignment.
+
+A verified product without visible variants uses a dedicated one-price path.
+The collector accepts `price.single_value` from either observed `get_pc` layout:
+`data.pricing.data.product_price` or `data.product_price`. In both cases,
+`price_model.price_single_model_id` must match the sole catalogue model. All
+allowlisted price containers are ranked, so a present but weaker or
+uncorrelated `price_breakdown` cannot mask an exact `product_price`. It then waits
+for exact model-matched product-detail evidence before trying Shopee's single
+hidden option once. If an available or unknown product still exposes no exact
+price, collection reports retryable `PRICE_SELECTOR_TIMEOUT` instead of
+completing with zero priced variants. Explicitly sold-out or unavailable
+products may complete catalogue-only. The collector never substitutes a range,
+zero, or unmatched model price, and never forwards voucher details.
+
+For one-model products, model-level stock remains authoritative when present;
+otherwise product-level zero stock marks the synthetic `Default` variant as
+`sold_out`. Negative stock means hidden stock, not sold out. If both API stock
+levels are redacted, only a no-visible-variant product may fall back to an exact,
+visible **Đã bán hết** / **Sold out** label co-located with the captured product
+title in the main product-detail region. Recommendation-card labels cannot set
+product availability. A duplicate response with redacted stock cannot
+immediately erase an explicit API signal. Shopee may still display a valid
+amount for a sold-out item, so the observation can remain in history while the
+popup reports **Sold out** and the API excludes it from `currentLowestPrice`.
+Product `status` continues to mean tracking enabled or paused, independently of
+availability.
+
+Duplicate same-product `get_pc` captures are quality-ranked. A weaker response
+cannot replace exact model-matched evidence, while a later exact response can
+replace an earlier exact price. Compatible selected-variation captures are
+retained instead of being cleared by duplicate product-detail responses.
 
 ## Automated verification
 
@@ -108,19 +152,25 @@ and the preserved legacy integrations.
 ## Manual verification checklist
 
 1. Load `dist/extension` in the Chrome profile that is signed in to Shopee.
-2. Start the local backend and enable **Allow background price checks**.
-3. Queue a new supported Shopee URL through `POST /api/products/track`.
-4. Click **Check now** in the extension.
-5. Confirm a temporary tab appears without becoming active.
-6. Confirm every expected variant is present and every stored price is a
-   positive integer VND amount.
-7. Confirm the tab closes and the job becomes `completed`.
-8. Queue a refresh and confirm it can be claimed only by the same extension
-   context key.
-9. Sign out of Shopee in that profile and repeat.
-10. Confirm the job becomes `failed` with `AUTHENTICATION_REQUIRED`, no price
-    check is stored, the tab closes, and Chrome shows the notification and
+2. Start the local backend; periodic background price checks may remain off.
+3. Open a supported Shopee product page and wait for the popup preview.
+4. Click **Track & collect available prices**.
+5. Confirm a temporary tab appears without becoming active and the popup shows
+   checked-variant progress when reopened.
+6. Confirm every expected variant is present, every stored price is a positive
+   integer VND amount, and the popup reports priced coverage accurately.
+7. Repeat with a product that has no visible variant selector. Confirm the
+   Default variant receives one exact price, or the job retries with
+   `PRICE_SELECTOR_TIMEOUT`; it must not complete as an available 0/1 result.
+8. Confirm the tab closes and the targeted job becomes `completed`.
+9. Click **Refresh available prices** and confirm the refresh remains bound to
+   the same extension context key.
+10. Sign out of Shopee in that profile and repeat the explicit collection.
+11. Confirm the job becomes `waiting_auth` with `AUTHENTICATION_REQUIRED`, no
+    price check is stored, the tab closes, and Chrome shows the notification and
     badge.
+12. Sign in to Shopee in the same profile, click **Check now**, and confirm that
+    the same job resumes and can complete.
 
 The Phase 8 exit condition remains open until these live Chrome-profile steps
 are completed with a real Shopee response.

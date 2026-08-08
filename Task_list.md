@@ -1035,10 +1035,12 @@ limits, Shopee authentication requirements, and extension unavailability.
 
 When Shopee authentication is required:
 
-* Fail the job without storing a price check or zero price.
+* Move the job to `waiting_auth` without storing a price check, consuming a
+  retry attempt, or creating a zero price.
 * Show a Chrome notification.
 * Set an extension badge and popup/options status.
-* Ask the user to sign in to Shopee in the same Chrome profile and retry.
+* Ask the user to sign in to Shopee in the same Chrome profile and click
+  **Check now** to resume the same job.
 * Do not add email notification delivery in Phase 8.
 
 ### Add collector tests
@@ -1061,6 +1063,23 @@ Implementation status (2026-08-02):
 * [x] Added safe authentication-status classification, Chrome notification,
   badge and popup/options status, plus fixture-driven API and mocked-Chrome
   tests.
+* [x] Optimised first-time tracking into one explicit **Track & collect
+  available prices** action with targeted durable jobs, inactive-tab collection,
+  variant progress, and truthful complete/partial/no-price coverage.
+* [x] Added a dedicated no-visible-variant path: accept only exact model-matched
+  evidence, allow explicit unavailable state, and retry available or unknown
+  products with `PRICE_SELECTOR_TIMEOUT` instead of completing as 0/1 priced.
+* [x] Recognised both observed `get_pc` product-price layouts for the dedicated
+  path (`data.pricing.data.product_price` and `data.product_price`) while
+  requiring `price_single_model_id` correlation and discarding voucher details.
+* [x] Ranked allowlisted price containers so a weaker or uncorrelated
+  `price_breakdown` cannot hide an exact model-matched `product_price`.
+* [x] Ranked duplicate same-product `get_pc` captures so weaker evidence cannot
+  erase an exact model-matched price or compatible selected-variation captures.
+* [x] Reconciled targeted manual-job IDs after concurrent polls so terminal jobs
+  cannot leave the popup permanently queued, real retry-wait jobs retain their
+  alarm, and an explicit request can move an unclaimed job from an obsolete
+  extension context without taking over a live lease.
 * [ ] Complete the live Chrome-profile checklist in
   `docs/phase-8-chrome-session-collector.md` before marking the exit condition
   complete.
@@ -1085,6 +1104,8 @@ temporary tab open.
 
 # Phase 9 — Implement Scheduled Price Checks
 
+Status: **implementation complete — live Chrome verification pending 2026-08-07**
+
 ## Objective
 
 Automatically refresh tracked products without overlapping jobs or corrupting price history.
@@ -1108,7 +1129,8 @@ Automatically refresh tracked products without overlapping jobs or corrupting pr
 * Apply collection-job timeout and lease expiry.
 * Apply bounded retry for temporary failures.
 * Continue after an individual product failure.
-* Record every successful or failed check.
+* Record every successful or terminal failed check. Retry and authentication
+  waits do not create check rows.
 * Update product check status.
 
 ### Handle variant changes
@@ -1148,6 +1170,39 @@ Test:
 * Permanent failure.
 * Graceful shutdown.
 * Final summary logging.
+
+## Implementation status — 2026-08-07
+
+Completed:
+
+* [x] Added validated `node-cron` configuration, disabled mode, one process-level
+  run lock, job-run IDs, active-only product selection, sequential dispatch,
+  random inter-product delay, and structured final summaries.
+* [x] Kept production collection asynchronous and profile-bound: cron queues
+  extension refresh jobs and never launches anonymous Playwright or waits for
+  Chrome.
+* [x] Added `retry_wait` and `waiting_auth` persistent states, four total
+  attempts by default, lease-expiry recovery, and capped exponential backoff
+  with additive jitter.
+* [x] Classified transport, timeout, rate-limit, Shopee 5xx, and premature-tab
+  failures as retryable; classified URL, unavailable-product, suspended-shop,
+  invalid-payload, and schema failures as terminal.
+* [x] Kept `AUTHENTICATION_REQUIRED` out of failed checks and automatic retry:
+  the extension alerts the user and resumes only after sign-in and an explicit
+  **Check now** action.
+* [x] Persisted one idempotent failed check only for a terminal refresh failure,
+  updated product error state, and guaranteed that failed paths create no price
+  logs or variant-lifecycle misses.
+* [x] Added extension queue draining, backend-report retry persistence,
+  premature-tab-close detection, and duplicate tab-removal protection.
+* [x] Added idempotent `SIGINT`/`SIGTERM` shutdown that stops dispatch, interrupts
+  delay, waits for the dispatch loop, destroys cron, closes HTTP, and closes the
+  database. Claimed Chrome work remains lease-recoverable.
+* [x] Added Phase 9 unit/integration coverage and a focused `test:phase9` script;
+  the complete automated and retained legacy suites pass.
+* [ ] Complete the live Chrome-profile checklist in
+  `docs/phase-9-scheduled-checks.md` before marking the Phase 9 exit condition
+  fully verified.
 
 ## Deliverables
 

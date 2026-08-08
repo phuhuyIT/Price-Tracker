@@ -18,6 +18,8 @@
 > [docs/phase-7-chrome-extension.md](docs/phase-7-chrome-extension.md).
 > Logged-in background collection is documented in
 > [docs/phase-8-chrome-session-collector.md](docs/phase-8-chrome-session-collector.md).
+> Scheduled dispatch, retries, and terminal failure semantics are documented in
+> [docs/phase-9-scheduled-checks.md](docs/phase-9-scheduled-checks.md).
 > Existing collector behavior is intentionally preserved as legacy discovery
 > tooling.
 > The persistent-profile Playwright mode described below is legacy discovery
@@ -186,11 +188,44 @@ $env:EXTENSION_ALLOWED_ORIGIN = "chrome-extension://<extension-id>"
 npm.cmd start
 ```
 
-The extension previews valid captures in its popup. Automatic submission is off
-by default; click **Track Product** to submit. The options page configures the
-backend, debug summaries, the generated local pricing-context key, queue retry,
-and optional price-tracker sign-in. It never captures or sends Shopee cookies,
-headers, or authentication data.
+The extension previews valid captures in its popup. Automatic passive
+submission is off by default; click **Track & collect available prices** to
+queue the exact product, open an inactive collection tab, and attempt every
+selectable variant. The popup reports checked and priced coverage instead of
+treating a catalogue-only snapshot as full price success. The options page
+configures the backend, debug summaries, the generated local pricing-context
+key, queue retry, and optional price-tracker sign-in. It never captures or sends
+Shopee cookies, headers, or authentication data.
+
+For a product with no visible variants, the collector first accepts only an
+exact, model-matched product-detail price. It supports Shopee's observed
+`data.pricing.data.product_price` and `data.product_price` response layouts,
+reading `price.single_value` only when `price_model.price_single_model_id`
+matches the catalogue model. When Shopee also returns a weaker or uncorrelated
+`price_breakdown`, the collector ranks all allowlisted price containers instead
+of letting that object hide the exact `product_price`. If the response has no
+trustworthy price, it briefly waits and may use Shopee's single hidden option to
+trigger the correlated response. An available product that still has no exact price fails with a
+retryable `PRICE_SELECTOR_TIMEOUT`; an explicitly unavailable product may
+complete without a price. Price ranges, zero values, and another model's price
+are never stored as the Default variant price.
+
+Shopee can keep displaying an amount after a product sells out. The collector
+therefore reads model stock first and falls back to product-level stock for a
+single-model product. When Shopee redacts both stock fields, a product with one
+synthetic `Default` variant may also use an exact visible **Đã bán hết** / **Sold
+out** label from the main product-detail region. This DOM fallback never applies
+to explicit variants or generic recommendation-card text. The popup shows
+**Sold out** instead of presenting the amount as a current purchasable price.
+The backend keeps tracking enabled so a later check can detect a restock; API
+`trackingStatus` and `availability` are separate fields, and
+`currentLowestPrice` excludes sold-out or unavailable observations.
+
+Shopee may emit several `get_pc` responses during one page load. A later
+catalogue-only response cannot erase an earlier exact model-matched price for
+the same product. A later exact response can replace it, and compatible
+selected-variation captures remain available while duplicate product details
+arrive.
 
 The full manual procedure, including variant, voucher, quantity, offline queue,
 browser restart, and enabled/disabled authentication cases, is in
@@ -203,6 +238,18 @@ price checks** in extension options to let the extension poll the backend. The
 default interval is 30 minutes. **Check now** in the popup and options page can
 run one explicit check while periodic polling remains disabled.
 
+The popup's first tracking action also runs explicitly while periodic polling
+is disabled. Manual requests are persisted and target their returned job ID, so
+they are not replaced by an older queued product when the extension claims
+work.
+
+If a background poll claims that job at the same moment as the manual action,
+the extension reconciles its local queue with the backend job status. Completed
+or failed IDs are removed, retry-wait jobs retain their scheduled alarm, and a
+manual job left by an obsolete extension context can move to the current profile
+only after the user explicitly clicks the collection action. A concurrent poll
+also schedules a prompt follow-up instead of leaving the manual request dormant.
+
 When work is queued, the extension uses its stable local pricing-context key to
 claim the job, opens the product in the last-focused normal Chrome window with
 `active: false`, captures sanitised Shopee product and variation responses, and
@@ -213,11 +260,16 @@ The first local extension that opts in or explicitly checks for work may claim a
 new unbound product. That profile binding is retained for retries and future
 refreshes. A different Chrome profile cannot silently collect the job, which
 prevents comparisons across different Shopee accounts or voucher contexts.
+An explicit manual collection may reassign an unclaimed pending, retry-wait, or
+authentication-wait job after an extension reinstall; a live claimed lease is
+never reassigned.
 
 If the bound Chrome profile is signed out of Shopee, no snapshot or zero price
-is stored. The job fails with `AUTHENTICATION_REQUIRED`, the extension displays
-a Chrome notification and badge, and the popup/options page asks the user to
-sign in to Shopee in that same profile.
+is stored. The job moves to `waiting_auth`, the extension displays a Chrome
+notification and badge, and the popup/options page asks the user to sign in to
+Shopee in that same profile. Authentication does not consume the remaining
+retry attempts and does not create a failed price check. After signing in, click
+**Check now** to resume that profile-bound job.
 
 Run the focused automated checks:
 
@@ -227,6 +279,42 @@ npm.cmd run test:phase8
 
 See `docs/phase-8-chrome-session-collector.md` for the API, privacy boundaries,
 failure behavior, and manual verification checklist.
+
+## Phase 9 scheduled price checks
+
+The server now uses `node-cron` to dispatch refresh jobs for active products.
+The dispatcher does not open Playwright or wait for Chrome: it queues
+profile-bound extension jobs sequentially, adds a configurable delay and
+jitter between products, prevents overlapping runs, and writes structured run
+summaries. The extension performs the asynchronous collection and can drain the
+queue while background checks are enabled.
+
+Collection failures follow one shared policy. The default is four total
+attempts. Transport, timeout, rate-limit, Shopee 5xx, and premature-tab-close
+errors use capped exponential backoff with additive jitter. Invalid URLs,
+unavailable products, suspended shops, invalid payloads, and schema changes fail
+without retry. Only a terminal failure creates one failed `price_checks` row;
+retry waits and authentication waits create no checks and never create price
+logs.
+
+The relevant settings are:
+
+| Variable                           |        Default | Purpose                                                 |
+| ---------------------------------- | -------------: | ------------------------------------------------------- |
+| `CRON_ENABLED`                     |         `true` | Enable scheduled dispatch                               |
+| `CRON_SCHEDULE`                    | `0 */12 * * *` | Cron expression for dispatch runs                       |
+| `COLLECTION_JOB_LEASE_MS`          |       `300000` | Claimed-job lease duration for large variant catalogues |
+| `COLLECTION_MAX_ATTEMPTS`          |            `4` | Total claims, including the first attempt               |
+| `COLLECTION_RETRY_BASE_DELAY_MS`   |         `5000` | Exponential retry base                                  |
+| `COLLECTION_RETRY_MAX_DELAY_MS`    |       `300000` | Backoff-plus-jitter cap                                 |
+| `COLLECTION_DISPATCH_DELAY_MIN_MS` |         `5000` | Minimum delay between queued products                   |
+| `COLLECTION_DISPATCH_DELAY_MAX_MS` |        `10000` | Maximum delay between queued products                   |
+
+Run the focused automated checks with `npm.cmd run test:phase9`. See
+`docs/phase-9-scheduled-checks.md` for the state machine, error taxonomy,
+shutdown behavior, and live verification checklist. The older `SCRAPE_*`
+settings remain for retained Playwright tooling and do not control the Phase 9
+production scheduler.
 
 This project has two browser modes:
 
@@ -247,8 +335,7 @@ Both modes now collect two kinds of prices:
 
 The clicks are dispatched as browser input in the product tab, allowing
 Shopee's own frontend to generate the current per-request security headers.
-Directly replaying a `get_pc` signature for another endpoint can return HTTP
-403. A failed variant remains visible with an error note; its base price is
+Directly replaying a `get_pc` signature for another endpoint can return HTTP 403. A failed variant remains visible with an error note; its base price is
 never reported as its final display price.
 
 After updating this project, click **Reload** for the unpacked extension on
