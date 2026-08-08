@@ -33,7 +33,10 @@ export function createApplicationServices({ applicationConfig, clock, database, 
   const collectionJobs = createCollectionJobService({
     clock,
     leaseMs: applicationConfig.collection.leaseMs,
+    maxAttempts: applicationConfig.collection.maxAttempts,
     repositories,
+    retryBaseDelayMs: applicationConfig.collection.retryBaseDelayMs,
+    retryMaxDelayMs: applicationConfig.collection.retryMaxDelayMs,
     trackingService: tracking,
   });
   const productCollection = createProductCollectionService({

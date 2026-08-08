@@ -62,7 +62,7 @@ export function createProductCollectionService({
       return { ...queued, product: null, queued: true };
     },
 
-    refreshProduct({ ownerUserId, productId }) {
+    refreshProduct({ jobSource, ownerUserId, productId }) {
       const product = productQueryService.getProduct({ ownerUserId, productId });
       const targetContextKey =
         repositories.collectionJobs.findLatestTargetContextKey({
@@ -77,6 +77,7 @@ export function createProductCollectionService({
       const queued = collectionJobService.create({
         canonicalUrl: product.canonicalUrl,
         itemId: product.itemId,
+        jobSource,
         jobType: COLLECTION_JOB_TYPES.REFRESH,
         ownerUserId,
         productId,

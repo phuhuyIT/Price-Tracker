@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "better-sqlite3": "^12.11.1"
+    "better-sqlite3": "^12.11.1",
+    "node-cron": "^4.6.0"
   }
 }

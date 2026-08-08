@@ -3,10 +3,20 @@ import { config } from './src/config/index.js';
 import { closeDatabase, getDatabase } from './src/db/connection.js';
 import { runMigrations } from './src/db/migrate.js';
 import { logger } from './src/logging/logger.js';
+import { createPriceScheduler } from './src/jobs/priceScheduler.js';
+import { createApplicationServices } from './src/services/applicationServices.js';
 
 const database = getDatabase();
 const migrationResult = runMigrations(database);
-const app = createApp({ database });
+const services = createApplicationServices({ applicationConfig: config, database });
+const app = createApp({ services });
+const scheduler = createPriceScheduler({
+  collectionJobService: services.collectionJobs,
+  config: { ...config.collection, ...config.cron },
+  logger,
+  productCollectionService: services.productCollection,
+  repositories: services.repositories,
+});
 const server = app.listen(config.port, config.host, () => {
   logger.info(
     {
@@ -17,6 +27,7 @@ const server = app.listen(config.port, config.host, () => {
     },
     'Server started',
   );
+  scheduler.start();
 });
 
 let isShuttingDown = false;
@@ -26,7 +37,7 @@ let isShuttingDown = false;
  *
  * @param {NodeJS.Signals} signal
  */
-function shutDown(signal) {
+async function shutDown(signal) {
   if (isShuttingDown) {
     return;
   }
@@ -40,18 +51,20 @@ function shutDown(signal) {
   }, 10_000);
   forceExitTimer.unref();
 
-  server.close((error) => {
+  try {
+    await scheduler.stop();
+    await new Promise((resolve, reject) => {
+      server.close((error) => (error ? reject(error) : resolve()));
+    });
+    logger.info({ signal }, 'Server stopped');
+  } catch (error) {
+    logger.error({ err: error, signal }, 'Server shutdown failed');
+    process.exitCode = 1;
+  } finally {
     clearTimeout(forceExitTimer);
     closeDatabase();
-
-    if (error) {
-      logger.error({ err: error, signal }, 'Server shutdown failed');
-      process.exitCode = 1;
-    } else {
-      logger.info({ signal }, 'Server stopped');
-    }
-  });
+  }
 }
 
-process.on('SIGINT', shutDown);
-process.on('SIGTERM', shutDown);
+process.on('SIGINT', () => void shutDown('SIGINT'));
+process.on('SIGTERM', () => void shutDown('SIGTERM'));

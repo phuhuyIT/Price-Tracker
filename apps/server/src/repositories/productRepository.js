@@ -91,6 +91,12 @@ export function createProductRepository(database) {
     ORDER BY updated_at DESC, id DESC
     LIMIT @limit OFFSET @offset
   `);
+  const listActiveForSchedulingStatement = database.prepare(`
+    SELECT *
+    FROM products
+    WHERE status = 'active'
+    ORDER BY id
+  `);
   const countStatement = database.prepare(
     'SELECT COUNT(*) AS total FROM products WHERE owner_user_id = ?',
   );
@@ -252,6 +258,15 @@ export function createProductRepository(database) {
         return listStatement.all({ limit, offset, ownerUserId }).map((row) => mapProduct(row));
       } catch (error) {
         throwDatabaseError('Unable to list products', error);
+      }
+    },
+
+    /** List every active product for the trusted in-process scheduler. */
+    listActiveForScheduling() {
+      try {
+        return listActiveForSchedulingStatement.all().map((row) => mapProduct(row));
+      } catch (error) {
+        throwDatabaseError('Unable to list active products for scheduling', error);
       }
     },
 

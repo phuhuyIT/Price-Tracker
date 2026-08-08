@@ -2,6 +2,7 @@ import 'dotenv/config';
 
 import { isIP } from 'node:net';
 
+import { validate as validateCronExpression } from 'node-cron';
 import { z } from 'zod';
 
 import { ConfigurationError } from '../errors/ConfigurationError.js';
@@ -29,7 +30,12 @@ const environmentSchema = z
     AUTH_ALLOW_REGISTRATION: booleanString.default('false'),
     AUTH_SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(8_760).default(720),
 
-    COLLECTION_JOB_LEASE_MS: z.coerce.number().int().min(30_000).max(900_000).default(120_000),
+    COLLECTION_JOB_LEASE_MS: z.coerce.number().int().min(30_000).max(900_000).default(300_000),
+    COLLECTION_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(10).default(4),
+    COLLECTION_RETRY_BASE_DELAY_MS: z.coerce.number().int().min(100).max(300_000).default(5_000),
+    COLLECTION_RETRY_MAX_DELAY_MS: z.coerce.number().int().min(100).max(3_600_000).default(300_000),
+    COLLECTION_DISPATCH_DELAY_MIN_MS: z.coerce.number().int().min(0).max(300_000).default(5_000),
+    COLLECTION_DISPATCH_DELAY_MAX_MS: z.coerce.number().int().min(0).max(300_000).default(10_000),
 
     CRON_ENABLED: booleanString.default('true'),
     CRON_SCHEDULE: z.string().trim().min(1).default('0 */12 * * *'),
@@ -71,6 +77,31 @@ const environmentSchema = z
         code: z.ZodIssueCode.custom,
         message: 'SCRAPE_DELAY_MIN_MS must not exceed SCRAPE_DELAY_MAX_MS',
         path: ['SCRAPE_DELAY_MIN_MS'],
+      });
+    }
+
+    if (!validateCronExpression(value.CRON_SCHEDULE)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'CRON_SCHEDULE must be a valid cron expression',
+        path: ['CRON_SCHEDULE'],
+      });
+    }
+
+    if (value.COLLECTION_RETRY_BASE_DELAY_MS > value.COLLECTION_RETRY_MAX_DELAY_MS) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'COLLECTION_RETRY_BASE_DELAY_MS must not exceed COLLECTION_RETRY_MAX_DELAY_MS',
+        path: ['COLLECTION_RETRY_BASE_DELAY_MS'],
+      });
+    }
+
+    if (value.COLLECTION_DISPATCH_DELAY_MIN_MS > value.COLLECTION_DISPATCH_DELAY_MAX_MS) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'COLLECTION_DISPATCH_DELAY_MIN_MS must not exceed COLLECTION_DISPATCH_DELAY_MAX_MS',
+        path: ['COLLECTION_DISPATCH_DELAY_MIN_MS'],
       });
     }
   });
@@ -124,7 +155,12 @@ export function loadConfig(environment = process.env) {
       schedule: value.CRON_SCHEDULE,
     }),
     collection: Object.freeze({
+      dispatchDelayMaxMs: value.COLLECTION_DISPATCH_DELAY_MAX_MS,
+      dispatchDelayMinMs: value.COLLECTION_DISPATCH_DELAY_MIN_MS,
       leaseMs: value.COLLECTION_JOB_LEASE_MS,
+      maxAttempts: value.COLLECTION_MAX_ATTEMPTS,
+      retryBaseDelayMs: value.COLLECTION_RETRY_BASE_DELAY_MS,
+      retryMaxDelayMs: value.COLLECTION_RETRY_MAX_DELAY_MS,
     }),
     databasePath: value.DATABASE_PATH,
     environment: value.NODE_ENV,

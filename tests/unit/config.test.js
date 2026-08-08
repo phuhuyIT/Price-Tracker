@@ -13,7 +13,14 @@ describe('environment configuration', () => {
       enabled: false,
       sessionTtlHours: 720,
     });
-    expect(result.collection).toEqual({ leaseMs: 120_000 });
+    expect(result.collection).toEqual({
+      dispatchDelayMaxMs: 10_000,
+      dispatchDelayMinMs: 5_000,
+      leaseMs: 300_000,
+      maxAttempts: 4,
+      retryBaseDelayMs: 5_000,
+      retryMaxDelayMs: 300_000,
+    });
     expect(result.lifecycle).toEqual({
       massMissingConfirmations: 2,
       maxMissingRatio: 0.5,
@@ -59,5 +66,23 @@ describe('environment configuration', () => {
 
   it('rejects unsafe collection lease durations', () => {
     expect(() => loadConfig({ COLLECTION_JOB_LEASE_MS: '29999' })).toThrow(ConfigurationError);
+  });
+
+  it('rejects invalid cron and collection retry configuration', () => {
+    expect(() => loadConfig({ CRON_SCHEDULE: 'not a cron expression' })).toThrow(
+      /CRON_SCHEDULE must be a valid cron expression/u,
+    );
+    expect(() =>
+      loadConfig({
+        COLLECTION_RETRY_BASE_DELAY_MS: '2000',
+        COLLECTION_RETRY_MAX_DELAY_MS: '1000',
+      }),
+    ).toThrow(/COLLECTION_RETRY_BASE_DELAY_MS must not exceed/u);
+    expect(() =>
+      loadConfig({
+        COLLECTION_DISPATCH_DELAY_MAX_MS: '5',
+        COLLECTION_DISPATCH_DELAY_MIN_MS: '10',
+      }),
+    ).toThrow(/COLLECTION_DISPATCH_DELAY_MIN_MS must not exceed/u);
   });
 });
