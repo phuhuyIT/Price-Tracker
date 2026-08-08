@@ -117,6 +117,49 @@ describe('product REST API', () => {
     expect(second.response.status).toBe(201);
   });
 
+  it('searches and filters the complete watchlist before paginating', async () => {
+    const { baseUrl } = await startApi();
+    await postSnapshot(baseUrl);
+    const soldOut = secondProductSnapshot();
+    soldOut.variants[0].name = 'Limited Collector Pack';
+    soldOut.variants = soldOut.variants.map((variant) => ({
+      ...variant,
+      availability: 'sold_out',
+    }));
+    const second = await postSnapshot(baseUrl, soldOut);
+    await requestJson(baseUrl, `/api/products/${second.payload.data.product.id}`, {
+      body: { status: 'paused' },
+      method: 'PATCH',
+    });
+
+    const filtered = await requestJson(
+      baseUrl,
+      '/api/products?search=collector%20pack&status=paused&availability=sold_out&page=1&limit=1',
+    );
+    expect(filtered.response.status).toBe(200);
+    expect(filtered.payload.data).toHaveLength(1);
+    expect(filtered.payload.data[0]).toMatchObject({
+      availability: 'sold_out',
+      title: 'Second tracked product',
+      trackingStatus: 'paused',
+    });
+    expect(filtered.payload.meta).toEqual({
+      pagination: { limit: 1, page: 1, pages: 1, total: 1 },
+      watchlistTotal: 2,
+    });
+
+    const noMatches = await requestJson(baseUrl, '/api/products?search=does-not-exist');
+    expect(noMatches.payload.data).toEqual([]);
+    expect(noMatches.payload.meta).toEqual({
+      pagination: { limit: 20, page: 1, pages: 0, total: 0 },
+      watchlistTotal: 2,
+    });
+
+    const invalid = await requestJson(baseUrl, '/api/products?availability=in_stock');
+    expect(invalid.response.status).toBe(400);
+    expect(invalid.payload.error.code).toBe('VALIDATION_ERROR');
+  });
+
   it('filters chart-ready history without storing synthetic zero prices', async () => {
     const { baseUrl, databaseHarness } = await startApi();
     const first = await postSnapshot(baseUrl);

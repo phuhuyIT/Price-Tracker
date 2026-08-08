@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { PRODUCT_TRACKING_STATUSES } from '../constants/contractValues.js';
+import { AVAILABILITY_STATUSES, PRODUCT_TRACKING_STATUSES } from '../constants/contractValues.js';
 import { ERROR_CODES } from '../errors/errorCodes.js';
 import { isoTimestampSchema, positiveSafeIntegerSchema } from './commonSchemas.js';
 import { productSnapshotSchema } from './productSnapshotSchema.js';
@@ -56,11 +56,18 @@ export const productIdParamsSchema = z
   .strict();
 
 const positiveIntegerQuerySchema = z.coerce.number().int().positive().safe();
+const optionalSearchQuerySchema = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  z.string().trim().min(1).max(200).optional(),
+);
 
 export const productListQuerySchema = z
   .object({
+    availability: z.enum(Object.values(AVAILABILITY_STATUSES)).optional(),
     limit: positiveIntegerQuerySchema.max(100).default(20),
     page: positiveIntegerQuerySchema.default(1),
+    search: optionalSearchQuerySchema,
+    status: z.enum(Object.values(PRODUCT_TRACKING_STATUSES)).optional(),
   })
   .strict();
 

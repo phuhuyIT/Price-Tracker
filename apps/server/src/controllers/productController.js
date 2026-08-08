@@ -41,7 +41,12 @@ export function createProductController(services) {
         ...request.validated.query,
         ownerUserId: request.auth.user.id,
       });
-      response.json(createSuccessResponse(result.items, { pagination: result.pagination }));
+      response.json(
+        createSuccessResponse(result.items, {
+          pagination: result.pagination,
+          watchlistTotal: result.watchlistTotal,
+        }),
+      );
     },
 
     /** Queue one logged-in extension refresh for a known product. */

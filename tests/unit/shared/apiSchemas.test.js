@@ -63,6 +63,26 @@ describe('API request schemas', () => {
     expect(productListQuerySchema.safeParse({ limit: '101' }).success).toBe(false);
   });
 
+  it('validates and normalises watchlist search filters', () => {
+    expect(
+      productListQuerySchema.parse({
+        availability: 'sold_out',
+        search: '  coffee pack  ',
+        status: 'paused',
+      }),
+    ).toEqual({
+      availability: 'sold_out',
+      limit: 20,
+      page: 1,
+      search: 'coffee pack',
+      status: 'paused',
+    });
+    expect(productListQuerySchema.parse({ search: '   ' })).toEqual({ limit: 20, page: 1 });
+    expect(productListQuerySchema.safeParse({ availability: 'in_stock' }).success).toBe(false);
+    expect(productListQuerySchema.safeParse({ status: 'deleted' }).success).toBe(false);
+    expect(productListQuerySchema.safeParse({ search: 'x'.repeat(201) }).success).toBe(false);
+  });
+
   it('validates history range and filters', () => {
     expect(
       productHistoryQuerySchema.safeParse({

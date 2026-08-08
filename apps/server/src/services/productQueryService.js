@@ -84,7 +84,10 @@ function publicLatestResult(result) {
     checkedAt: result.checkedAt,
     presence: result.presence,
     priceStatus: result.priceStatus,
+    pricingContext: result.pricingContext,
+    pricingContextKey: result.pricingContextKey,
     reasonCode: result.reasonCode,
+    source: result.source,
     variantLifecycle: result.variantLifecycle,
   };
 }
@@ -139,6 +142,7 @@ function decorateProduct(product, repositories, ownerUserId) {
     productId: product.id,
   });
   const latestResultByStream = new Map(latestResults.map((result) => [streamKey(result), result]));
+  const resultsByVariant = groupBy(latestResults, (result) => result.variantId);
 
   const decoratedPrices = latestPrices.map((price) => {
     const latestResult = latestResultByStream.get(streamKey(price)) ?? null;
@@ -177,6 +181,7 @@ function decorateProduct(product, repositories, ownerUserId) {
     return {
       ...publicVariant(variant),
       latestPrices: prices,
+      latestResults: (resultsByVariant.get(variant.id) ?? []).map(publicLatestResult),
       preferredPrice,
     };
   });
@@ -316,12 +321,24 @@ export function createProductQueryService({ repositories }) {
      *
      * @param {object} input
      */
-    listProducts({ limit = 20, ownerUserId, page = 1 }) {
+    listProducts({
+      availability = null,
+      limit = 20,
+      ownerUserId,
+      page = 1,
+      search = null,
+      status = null,
+    }) {
       assertPagination(page, limit);
-      const total = repositories.products.countByOwner(ownerUserId);
+      const filters = { availability, search, status };
+      const total = repositories.products.countByOwner(ownerUserId, filters);
+      const watchlistTotal =
+        availability === null && search === null && status === null
+          ? total
+          : repositories.products.countByOwner(ownerUserId);
       const offset = (page - 1) * limit;
       const products = repositories.products
-        .listByOwner({ limit, offset, ownerUserId })
+        .listByOwner({ ...filters, limit, offset, ownerUserId })
         .map((product) => decorateProduct(product, repositories, ownerUserId));
 
       return {
@@ -332,6 +349,7 @@ export function createProductQueryService({ repositories }) {
           pages: total === 0 ? 0 : Math.ceil(total / limit),
           total,
         },
+        watchlistTotal,
       };
     },
   });

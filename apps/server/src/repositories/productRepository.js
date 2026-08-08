@@ -84,10 +84,52 @@ export function createProductRepository(database) {
       AND shop_id = @shopId
       AND item_id = @itemId
   `);
+  const filteredProductsCte = `
+    WITH product_availability AS (
+      SELECT
+        product_id,
+        COUNT(*) AS active_count,
+        SUM(current_availability = 'available') AS available_count,
+        SUM(current_availability = 'sold_out') AS sold_out_count,
+        SUM(current_availability IN ('sold_out', 'unavailable')) AS unavailable_count
+      FROM product_variants
+      WHERE lifecycle_status = 'active'
+      GROUP BY product_id
+    ), filtered_products AS (
+      SELECT
+        products.*,
+        CASE
+          WHEN COALESCE(product_availability.active_count, 0) = 0 THEN 'unknown'
+          WHEN product_availability.available_count > 0 THEN 'available'
+          WHEN product_availability.sold_out_count = product_availability.active_count
+            THEN 'sold_out'
+          WHEN product_availability.unavailable_count = product_availability.active_count
+            THEN 'unavailable'
+          ELSE 'unknown'
+        END AS derived_availability
+      FROM products
+      LEFT JOIN product_availability ON product_availability.product_id = products.id
+      WHERE products.owner_user_id = @ownerUserId
+        AND (@status IS NULL OR products.status = @status)
+        AND (
+          @search IS NULL
+          OR INSTR(LOWER(products.title), LOWER(@search)) > 0
+          OR INSTR(products.shop_id, @search) > 0
+          OR INSTR(products.item_id, @search) > 0
+          OR EXISTS (
+            SELECT 1
+            FROM product_variants search_variant
+            WHERE search_variant.product_id = products.id
+              AND INSTR(LOWER(search_variant.name), LOWER(@search)) > 0
+          )
+        )
+    )
+  `;
   const listStatement = database.prepare(`
+    ${filteredProductsCte}
     SELECT *
-    FROM products
-    WHERE owner_user_id = @ownerUserId
+    FROM filtered_products
+    WHERE @availability IS NULL OR derived_availability = @availability
     ORDER BY updated_at DESC, id DESC
     LIMIT @limit OFFSET @offset
   `);
@@ -97,9 +139,12 @@ export function createProductRepository(database) {
     WHERE status = 'active'
     ORDER BY id
   `);
-  const countStatement = database.prepare(
-    'SELECT COUNT(*) AS total FROM products WHERE owner_user_id = ?',
-  );
+  const countStatement = database.prepare(`
+    ${filteredProductsCte}
+    SELECT COUNT(*) AS total
+    FROM filtered_products
+    WHERE @availability IS NULL OR derived_availability = @availability
+  `);
   const deleteStatement = database.prepare(`
     DELETE FROM products
     WHERE id = @productId AND owner_user_id = @ownerUserId
@@ -174,12 +219,13 @@ export function createProductRepository(database) {
      * Count products visible to one owner.
      *
      * @param {number} ownerUserId
+     * @param {object} [filters]
      */
-    countByOwner(ownerUserId) {
+    countByOwner(ownerUserId, { availability = null, search = null, status = null } = {}) {
       assertIdentifier(ownerUserId, 'ownerUserId');
 
       try {
-        return countStatement.get(ownerUserId).total;
+        return countStatement.get({ availability, ownerUserId, search, status }).total;
       } catch (error) {
         throwDatabaseError('Unable to count products', error);
       }
@@ -247,15 +293,27 @@ export function createProductRepository(database) {
      * List products visible to one owner.
      *
      * @param {object} input
+     * @param {string | null} [input.availability]
      * @param {number} [input.limit]
      * @param {number} [input.offset]
      * @param {number} input.ownerUserId
+     * @param {string | null} [input.search]
+     * @param {string | null} [input.status]
      */
-    listByOwner({ limit = 20, offset = 0, ownerUserId }) {
+    listByOwner({
+      availability = null,
+      limit = 20,
+      offset = 0,
+      ownerUserId,
+      search = null,
+      status = null,
+    }) {
       assertIdentifier(ownerUserId, 'ownerUserId');
 
       try {
-        return listStatement.all({ limit, offset, ownerUserId }).map((row) => mapProduct(row));
+        return listStatement
+          .all({ availability, limit, offset, ownerUserId, search, status })
+          .map((row) => mapProduct(row));
       } catch (error) {
         throwDatabaseError('Unable to list products', error);
       }
