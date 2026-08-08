@@ -1,0 +1,210 @@
+import assert from 'node:assert/strict';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+import { chromium } from 'playwright';
+
+import { createApp } from '../../apps/server/src/app.js';
+import { loadConfig } from '../../apps/server/src/config/index.js';
+import { openDatabase } from '../../apps/server/src/db/connection.js';
+import { runMigrations } from '../../apps/server/src/db/migrate.js';
+import { createPasswordHasher } from '../../apps/server/src/security/passwordHasher.js';
+
+const silentLogger = { error() {}, info() {}, warn() {} };
+
+function testPasswordHasher() {
+  return createPasswordHasher({
+    parameters: {
+      keyLength: 32,
+      maxmem: 8 * 1024 * 1024,
+      N: 2 ** 10,
+      p: 1,
+      r: 8,
+      saltLength: 16,
+    },
+  });
+}
+
+async function startDashboard({ allowRegistration = false, authEnabled = false } = {}) {
+  const directory = mkdtempSync(join(tmpdir(), 'shopee-dashboard-browser-'));
+  const databasePath = join(directory, 'dashboard.db');
+  const database = openDatabase(databasePath);
+  runMigrations(database);
+  const applicationConfig = loadConfig({
+    AUTH_ALLOW_REGISTRATION: String(allowRegistration),
+    AUTH_ENABLED: String(authEnabled),
+    CRON_ENABLED: 'false',
+    DATABASE_PATH: databasePath,
+    HOST: '127.0.0.1',
+    NODE_ENV: 'test',
+  });
+  const server = createApp({
+    applicationConfig,
+    applicationLogger: silentLogger,
+    database,
+    passwordHasher: testPasswordHasher(),
+  }).listen(0, '127.0.0.1');
+  await new Promise((resolve) => server.once('listening', resolve));
+  const address = server.address();
+
+  return {
+    baseUrl: `http://127.0.0.1:${address.port}`,
+    async cleanup() {
+      await new Promise((resolve, reject) => {
+        server.close((error) => (error ? reject(error) : resolve()));
+      });
+      database.close();
+      rmSync(directory, { force: true, recursive: true });
+    },
+  };
+}
+
+async function verifyLocalDashboard(browser) {
+  const harness = await startDashboard();
+
+  try {
+    const snapshot = JSON.parse(
+      readFileSync(
+        new URL('../../packages/shared/examples/valid-product-snapshot.json', import.meta.url),
+        'utf8',
+      ),
+    );
+    const snapshotResponse = await globalThis.fetch(`${harness.baseUrl}/api/products/snapshot`, {
+      body: JSON.stringify(snapshot),
+      headers: { 'content-type': 'application/json' },
+      method: 'POST',
+    });
+    assert.equal(snapshotResponse.status, 201);
+
+    const soldOutSnapshot = structuredClone(snapshot);
+    soldOutSnapshot.shopId = '567729839';
+    soldOutSnapshot.itemId = '41152313937';
+    soldOutSnapshot.title = 'AeroPress Original Coffee Maker';
+    soldOutSnapshot.canonicalUrl = 'https://shopee.vn/aeropress-original-i.567729839.41152313937';
+    soldOutSnapshot.variants = soldOutSnapshot.variants.map((variant, index) => ({
+      ...variant,
+      availability: 'sold_out',
+      modelId: `33000000000${index + 1}`,
+      name: index === 0 ? 'Limited Collector Pack' : 'Standard Pack',
+    }));
+    const soldOutResponse = await globalThis.fetch(`${harness.baseUrl}/api/products/snapshot`, {
+      body: JSON.stringify(soldOutSnapshot),
+      headers: { 'content-type': 'application/json' },
+      method: 'POST',
+    });
+    assert.equal(soldOutResponse.status, 201);
+
+    const page = await browser.newPage({ viewport: { height: 900, width: 1280 } });
+    const pageErrors = [];
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+
+    await page.goto(harness.baseUrl, { waitUntil: 'domcontentloaded' });
+    await page.locator('#dashboard-view').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#auth-view').isHidden(), true);
+    const cards = page.locator('.product-card');
+    await page.waitForFunction(
+      () => globalThis.document.querySelectorAll('.product-card').length === 2,
+    );
+    const card = cards.filter({ hasText: snapshot.title });
+    assert.match(await card.textContent(), /Current lowest price/u);
+    assert.match(await card.textContent(), /Price not observed/u);
+
+    await page.getByLabel('Search tracked products').fill('Limited Collector Pack');
+    await page.waitForFunction(
+      () => globalThis.document.querySelectorAll('.product-card').length === 1,
+    );
+    assert.match(await cards.first().textContent(), /AeroPress Original Coffee Maker/u);
+
+    await page.locator('#clear-watchlist-filters').click();
+    await page.waitForFunction(
+      () => globalThis.document.querySelectorAll('.product-card').length === 2,
+    );
+    await page.locator('#watchlist-availability').selectOption('sold_out');
+    await page.waitForFunction(
+      () => globalThis.document.querySelectorAll('.product-card').length === 1,
+    );
+    assert.match(await cards.first().textContent(), /AeroPress Original Coffee Maker/u);
+    await page.locator('#clear-watchlist-filters').click();
+    await page.waitForFunction(
+      () => globalThis.document.querySelectorAll('.product-card').length === 2,
+    );
+
+    await card.getByRole('button', { name: 'History' }).click();
+    await page.locator('#chart-shell').waitFor({ state: 'visible' });
+    const chartState = await page.evaluate(() => {
+      const chart = globalThis.Chart.getChart(globalThis.document.querySelector('#history-chart'));
+      return {
+        datasetCount: chart?.data.datasets.length,
+        containsGap: chart?.data.datasets.some((dataset) =>
+          dataset.data.some((point) => point.y === null),
+        ),
+        spanGaps: chart?.data.datasets.every((dataset) => dataset.spanGaps === false),
+      };
+    });
+    assert.deepEqual(chartState, { containsGap: true, datasetCount: 2, spanGaps: true });
+
+    await page.getByRole('button', { name: 'Close' }).click();
+    await card.getByRole('button', { name: 'Pause' }).click();
+    await card.getByText('Paused', { exact: true }).waitFor({ state: 'visible' });
+    await page.locator('#watchlist-status').selectOption('paused');
+    await page.waitForFunction(
+      () => globalThis.document.querySelectorAll('.product-card').length === 1,
+    );
+    assert.match(await cards.first().textContent(), new RegExp(snapshot.title, 'u'));
+    assert.deepEqual(pageErrors, []);
+    await page.close();
+  } finally {
+    await harness.cleanup();
+  }
+}
+
+async function verifyAuthenticatedDashboard(browser) {
+  const harness = await startDashboard({ allowRegistration: true, authEnabled: true });
+
+  try {
+    const page = await browser.newPage({ viewport: { height: 800, width: 1100 } });
+    const email = 'dashboard@example.com';
+    const password = 'Correct horse battery 2026!';
+    await page.goto(harness.baseUrl, { waitUntil: 'domcontentloaded' });
+    await page.locator('#auth-view').waitFor({ state: 'visible' });
+
+    await page.getByRole('tab', { name: 'Create account' }).click();
+    const registrationForm = page.locator('#register-form');
+    await registrationForm.getByLabel('Email').fill(email);
+    await registrationForm.getByLabel('Password').fill(password);
+    await registrationForm.getByRole('button', { name: 'Create account' }).click();
+    await Promise.race([
+      page.locator('#dashboard-view').waitFor({ state: 'visible' }),
+      registrationForm
+        .locator('[data-form-error]')
+        .waitFor({ state: 'visible' })
+        .then(async () => {
+          throw new Error(await registrationForm.locator('[data-form-error]').textContent());
+        }),
+    ]);
+    assert.equal(await page.locator('#account-email').textContent(), email);
+
+    await page.getByRole('button', { name: 'Sign out' }).click();
+    await page.locator('#auth-view').waitFor({ state: 'visible' });
+    const loginForm = page.locator('#login-form');
+    await loginForm.getByLabel('Email').fill(email);
+    await loginForm.getByLabel('Password').fill(password);
+    await loginForm.getByRole('button', { name: 'Sign in' }).click();
+    await page.locator('#dashboard-view').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#account-email').textContent(), email);
+    await page.close();
+  } finally {
+    await harness.cleanup();
+  }
+}
+
+const browser = await chromium.launch({ headless: true });
+
+try {
+  await verifyLocalDashboard(browser);
+  await verifyAuthenticatedDashboard(browser);
+  process.stdout.write('Dashboard browser integration passed\n');
+} finally {
+  await browser.close();
+}

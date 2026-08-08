@@ -20,7 +20,7 @@ export default [
       'packages/shared/**/*.js',
       'scripts/**/*.mjs',
       'tests/unit/**/*.js',
-      'tests/integration/**/*.js',
+      'tests/integration/**/*.{js,mjs}',
       '*.config.mjs',
     ],
     languageOptions: {
@@ -30,6 +30,14 @@ export default [
     },
     rules: {
       'no-console': 'error',
+    },
+  },
+  {
+    files: ['apps/server/public/js/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2023,
+      globals: globals.browser,
+      sourceType: 'module',
     },
   },
   {

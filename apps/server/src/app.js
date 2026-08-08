@@ -1,5 +1,8 @@
 import express from 'express';
 import helmet from 'helmet';
+import { createRequire } from 'node:module';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { AppError } from './errors/AppError.js';
 import { ERROR_CODES } from './errors/errorCodes.js';
@@ -16,6 +19,9 @@ import { createApplicationServices } from './services/applicationServices.js';
 import { createSuccessResponse } from './utils/apiResponse.js';
 
 const JSON_BODY_LIMIT = '64kb';
+const require = createRequire(import.meta.url);
+const publicDirectory = fileURLToPath(new URL('../public/', import.meta.url));
+const chartBundlePath = path.join(path.dirname(require.resolve('chart.js')), 'chart.umd.min.js');
 
 function healthResponse() {
   return createSuccessResponse({
@@ -65,7 +71,13 @@ export function createApp({
     helmet({
       contentSecurityPolicy: {
         directives: {
+          baseUri: ["'self'"],
+          connectSrc: ["'self'"],
           defaultSrc: ["'self'"],
+          fontSrc: ["'self'"],
+          formAction: ["'self'"],
+          frameAncestors: ["'none'"],
+          imgSrc: ["'self'", 'data:', 'https://*.shopee.vn', 'https://*.susercontent.com'],
           objectSrc: ["'none'"],
           scriptSrc: ["'self'"],
           styleSrc: ["'self'"],
@@ -79,12 +91,33 @@ export function createApp({
 
   app.get('/health', (_request, response) => response.json(healthResponse()));
   app.get('/api/health', (_request, response) => response.json(healthResponse()));
+  app.get('/api/dashboard-config', (_request, response) =>
+    response.json(
+      createSuccessResponse({
+        authentication: {
+          allowRegistration: applicationConfig.auth.allowRegistration,
+          enabled: applicationConfig.auth.enabled,
+        },
+      }),
+    ),
+  );
   app.use('/api/auth', createAuthRoutes({ applicationConfig, services: resolvedServices }));
   app.use(
     '/api/collection-jobs',
     createCollectionJobRoutes({ applicationConfig, services: resolvedServices }),
   );
   app.use('/api/products', createProductRoutes({ applicationConfig, services: resolvedServices }));
+  app.get('/vendor/chart.umd.min.js', (_request, response, next) => {
+    response.sendFile(chartBundlePath, (error) => (error ? next(error) : undefined));
+  });
+  app.use(
+    express.static(publicDirectory, {
+      etag: true,
+      fallthrough: true,
+      index: 'index.html',
+      maxAge: applicationConfig.environment === 'production' ? '1h' : 0,
+    }),
+  );
 
   app.use((request, _response, next) => {
     next(

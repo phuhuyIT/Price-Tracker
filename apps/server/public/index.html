@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A private, local-first dashboard for tracking Shopee Vietnam prices."
+    />
+    <meta name="theme-color" content="#f4511e" />
+    <title>Shopee Price Tracker</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <script src="/vendor/chart.umd.min.js" defer></script>
+    <script src="/js/app.js" type="module"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Shopee Price Tracker home">
+        <span class="brand-mark" aria-hidden="true">↓</span>
+        <span>
+          <strong>Price Tracker</strong>
+          <small>Shopee Vietnam</small>
+        </span>
+      </a>
+      <div class="header-actions">
+        <span class="connection-status" id="connection-status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>Connecting</span>
+        </span>
+        <div class="account-menu" id="account-menu" hidden>
+          <span id="account-email"></span>
+          <button class="button button-quiet button-small" id="logout-button" type="button">
+            Sign out
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="auth-shell" id="auth-view" hidden aria-labelledby="auth-heading">
+        <div class="auth-story">
+          <p class="eyebrow">Your prices, clearly explained</p>
+          <h1 id="auth-heading">Welcome back to your local price watchlist.</h1>
+          <p>
+            Track every variant, keep incompatible price contexts separate, and see exactly when
+            Shopee did not expose a price.
+          </p>
+          <ul class="feature-list">
+            <li>Prices stay on this tracker backend.</li>
+            <li>Shopee credentials never leave Chrome.</li>
+            <li>Missing prices are gaps, never zeroes.</li>
+          </ul>
+        </div>
+
+        <div class="auth-panel">
+          <div class="auth-tabs" id="auth-tabs" role="tablist" aria-label="Account action">
+            <button
+              class="auth-tab is-active"
+              id="login-tab"
+              type="button"
+              role="tab"
+              aria-controls="login-form"
+              aria-selected="true"
+              data-auth-panel="login"
+            >
+              Sign in
+            </button>
+            <button
+              class="auth-tab"
+              id="register-tab"
+              type="button"
+              role="tab"
+              aria-controls="register-form"
+              aria-selected="false"
+              data-auth-panel="register"
+            >
+              Create account
+            </button>
+          </div>
+
+          <form class="auth-form" id="login-form" aria-labelledby="login-tab">
+            <div>
+              <p class="eyebrow">Price-tracker account</p>
+              <h2>Sign in</h2>
+              <p class="form-intro">This is separate from your Shopee account.</p>
+            </div>
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="email" required maxlength="254" />
+            </label>
+            <label>
+              Password
+              <input
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+                minlength="15"
+                maxlength="128"
+              />
+            </label>
+            <p class="form-error" data-form-error hidden></p>
+            <button class="button button-primary button-wide" type="submit">Sign in</button>
+          </form>
+
+          <form class="auth-form" id="register-form" aria-labelledby="register-tab" hidden>
+            <div>
+              <p class="eyebrow">New local account</p>
+              <h2>Create account</h2>
+              <p class="form-intro">Use at least 15 characters for your password.</p>
+            </div>
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="email" required maxlength="254" />
+            </label>
+            <label>
+              Password
+              <input
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                required
+                minlength="15"
+                maxlength="128"
+              />
+            </label>
+            <p class="form-error" data-form-error hidden></p>
+            <button class="button button-primary button-wide" type="submit">Create account</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="dashboard-shell" id="dashboard-view" hidden aria-labelledby="page-heading">
+        <div class="hero">
+          <div>
+            <p class="eyebrow">Local-first price intelligence</p>
+            <h1 id="page-heading">Your Shopee watchlist</h1>
+            <p class="hero-copy">
+              Follow genuine displayed prices across variants without turning missing observations
+              into false discounts.
+            </p>
+          </div>
+          <div class="hero-stat" aria-live="polite">
+            <strong id="tracked-count">—</strong>
+            <span>tracked products</span>
+          </div>
+        </div>
+
+        <section class="track-panel" aria-labelledby="track-heading">
+          <div>
+            <p class="eyebrow">Add a product</p>
+            <h2 id="track-heading">Track a Shopee URL</h2>
+            <p>The Chrome extension will collect prices using your current Shopee session.</p>
+          </div>
+          <form class="track-form" id="track-form">
+            <label class="sr-only" for="product-url">Shopee Vietnam product URL</label>
+            <input
+              id="product-url"
+              name="url"
+              type="url"
+              inputmode="url"
+              autocomplete="url"
+              placeholder="https://shopee.vn/product-i.shopId.itemId"
+              required
+            />
+            <button class="button button-primary" type="submit">Track product</button>
+          </form>
+        </section>
+
+        <aside class="price-definition" aria-label="Tracked price definition">
+          <span class="info-icon" aria-hidden="true">i</span>
+          <div>
+            <strong>What price is tracked?</strong>
+            <p>
+              Price shown by Shopee after applicable discounts and vouchers, excluding shipping
+              fees.
+            </p>
+          </div>
+        </aside>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Watchlist</p>
+            <h2>Tracked products</h2>
+          </div>
+          <button class="button button-secondary button-small" id="reload-button" type="button">
+            Refresh list
+          </button>
+        </div>
+
+        <form class="watchlist-tools" id="watchlist-filters" role="search">
+          <label class="search-field" for="watchlist-search">
+            <span class="sr-only">Search tracked products</span>
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input
+              id="watchlist-search"
+              name="search"
+              type="search"
+              autocomplete="off"
+              maxlength="200"
+              placeholder="Search products, variants, or Shopee IDs"
+            />
+          </label>
+          <label class="filter-field">
+            <span>Status</span>
+            <select name="status" id="watchlist-status">
+              <option value="">All statuses</option>
+              <option value="active">Tracking</option>
+              <option value="paused">Paused</option>
+            </select>
+          </label>
+          <label class="filter-field">
+            <span>Availability</span>
+            <select name="availability" id="watchlist-availability">
+              <option value="">All availability</option>
+              <option value="available">Available</option>
+              <option value="sold_out">Sold out</option>
+              <option value="unavailable">Unavailable</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </label>
+          <button class="button button-primary button-small" type="submit">Search</button>
+          <button
+            class="button button-quiet button-small"
+            id="clear-watchlist-filters"
+            type="button"
+            hidden
+          >
+            Clear filters
+          </button>
+        </form>
+        <p class="result-summary" id="watchlist-result-summary" aria-live="polite"></p>
+
+        <div class="page-message" id="page-error" role="alert" hidden>
+          <div>
+            <strong>We couldn’t load your watchlist.</strong>
+            <p></p>
+          </div>
+          <button class="button button-secondary button-small" id="retry-load-button" type="button">
+            Try again
+          </button>
+        </div>
+
+        <div class="loading-grid" id="loading-grid" aria-label="Loading products" hidden>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+
+        <div class="empty-state" id="empty-state" hidden>
+          <span class="empty-icon" aria-hidden="true">₫</span>
+          <h3>No products tracked yet</h3>
+          <p>
+            Paste a Shopee Vietnam product URL above, then let the extension collect its prices.
+          </p>
+          <button class="button button-secondary" id="empty-track-button" type="button">
+            Add your first product
+          </button>
+        </div>
+
+        <div class="empty-state" id="filtered-empty-state" hidden>
+          <span class="empty-icon" aria-hidden="true">⌕</span>
+          <h3>No matching products</h3>
+          <p>Try another search term or remove one of the watchlist filters.</p>
+          <button class="button button-secondary" id="empty-clear-filters" type="button">
+            Clear filters
+          </button>
+        </div>
+
+        <div class="product-grid" id="product-grid"></div>
+        <nav class="pagination" id="pagination" aria-label="Product pages" hidden></nav>
+      </section>
+    </main>
+
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+    <dialog class="history-dialog" id="history-dialog" aria-labelledby="history-title">
+      <div class="dialog-shell">
+        <header class="dialog-header">
+          <div>
+            <p class="eyebrow">Price history</p>
+            <h2 id="history-title">Product history</h2>
+            <p id="history-subtitle"></p>
+          </div>
+          <button class="icon-button" id="close-history-button" type="button" aria-label="Close">
+            ×
+          </button>
+        </header>
+
+        <form class="history-filters" id="history-filters">
+          <label>
+            Variant
+            <select name="variantId" id="history-variant">
+              <option value="">All variants</option>
+            </select>
+          </label>
+          <label>
+            From
+            <input name="from" type="datetime-local" />
+          </label>
+          <label>
+            To
+            <input name="to" type="datetime-local" />
+          </label>
+          <button class="button button-secondary" type="submit">Apply filters</button>
+        </form>
+
+        <div class="history-status" id="history-status" role="status"></div>
+        <div class="chart-shell" id="chart-shell" hidden>
+          <canvas id="history-chart" aria-label="Product price history chart" role="img"></canvas>
+        </div>
+        <div class="history-empty" id="history-empty" hidden>
+          <strong>No observations in this range</strong>
+          <p>Try a wider date range or another variant.</p>
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>

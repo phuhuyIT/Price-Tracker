@@ -17,7 +17,7 @@
     "lint": "eslint apps/server apps/extension packages/shared scripts tests/unit tests/integration eslint.config.mjs vitest.config.mjs",
     "format": "prettier --write apps/server apps/extension packages/shared scripts tests/unit tests/integration *.json *.mjs",
     "format:check": "prettier --check apps/server apps/extension packages/shared scripts tests/unit tests/integration *.json *.mjs",
-    "test": "npm run check && npm run test:foundation && npm run extension:build && npm run test:legacy",
+    "test": "npm run check && npm run test:foundation && npm run extension:build && npm run test:dashboard-browser && npm run test:legacy",
     "test:watch": "vitest",
     "test:foundation": "vitest run",
     "test:phase3": "vitest run tests/unit/shared",
@@ -27,6 +27,8 @@
     "test:phase7": "vitest run tests/unit/extension tests/integration/extension-snapshot-api.test.js && npm run extension:build",
     "test:phase8": "vitest run tests/unit/extension tests/unit/config.test.js tests/unit/shared/shopeeUrlSchema.test.js tests/integration/database-migrations.test.js tests/integration/collection-jobs.test.js tests/integration/product-api.test.js && npm run extension:build",
     "test:phase9": "vitest run tests/unit/jobs tests/unit/services/collectionRetryPolicy.test.js tests/unit/config.test.js tests/unit/extension tests/integration/database-migrations.test.js tests/integration/collection-jobs.test.js tests/integration/scheduled-collection.test.js tests/integration/product-api.test.js && npm run extension:build",
+    "test:phase11": "vitest run tests/unit/dashboard tests/integration/dashboard.test.js tests/integration/product-api.test.js && npm run test:dashboard-browser",
+    "test:dashboard-browser": "node tests/integration/dashboard-browser.integration.mjs",
     "test:legacy": "npm run test:arguments && npm run test:phase1 && npm run test:selection && npm run test:variant && npm run test:playwright-variant && npm run test:current",
     "test:arguments": "node tests/current-profile-arguments.test.js",
     "test:current": "node tests/current-profile.integration.js",
@@ -45,6 +47,7 @@
     "playwright": "npm run legacy:playwright"
   },
   "dependencies": {
+    "chart.js": "4.5.1",
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
     "express": "^5.1.0",
