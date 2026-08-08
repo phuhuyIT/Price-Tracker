@@ -1,4 +1,4 @@
-# Shopee Variant Price Collector
+# Shopee Price Tracker
 
 > The repository is being evolved from this working collector demo into the
 > Shopee Price Tracker MVP described in [Task_list.md](Task_list.md). The Phase
@@ -20,6 +20,8 @@
 > [docs/phase-8-chrome-session-collector.md](docs/phase-8-chrome-session-collector.md).
 > Scheduled dispatch, retries, and terminal failure semantics are documented in
 > [docs/phase-9-scheduled-checks.md](docs/phase-9-scheduled-checks.md).
+> The responsive dashboard and its context-safe history chart are documented in
+> [docs/phase-11-web-dashboard.md](docs/phase-11-web-dashboard.md).
 > Existing collector behavior is intentionally preserved as legacy discovery
 > tooling.
 > The persistent-profile Playwright mode described below is legacy discovery
@@ -315,6 +317,37 @@ Run the focused automated checks with `npm.cmd run test:phase9`. See
 shutdown behavior, and live verification checklist. The older `SCRAPE_*`
 settings remain for retained Playwright tooling and do not control the Phase 9
 production scheduler.
+
+## Phase 11 web dashboard
+
+Phase 11 is available at `http://127.0.0.1:3000` after starting the backend:
+
+```powershell
+npm.cmd start
+```
+
+The same-origin dashboard supports tracking, paginated product cards,
+watchlist-wide product/variant/ID search, tracking-status and availability
+filters, manual refresh, pause/resume, confirmed deletion, authentication when
+enabled, and a filterable locally bundled Chart.js history view. Current and
+retained prices show pricing context, voucher state, source, availability, and
+variant lifecycle warnings. Missing observations create chart gaps and are
+never stored or displayed as zero prices.
+
+Tracking and refresh queue extension jobs asynchronously. If background checks
+are disabled, click **Check now** in the extension after a dashboard action.
+Phase 10 Telegram notifications are intentionally not implemented by this
+phase.
+
+Run the focused dashboard verification, including its local headless-Chrome
+interaction check:
+
+```powershell
+npm.cmd run test:phase11
+```
+
+See `docs/phase-11-web-dashboard.md` for the UI contracts, security boundary,
+warning policy, history semantics, and manual checklist.
 
 This project has two browser modes:
 

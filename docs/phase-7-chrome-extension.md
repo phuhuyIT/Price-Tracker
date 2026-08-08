@@ -199,5 +199,5 @@ registration and create an account through `POST /api/auth/register` using
       storage, then submit. Confirm `SESSION_REVOKED` clears local account state
       and retains the snapshot as `blocked_auth`.
 
-The dashboard UI is Phase 11 work. Until then, **Open dashboard** targets the
-configured backend root and product state is verified through the Phase 6 API.
+The Phase 11 dashboard is now served from the configured backend root, so
+**Open dashboard** opens the product-management and history interface directly.
