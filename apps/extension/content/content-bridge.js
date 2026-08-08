@@ -7,19 +7,35 @@ import {
   applyShopeeCapture,
   createShopeeCaptureState,
   createShopeeCaptureSummary,
+  isImplicitDefaultShopeeProduct,
   normaliseShopeeCaptureState,
 } from '../../../packages/shared/shopee/shopeeSnapshotNormalizer.js';
 import { RUNTIME_MESSAGES } from '../lib/runtimeMessages.js';
 import { stableStringify } from '../lib/submissionQueue.js';
 import { collectBackgroundPageVariants } from './backgroundPageCollector.js';
+import {
+  detectShopeeProductPageAvailability,
+  waitForShopeeProductPageAvailability,
+} from './pageAvailability.js';
 
 const EMIT_DEBOUNCE_MS = 300;
 const DEDUPLICATION_WINDOW_MS = 2_000;
+const PAGE_AVAILABILITY_WAIT_MS = 2_000;
 const captureState = createShopeeCaptureState();
 let emitTimer = null;
 let lastSemanticHash = null;
 let lastSemanticHashAt = 0;
 let backgroundCollectionStarted = false;
+
+const COLLECTION_ERROR_MESSAGES = Object.freeze({
+  AUTHENTICATION_REQUIRED: 'Shopee requires sign-in in this Chrome profile',
+  FETCH_FAILED: 'The Shopee product request failed',
+  NETWORK_TIMEOUT: 'The Shopee product request timed out',
+  PRICE_SELECTOR_TIMEOUT: 'Shopee did not expose an exact product price before timeout',
+  PRODUCT_UNAVAILABLE: 'Shopee reports that this product is unavailable',
+  RATE_LIMITED: 'Shopee rate-limited the product request',
+  SHOPEE_SERVER_ERROR: 'Shopee returned a temporary server error',
+});
 
 async function sha256(value) {
   const data = new TextEncoder().encode(value);
@@ -39,7 +55,21 @@ function runtimeMessage(message) {
 
 async function emitSnapshot({ completeBackgroundCollection = false } = {}) {
   const config = await runtimeMessage({ type: RUNTIME_MESSAGES.GET_COLLECTOR_CONFIG });
+  const product = captureState.productDetail?.product;
+  const needsPageAvailabilityFallback =
+    product &&
+    isImplicitDefaultShopeeProduct(product) &&
+    product.models[0].availability === 'unknown';
+  const pageAvailability = needsPageAvailabilityFallback
+    ? completeBackgroundCollection
+      ? await waitForShopeeProductPageAvailability(document, {
+          timeoutMs: PAGE_AVAILABILITY_WAIT_MS,
+          title: product.title,
+        })
+      : detectShopeeProductPageAvailability(document, { title: product.title })
+    : 'unknown';
   const snapshot = normaliseShopeeCaptureState(captureState, {
+    pageAvailability,
     pageUrl: window.location.href,
     pricingContextKey: config.pricingContextKey,
   });
@@ -112,13 +142,28 @@ async function runBackgroundCollection() {
       return;
     }
 
+    const collectionDeadlineAt = Number.isFinite(config.collectionDeadlineAt)
+      ? config.collectionDeadlineAt
+      : Date.now() + 75_000;
     await collectBackgroundPageVariants(captureState, {
-      deadlineAt: Date.now() + 75_000,
+      deadlineAt: collectionDeadlineAt,
+      onProgress: (progress) =>
+        runtimeMessage({
+          ...progress,
+          type: RUNTIME_MESSAGES.BACKGROUND_COLLECTION_PROGRESS,
+        }),
     });
     await emitSnapshot({ completeBackgroundCollection: true });
   } catch (error) {
+    const errorCode =
+      error instanceof Error &&
+      typeof error.code === 'string' &&
+      Object.hasOwn(COLLECTION_ERROR_MESSAGES, error.code)
+        ? error.code
+        : 'SCHEMA_PARSE_ERROR';
+
     await runtimeMessage({
-      errorCode: 'INVALID_SHOPEE_PAYLOAD',
+      errorCode,
       errorMessage: error instanceof Error ? error.message : 'Shopee collection failed',
       type: RUNTIME_MESSAGES.BACKGROUND_COLLECTION_FAILED,
     });
@@ -169,9 +214,8 @@ window.addEventListener('message', (event) => {
     void runtimeMessage({
       errorCode: statusValidation.data.code,
       errorMessage:
-        statusValidation.data.code === 'AUTHENTICATION_REQUIRED'
-          ? 'Shopee requires sign-in in this Chrome profile'
-          : 'Shopee rejected the background collection request',
+        COLLECTION_ERROR_MESSAGES[statusValidation.data.code] ??
+        'Shopee rejected the background collection request',
       type: RUNTIME_MESSAGES.BACKGROUND_COLLECTION_FAILED,
     }).catch(() => undefined);
     return;

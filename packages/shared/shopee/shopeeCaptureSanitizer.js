@@ -63,13 +63,33 @@ function normaliseSelectedTiers(value) {
 }
 
 function inferAvailability(model) {
+  if (model?.sold_out === true || model?.is_sold_out === true) {
+    return 'sold_out';
+  }
+
   const stock = model?.stock ?? model?.normal_stock;
 
   if (stock !== null && stock !== undefined && stock !== '' && Number.isFinite(Number(stock))) {
-    return Number(stock) > 0 ? 'available' : 'sold_out';
+    const stockAmount = Number(stock);
+
+    if (stockAmount > 0) {
+      return 'available';
+    }
+
+    if (stockAmount === 0) {
+      return 'sold_out';
+    }
   }
 
-  if (model?.status === 0 || model?.item_status === 'unavailable') {
+  const itemStatus = String(model?.item_status ?? '')
+    .trim()
+    .toLowerCase();
+
+  if (['sold_out', 'out_of_stock'].includes(itemStatus)) {
+    return 'sold_out';
+  }
+
+  if (model?.status === 0 || itemStatus === 'unavailable') {
     return 'unavailable';
   }
 
@@ -106,45 +126,98 @@ function normaliseVoucherStatus(priceContainer) {
   return 'unknown';
 }
 
-function findPriceContainer(payload) {
-  const priceBreakdown = payload?.data?.price_breakdown ?? payload?.price_breakdown;
+function findPriceContainers(payload) {
+  const candidates = [
+    {
+      container: payload?.data?.price_breakdown,
+      source: 'variation_price_breakdown',
+    },
+    {
+      container: payload?.price_breakdown,
+      source: 'variation_price_breakdown',
+    },
+    {
+      container: payload?.data?.product_price,
+      source: 'verified_display_field',
+    },
+  ];
 
-  if (priceBreakdown && typeof priceBreakdown === 'object') {
-    return { container: priceBreakdown, source: 'variation_price_breakdown' };
-  }
+  return candidates.filter(
+    ({ container }, index) =>
+      container &&
+      typeof container === 'object' &&
+      candidates.findIndex((candidate) => candidate.container === container) === index,
+  );
+}
 
-  const productPrice = payload?.data?.product_price;
+function priceEvidenceScore(evidence, expectedModelIds) {
+  const matchesExpectedModel =
+    evidence.modelId !== null && expectedModelIds.includes(evidence.modelId);
 
-  if (productPrice && typeof productPrice === 'object') {
-    return { container: productPrice, source: 'verified_display_field' };
-  }
-
-  return { container: null, source: null };
+  return (
+    (evidence.rawPrice === null ? 0 : 2) +
+    (evidence.modelId === null ? 0 : 1) +
+    (matchesExpectedModel ? 4 : 0)
+  );
 }
 
 /** Extract only price fields required by the normalised snapshot contract. */
-export function sanitisePriceEvidence(payload, { forcedSource } = {}) {
-  const { container, source } = findPriceContainer(payload);
-  let rawPrice = null;
+export function sanitisePriceEvidence(payload, { expectedModelIds = [], forcedSource } = {}) {
+  let bestEvidence = {
+    modelId: null,
+    priceSource: null,
+    rawPrice: null,
+    voucherStatus: 'unknown',
+  };
 
-  for (const path of FINAL_PRICE_PATHS) {
-    rawPrice = positiveSafeInteger(readPath(container, path));
+  for (const { container, source } of findPriceContainers(payload)) {
+    let rawPrice = null;
 
-    if (rawPrice !== null) {
-      break;
+    for (const path of FINAL_PRICE_PATHS) {
+      rawPrice = positiveSafeInteger(readPath(container, path));
+
+      if (rawPrice !== null) {
+        break;
+      }
+    }
+
+    const evidence = {
+      modelId: positiveId(
+        container?.price_model?.price_single_model_id ?? payload?.data?.selected_model_id,
+      ),
+      priceSource: rawPrice === null ? null : (forcedSource ?? source),
+      rawPrice,
+      voucherStatus: normaliseVoucherStatus(container),
+    };
+
+    if (
+      priceEvidenceScore(evidence, expectedModelIds) >
+      priceEvidenceScore(bestEvidence, expectedModelIds)
+    ) {
+      bestEvidence = evidence;
     }
   }
 
-  const modelId = positiveId(
-    container?.price_model?.price_single_model_id ?? payload?.data?.selected_model_id,
-  );
+  return bestEvidence;
+}
 
-  return {
-    modelId,
-    priceSource: rawPrice === null ? null : (forcedSource ?? source),
-    rawPrice,
-    voucherStatus: normaliseVoucherStatus(container),
+function sanitiseProductDetailPriceEvidence(payload, models) {
+  const options = {
+    expectedModelIds: models.map((model) => model.modelId).filter(Boolean),
+    forcedSource: 'product_detail_fallback',
   };
+  const nestedEvidence = sanitisePriceEvidence(payload?.data?.pricing, options);
+  const matchesCatalogueModel = (evidence) =>
+    evidence.rawPrice !== null &&
+    evidence.modelId !== null &&
+    models.some((model) => model.modelId === evidence.modelId);
+
+  if (matchesCatalogueModel(nestedEvidence) || models.length !== 1) {
+    return nestedEvidence;
+  }
+
+  const directEvidence = sanitisePriceEvidence(payload, options);
+  return matchesCatalogueModel(directEvidence) ? directEvidence : nestedEvidence;
 }
 
 function sanitiseTierVariations(value) {
@@ -164,16 +237,23 @@ function sanitiseTierVariations(value) {
   }));
 }
 
-function sanitiseModels(value) {
+function sanitiseModels(value, productAvailability = 'unknown') {
   if (!Array.isArray(value)) {
     return [];
   }
 
   return value.map((model) => {
     const selectedTiers = normaliseSelectedTiers(model?.extinfo?.tier_index);
+    const modelAvailability = inferAvailability(model);
+    const availability =
+      modelAvailability !== 'unknown'
+        ? modelAvailability
+        : ['sold_out', 'unavailable'].includes(productAvailability) || value.length === 1
+          ? productAvailability
+          : 'unknown';
 
     return {
-      availability: inferAvailability(model),
+      availability,
       modelId: positiveId(model?.modelid ?? model?.model_id),
       name: typeof model?.name === 'string' ? model.name.slice(0, 300) : '',
       tierIndex: selectedTiers ? Object.values(selectedTiers) : [],
@@ -199,7 +279,7 @@ export function sanitiseProductDetailCapture(payload, { capturedAt } = {}) {
     return null;
   }
 
-  const models = sanitiseModels(item.models);
+  const models = sanitiseModels(item.models, inferAvailability(item));
 
   return {
     ...captureEnvelope({
@@ -207,9 +287,7 @@ export function sanitiseProductDetailCapture(payload, { capturedAt } = {}) {
       endpoint: PRODUCT_DETAIL_ENDPOINT,
       kind: EXTENSION_CAPTURE_KINDS.PRODUCT_DETAIL,
     }),
-    priceEvidence: sanitisePriceEvidence(payload?.data?.pricing, {
-      forcedSource: 'product_detail_fallback',
-    }),
+    priceEvidence: sanitiseProductDetailPriceEvidence(payload, models),
     product: {
       currency: String(item.currency ?? '').toUpperCase(),
       image: typeof item.image === 'string' ? item.image.slice(0, 2_048) : null,

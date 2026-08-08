@@ -58,7 +58,8 @@ function canonicaliseProductUrl(value) {
   return url.toString();
 }
 
-function isImplicitDefault(product) {
+/** Return whether a verified catalogue represents one product with no visible variants. */
+export function isImplicitDefaultShopeeProduct(product) {
   if (product.models.length !== 1 || product.models[0].name.trim() !== '') {
     return false;
   }
@@ -169,13 +170,70 @@ function sameProduct(product, request) {
   return product.itemId === request.itemId && product.shopId === request.shopId;
 }
 
+function hasExactProductDetailPrice(capture, product = capture?.product) {
+  const evidence = capture?.priceEvidence;
+  return (
+    product?.models.some((model) => model.modelId === evidence?.modelId) === true &&
+    observedPrice(evidence, DEFAULT_SHOPEE_PRICE_SCALE) !== null
+  );
+}
+
+function mergeSameProductDetail(previous, incoming) {
+  const previousModels = new Map(previous.product.models.map((model) => [model.modelId, model]));
+  const product = {
+    ...incoming.product,
+    models: incoming.product.models.map((model) => {
+      const previousModel = previousModels.get(model.modelId);
+
+      return model.availability === 'unknown' && previousModel?.availability !== 'unknown'
+        ? { ...model, availability: previousModel.availability }
+        : model;
+    }),
+  };
+  const keepPreviousPrice =
+    !hasExactProductDetailPrice(incoming) && hasExactProductDetailPrice(previous, incoming.product);
+
+  return keepPreviousPrice
+    ? {
+        ...incoming,
+        capturedAt: previous.capturedAt,
+        priceEvidence: previous.priceEvidence,
+        product,
+      }
+    : { ...incoming, product };
+}
+
+function retainCompatibleVariations(state, product) {
+  const validKeys = new Set(product.models.map((model) => selectedTiersKey(model.tierIndex)));
+
+  for (const key of state.variations.keys()) {
+    if (!validKeys.has(key)) {
+      state.variations.delete(key);
+    }
+  }
+
+  if (state.latestSelectedKey && !state.variations.has(state.latestSelectedKey)) {
+    state.latestSelectedKey = null;
+  }
+
+  if (state.variations.size === 0) {
+    state.quantity = null;
+  }
+}
+
 /** Apply one validated, sanitised capture to an in-memory page catalogue. */
 export function applyShopeeCapture(state, capture) {
   if (capture.kind === 'product_detail') {
-    state.productDetail = capture;
-    state.latestSelectedKey = null;
-    state.quantity = null;
-    state.variations.clear();
+    if (!state.productDetail || !sameProduct(state.productDetail.product, capture.product)) {
+      state.productDetail = capture;
+      state.latestSelectedKey = null;
+      state.quantity = null;
+      state.variations.clear();
+      return state;
+    }
+
+    state.productDetail = mergeSameProductDetail(state.productDetail, capture);
+    retainCompatibleVariations(state, capture.product);
     return state;
   }
 
@@ -203,7 +261,12 @@ export function applyShopeeCapture(state, capture) {
 /** Convert assembled evidence into the shared, backend-validated snapshot contract. */
 export function normaliseShopeeCaptureState(
   state,
-  { pageUrl, priceScale = DEFAULT_SHOPEE_PRICE_SCALE, pricingContextKey },
+  {
+    pageAvailability = 'unknown',
+    pageUrl,
+    priceScale = DEFAULT_SHOPEE_PRICE_SCALE,
+    pricingContextKey,
+  },
 ) {
   if (!state.productDetail) {
     return null;
@@ -221,10 +284,19 @@ export function normaliseShopeeCaptureState(
     return null;
   }
 
-  const implicitDefault = isImplicitDefault(product);
-  const variants = product.models.map((model, index) =>
+  const implicitDefault = isImplicitDefaultShopeeProduct(product);
+  let variants = product.models.map((model, index) =>
     normaliseVariant({ implicitDefault, index, model, priceScale, state }),
   );
+
+  if (
+    implicitDefault &&
+    variants.length === 1 &&
+    variants[0].availability === 'unknown' &&
+    ['sold_out', 'unavailable'].includes(pageAvailability)
+  ) {
+    variants = [{ ...variants[0], availability: pageAvailability }];
+  }
   const pricedVariantCount = variants.filter(
     (variant) => variant.priceObservation.status === PRICE_OBSERVATION_STATUS.OBSERVED,
   ).length;
@@ -284,15 +356,23 @@ export function createShopeeCaptureSummary(state, snapshot) {
   const observedVariants = snapshot.variants.filter(
     (variant) => variant.priceObservation.status === PRICE_OBSERVATION_STATUS.OBSERVED,
   );
+  const purchasableObservedVariants = observedVariants.filter(
+    (variant) => !['sold_out', 'unavailable'].includes(variant.availability),
+  );
   const displayedVariant =
     selectedVariant?.priceObservation.status === PRICE_OBSERVATION_STATUS.OBSERVED
       ? selectedVariant
-      : observedVariants.toSorted(
+      : (purchasableObservedVariants.length > 0
+          ? purchasableObservedVariants
+          : observedVariants
+        ).toSorted(
           (left, right) => left.priceObservation.priceAmount - right.priceObservation.priceAmount,
         )[0];
 
   return {
     capturedAt: snapshot.capturedAt,
+    displayedAvailability:
+      displayedVariant?.availability ?? selectedVariant?.availability ?? 'unknown',
     displayedPriceAmount: displayedVariant?.priceObservation.priceAmount ?? null,
     itemId: snapshot.itemId,
     selectedVariant: selectedVariant?.name ?? displayedVariant?.name ?? null,

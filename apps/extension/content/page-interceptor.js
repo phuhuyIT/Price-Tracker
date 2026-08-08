@@ -59,7 +59,23 @@ function collectionStatusCode(status, payload) {
     return EXTENSION_COLLECTION_STATUS_CODES.PRODUCT_UNAVAILABLE;
   }
 
+  if (status >= 500 && status <= 599) {
+    return EXTENSION_COLLECTION_STATUS_CODES.SHOPEE_SERVER_ERROR;
+  }
+
   return null;
+}
+
+function postCollectionFailureCode(target, code) {
+  target.postMessage(
+    {
+      capturedAt: new Date().toISOString(),
+      code,
+      protocolVersion: EXTENSION_MESSAGE_PROTOCOL_VERSION,
+      type: EXTENSION_COLLECTION_STATUS_MESSAGE_TYPE,
+    },
+    target.location.origin,
+  );
 }
 
 function postCollectionStatus(target, status, payload, capturedAt) {
@@ -132,9 +148,16 @@ export function installPageInterceptor(target = window) {
 
   if (typeof originalFetch === 'function') {
     target.fetch = async function interceptedFetch(...arguments_) {
-      const response = await Reflect.apply(originalFetch, this, arguments_);
-      void inspectFetchResponse(target, arguments_[0], arguments_[1], response);
-      return response;
+      try {
+        const response = await Reflect.apply(originalFetch, this, arguments_);
+        void inspectFetchResponse(target, arguments_[0], arguments_[1], response);
+        return response;
+      } catch (error) {
+        if (endpointPath(arguments_[0]?.url ?? arguments_[0], target.location.href)) {
+          postCollectionFailureCode(target, EXTENSION_COLLECTION_STATUS_CODES.FETCH_FAILED);
+        }
+        throw error;
+      }
     };
   }
 
@@ -158,6 +181,24 @@ export function installPageInterceptor(target = window) {
 
     if (request) {
       request.body = body;
+      this.addEventListener(
+        'timeout',
+        () => {
+          if (endpointPath(this.responseURL || request.url, target.location.href)) {
+            postCollectionFailureCode(target, EXTENSION_COLLECTION_STATUS_CODES.NETWORK_TIMEOUT);
+          }
+        },
+        { once: true },
+      );
+      this.addEventListener(
+        'error',
+        () => {
+          if (endpointPath(this.responseURL || request.url, target.location.href)) {
+            postCollectionFailureCode(target, EXTENSION_COLLECTION_STATUS_CODES.FETCH_FAILED);
+          }
+        },
+        { once: true },
+      );
       this.addEventListener(
         'loadend',
         () => {

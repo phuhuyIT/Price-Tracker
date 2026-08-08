@@ -92,4 +92,57 @@ describe('page interceptor', () => {
       type: 'SHOPEE_PRICE_TRACKER_COLLECTION_STATUS',
     });
   });
+
+  it('classifies a Shopee 5xx response without changing the response', async () => {
+    const response = {
+      clone: vi.fn(() => ({ json: vi.fn(async () => ({})) })),
+      ok: false,
+      status: 503,
+      url: 'https://shopee.vn/api/v4/pdp/get_pc?item_id=26882883164',
+    };
+    const target = {
+      fetch: vi.fn(async () => response),
+      location: {
+        href: 'https://shopee.vn/product-i.1259293184.26882883164',
+        origin: 'https://shopee.vn',
+      },
+      postMessage: vi.fn(),
+    };
+
+    installPageInterceptor(target);
+    await expect(target.fetch(response.url)).resolves.toBe(response);
+    await vi.waitFor(() => expect(target.postMessage).toHaveBeenCalledOnce());
+
+    expect(target.postMessage.mock.calls[0][0]).toMatchObject({
+      code: 'SHOPEE_SERVER_ERROR',
+      type: 'SHOPEE_PRICE_TRACKER_COLLECTION_STATUS',
+    });
+  });
+
+  it('reports a matching fetch failure and preserves the original rejection', async () => {
+    const networkError = new TypeError('Failed to fetch');
+    const target = {
+      fetch: vi.fn(async () => {
+        throw networkError;
+      }),
+      location: {
+        href: 'https://shopee.vn/product-i.1259293184.26882883164',
+        origin: 'https://shopee.vn',
+      },
+      postMessage: vi.fn(),
+    };
+
+    installPageInterceptor(target);
+    await expect(
+      target.fetch('https://shopee.vn/api/v4/pdp/get_pc?item_id=26882883164'),
+    ).rejects.toBe(networkError);
+
+    expect(target.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: 'FETCH_FAILED',
+        type: 'SHOPEE_PRICE_TRACKER_COLLECTION_STATUS',
+      }),
+      'https://shopee.vn',
+    );
+  });
 });
