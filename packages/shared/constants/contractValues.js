@@ -89,9 +89,16 @@ export const COLLECTION_JOB_TYPES = Object.freeze({
   TRACK: 'track',
 });
 
+export const COLLECTION_JOB_SOURCES = Object.freeze({
+  MANUAL: 'manual',
+  SCHEDULER: 'scheduler',
+});
+
 export const COLLECTION_JOB_STATUSES = Object.freeze({
   CLAIMED: 'claimed',
   COMPLETED: 'completed',
   FAILED: 'failed',
   PENDING: 'pending',
+  RETRY_WAIT: 'retry_wait',
+  WAITING_AUTH: 'waiting_auth',
 });

@@ -5,6 +5,7 @@ import {
   collectionJobCompleteRequestSchema,
   collectionJobFailureRequestSchema,
   collectionJobIdParamsSchema,
+  collectionJobRebindRequestSchema,
 } from '@shopee-price-tracker/shared';
 
 import { createCollectionJobController } from '../controllers/collectionJobController.js';
@@ -45,6 +46,13 @@ export function createCollectionJobRoutes({ applicationConfig, services }) {
     validateJobId,
     validateRequest({ body: collectionJobFailureRequestSchema }),
     controller.fail,
+  );
+  router.post(
+    '/:jobId/rebind',
+    mutationRateLimit,
+    validateJobId,
+    validateRequest({ body: collectionJobRebindRequestSchema }),
+    controller.rebind,
   );
   router.get('/:jobId', validateJobId, controller.get);
 

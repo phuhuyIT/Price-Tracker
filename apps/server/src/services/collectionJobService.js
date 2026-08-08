@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 
 import {
+  COLLECTION_JOB_SOURCES,
   ERROR_CODES,
   getShopeeProductIdentity,
   PRICING_CONTEXTS,
@@ -8,6 +9,10 @@ import {
 } from '@shopee-price-tracker/shared';
 
 import { AppError } from '../errors/AppError.js';
+import {
+  calculateCollectionRetryDelayMs,
+  classifyCollectionFailure,
+} from './collectionRetryPolicy.js';
 
 function leaseHash(token) {
   return createHash('sha256').update(token).digest('hex');
@@ -15,6 +20,7 @@ function leaseHash(token) {
 
 function publicJob(job) {
   return {
+    attemptCount: job.attemptCount,
     canonicalUrl: job.canonicalUrl,
     claimedContextKey: job.claimedContextKey,
     completedAt: job.completedAt,
@@ -23,8 +29,10 @@ function publicJob(job) {
     errorMessage: job.errorMessage,
     id: job.id,
     itemId: job.itemId,
+    jobSource: job.jobSource,
     jobType: job.jobType,
     leaseExpiresAt: job.leaseExpiresAt,
+    nextAttemptAt: job.nextAttemptAt,
     productId: job.productId,
     shopId: job.shopId,
     status: job.status,
@@ -49,11 +57,46 @@ function invalidLease() {
   });
 }
 
+function persistFailedCheck({ errorCode, errorMessage, job, repositories, updatedAt }) {
+  if (job.productId === null) {
+    return null;
+  }
+
+  const created = repositories.prices.createCheck({
+    checkedAt: updatedAt,
+    errorCode,
+    errorMessage,
+    idempotencyKey: `collection-job-failure:${job.id}`,
+    ownerUserId: job.ownerUserId,
+    pricingContext: PRICING_CONTEXTS.USER_SESSION,
+    pricingContextKey: job.targetContextKey,
+    productId: job.productId,
+    source: SNAPSHOT_SOURCES.EXTENSION,
+    status: 'failed',
+  });
+
+  if (created.created) {
+    repositories.products.recordFailedCheck({
+      checkedAt: updatedAt,
+      errorCode,
+      errorMessage,
+      ownerUserId: job.ownerUserId,
+      productId: job.productId,
+    });
+  }
+
+  return created.check;
+}
+
 /** Coordinate persistent extension collection jobs and lease ownership. */
 export function createCollectionJobService({
   clock = () => new Date(),
   leaseMs,
+  maxAttempts = 4,
+  random = Math.random,
   repositories,
+  retryBaseDelayMs = 5_000,
+  retryMaxDelayMs = 300_000,
   tokenFactory = () => randomBytes(32).toString('hex'),
   trackingService,
 }) {
@@ -62,31 +105,78 @@ export function createCollectionJobService({
     return (value instanceof Date ? value : new Date(value)).toISOString();
   }
 
-  function requireClaim({ jobId, leaseToken, ownerUserId, updatedAt }) {
-    const job = repositories.collectionJobs.findValidClaim({
-      jobId,
-      leaseTokenHash: leaseHash(leaseToken),
-      ownerUserId,
-      updatedAt,
+  function retryAt(job, updatedAt) {
+    const delayMs = calculateCollectionRetryDelayMs({
+      attempt: job.attemptCount,
+      baseDelayMs: retryBaseDelayMs,
+      maxDelayMs: retryMaxDelayMs,
+      random,
     });
+    return new Date(Date.parse(updatedAt) + delayMs).toISOString();
+  }
 
-    if (!job) {
-      throw invalidLease();
+  function recoverExpiredClaims({ ownerUserId } = {}) {
+    const updatedAt = now();
+    const expiredJobs = repositories.collectionJobs.findExpired({ ownerUserId, updatedAt });
+    const summary = { failed: 0, retried: 0 };
+
+    for (const job of expiredJobs) {
+      repositories.transaction((transactionRepositories) => {
+        const errorCode = ERROR_CODES.COLLECTION_TIMEOUT;
+        const errorMessage = 'The extension collection lease expired before completion';
+
+        if (job.attemptCount < maxAttempts) {
+          const retried = transactionRepositories.collectionJobs.retryExpired({
+            errorCode,
+            errorMessage,
+            jobId: job.id,
+            nextAttemptAt: retryAt(job, updatedAt),
+            updatedAt,
+          });
+
+          if (retried) {
+            summary.retried += 1;
+          }
+          return;
+        }
+
+        const failed = transactionRepositories.collectionJobs.failExpired({
+          errorCode,
+          errorMessage,
+          jobId: job.id,
+          updatedAt,
+        });
+
+        if (failed) {
+          persistFailedCheck({
+            errorCode,
+            errorMessage,
+            job,
+            repositories: transactionRepositories,
+            updatedAt,
+          });
+          summary.failed += 1;
+        }
+      });
     }
 
-    return job;
+    return summary;
   }
 
   return Object.freeze({
-    claimNext({ ownerUserId, pricingContextKey }) {
-      const leaseToken = tokenFactory();
+    claimNext({ jobId = null, ownerUserId, pricingContextKey, resumeWaitingAuth = false }) {
+      recoverExpiredClaims({ ownerUserId });
       const updatedAt = now();
+      const leaseToken = tokenFactory();
       const leaseExpiresAt = new Date(Date.parse(updatedAt) + leaseMs).toISOString();
       const job = repositories.collectionJobs.claimNext({
+        jobId,
         leaseExpiresAt,
         leaseTokenHash: leaseHash(leaseToken),
+        maxAttempts,
         ownerUserId,
         pricingContextKey,
+        resumeWaitingAuth,
         updatedAt,
       });
 
@@ -161,27 +251,77 @@ export function createCollectionJobService({
       }
 
       const createdAt = now();
-      const job = repositories.collectionJobs.create({ ...input, createdAt });
+      const job = repositories.collectionJobs.create({
+        ...input,
+        createdAt,
+        jobSource: input.jobSource ?? COLLECTION_JOB_SOURCES.MANUAL,
+      });
       return { created: true, job: publicJob(job) };
     },
 
     fail({ errorCode, errorMessage, jobId, leaseToken, ownerUserId }) {
       const updatedAt = now();
-      requireClaim({ jobId, leaseToken, ownerUserId, updatedAt });
-      const failed = repositories.collectionJobs.fail({
-        errorCode,
-        errorMessage,
-        jobId,
-        leaseTokenHash: leaseHash(leaseToken),
-        ownerUserId,
-        updatedAt,
+
+      return repositories.transaction((transactionRepositories) => {
+        const job = transactionRepositories.collectionJobs.findValidClaim({
+          jobId,
+          leaseTokenHash: leaseHash(leaseToken),
+          ownerUserId,
+          updatedAt,
+        });
+
+        if (!job) {
+          throw invalidLease();
+        }
+
+        const failureType = classifyCollectionFailure(errorCode);
+        let transitioned;
+
+        if (failureType === 'waiting_auth') {
+          transitioned = transactionRepositories.collectionJobs.waitForAuthentication({
+            errorMessage,
+            jobId,
+            leaseTokenHash: leaseHash(leaseToken),
+            ownerUserId,
+            updatedAt,
+          });
+        } else if (failureType === 'retryable' && job.attemptCount < maxAttempts) {
+          transitioned = transactionRepositories.collectionJobs.retry({
+            errorCode,
+            errorMessage,
+            jobId,
+            leaseTokenHash: leaseHash(leaseToken),
+            nextAttemptAt: retryAt(job, updatedAt),
+            ownerUserId,
+            updatedAt,
+          });
+        } else {
+          transitioned = transactionRepositories.collectionJobs.fail({
+            errorCode,
+            errorMessage,
+            jobId,
+            leaseTokenHash: leaseHash(leaseToken),
+            ownerUserId,
+            updatedAt,
+          });
+
+          if (transitioned) {
+            persistFailedCheck({
+              errorCode,
+              errorMessage,
+              job,
+              repositories: transactionRepositories,
+              updatedAt,
+            });
+          }
+        }
+
+        if (!transitioned) {
+          throw invalidLease();
+        }
+
+        return publicJob(transitioned);
       });
-
-      if (!failed) {
-        throw invalidLease();
-      }
-
-      return publicJob(failed);
     },
 
     get({ jobId, ownerUserId }) {
@@ -193,5 +333,31 @@ export function createCollectionJobService({
 
       return publicJob(job);
     },
+
+    rebind({ jobId, ownerUserId, pricingContextKey }) {
+      const updatedAt = now();
+      const job = repositories.collectionJobs.rebind({
+        jobId,
+        ownerUserId,
+        pricingContextKey,
+        updatedAt,
+      });
+
+      if (job) {
+        return publicJob(job);
+      }
+
+      if (!repositories.collectionJobs.findById({ jobId, ownerUserId })) {
+        throw jobNotFound();
+      }
+
+      throw new AppError({
+        code: ERROR_CODES.COLLECTION_LEASE_INVALID,
+        message: 'Only an unclaimed active collection job can change Chrome profile',
+        statusCode: 409,
+      });
+    },
+
+    recoverExpiredClaims,
   });
 }

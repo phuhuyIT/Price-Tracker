@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   apiErrorResponseSchema,
+  collectionJobClaimRequestSchema,
+  collectionJobRebindRequestSchema,
   createSuccessResponseSchema,
   productHistoryQuerySchema,
   productIdParamsSchema,
@@ -31,6 +33,26 @@ describe('API request schemas', () => {
     });
     expect(productIdParamsSchema.safeParse({ productId: '0' }).success).toBe(false);
     expect(productIdParamsSchema.safeParse({ productId: '1 OR 1=1' }).success).toBe(false);
+  });
+
+  it('accepts an optional positive targeted collection job ID', () => {
+    const request = {
+      jobId: 42,
+      pricingContextKey: 'extension:test-profile',
+      resumeWaitingAuth: true,
+    };
+
+    expect(collectionJobClaimRequestSchema.parse(request)).toEqual(request);
+    expect(collectionJobClaimRequestSchema.safeParse({ ...request, jobId: 0 }).success).toBe(false);
+  });
+
+  it('accepts only an opaque pricing context for manual job reassignment', () => {
+    const request = { pricingContextKey: 'extension:current-profile' };
+
+    expect(collectionJobRebindRequestSchema.parse(request)).toEqual(request);
+    expect(
+      collectionJobRebindRequestSchema.safeParse({ ...request, cookie: 'not-allowed' }).success,
+    ).toBe(false);
   });
 
   it('applies bounded pagination defaults', () => {

@@ -15,8 +15,10 @@ function mapCollectionJob(row) {
     errorMessage: row.error_message,
     id: row.id,
     itemId: row.item_id,
+    jobSource: row.job_source,
     jobType: row.job_type,
     leaseExpiresAt: row.lease_expires_at,
+    nextAttemptAt: row.next_attempt_at,
     ownerUserId: row.owner_user_id,
     platform: row.platform,
     productId: row.product_id,
@@ -38,6 +40,7 @@ export function createCollectionJobRepository(database) {
       item_id,
       canonical_url,
       job_type,
+      job_source,
       target_context_key,
       created_at,
       updated_at
@@ -49,6 +52,7 @@ export function createCollectionJobRepository(database) {
       @itemId,
       @canonicalUrl,
       @jobType,
+      @jobSource,
       @targetContextKey,
       @createdAt,
       @createdAt
@@ -65,7 +69,7 @@ export function createCollectionJobRepository(database) {
       AND platform = 'shopee'
       AND shop_id = @shopId
       AND item_id = @itemId
-      AND status IN ('pending', 'claimed')
+      AND status IN ('pending', 'claimed', 'retry_wait', 'waiting_auth')
     ORDER BY id DESC
     LIMIT 1
   `);
@@ -80,26 +84,23 @@ export function createCollectionJobRepository(database) {
     ORDER BY id DESC
     LIMIT 1
   `);
-  const releaseExpiredStatement = database.prepare(`
-    UPDATE collection_jobs
-    SET
-      status = 'pending',
-      claimed_context_key = NULL,
-      lease_token_hash = NULL,
-      lease_expires_at = NULL,
-      updated_at = @updatedAt
-    WHERE owner_user_id = @ownerUserId
-      AND status = 'claimed'
-      AND lease_expires_at <= @updatedAt
-  `);
   const claimNextStatement = database.prepare(`
     WITH candidate AS (
       SELECT id
       FROM collection_jobs
       WHERE owner_user_id = @ownerUserId
-        AND status = 'pending'
+        AND (
+          status = 'pending'
+          OR (status = 'retry_wait' AND next_attempt_at <= @updatedAt)
+          OR (@resumeWaitingAuth = 1 AND status = 'waiting_auth')
+        )
+        AND attempt_count < @maxAttempts
+        AND (@jobId IS NULL OR id = @jobId)
         AND (target_context_key IS NULL OR target_context_key = @pricingContextKey)
-      ORDER BY created_at, id
+      ORDER BY
+        CASE WHEN status = 'waiting_auth' THEN 0 ELSE 1 END,
+        created_at,
+        id
       LIMIT 1
     )
     UPDATE collection_jobs
@@ -109,7 +110,10 @@ export function createCollectionJobRepository(database) {
       claimed_context_key = @pricingContextKey,
       lease_token_hash = @leaseTokenHash,
       lease_expires_at = @leaseExpiresAt,
+      next_attempt_at = NULL,
       attempt_count = attempt_count + 1,
+      error_code = NULL,
+      error_message = NULL,
       updated_at = @updatedAt
     WHERE id = (SELECT id FROM candidate)
     RETURNING *
@@ -121,6 +125,18 @@ export function createCollectionJobRepository(database) {
       AND status = 'claimed'
       AND lease_token_hash = @leaseTokenHash
       AND lease_expires_at > @updatedAt
+  `);
+  const rebindStatement = database.prepare(`
+    UPDATE collection_jobs
+    SET
+      target_context_key = @pricingContextKey,
+      updated_at = @updatedAt
+    WHERE id = @jobId
+      AND owner_user_id = @ownerUserId
+      AND status IN ('pending', 'retry_wait', 'waiting_auth')
+      AND claimed_context_key IS NULL
+      AND lease_token_hash IS NULL
+    RETURNING *
   `);
   const completeStatement = database.prepare(`
     UPDATE collection_jobs
@@ -146,6 +162,7 @@ export function createCollectionJobRepository(database) {
       claimed_context_key = NULL,
       lease_token_hash = NULL,
       lease_expires_at = NULL,
+      next_attempt_at = NULL,
       error_code = @errorCode,
       error_message = @errorMessage,
       completed_at = @updatedAt,
@@ -157,12 +174,100 @@ export function createCollectionJobRepository(database) {
       AND lease_expires_at > @updatedAt
     RETURNING *
   `);
+  const failExpiredStatement = database.prepare(`
+    UPDATE collection_jobs
+    SET
+      status = 'failed',
+      claimed_context_key = NULL,
+      lease_token_hash = NULL,
+      lease_expires_at = NULL,
+      next_attempt_at = NULL,
+      error_code = @errorCode,
+      error_message = @errorMessage,
+      completed_at = @updatedAt,
+      updated_at = @updatedAt
+    WHERE id = @jobId
+      AND status = 'claimed'
+      AND lease_expires_at <= @updatedAt
+    RETURNING *
+  `);
+  const retryStatement = database.prepare(`
+    UPDATE collection_jobs
+    SET
+      status = 'retry_wait',
+      claimed_context_key = NULL,
+      lease_token_hash = NULL,
+      lease_expires_at = NULL,
+      next_attempt_at = @nextAttemptAt,
+      error_code = @errorCode,
+      error_message = @errorMessage,
+      updated_at = @updatedAt
+    WHERE id = @jobId
+      AND owner_user_id = @ownerUserId
+      AND status = 'claimed'
+      AND lease_token_hash = @leaseTokenHash
+      AND lease_expires_at > @updatedAt
+    RETURNING *
+  `);
+  const retryExpiredStatement = database.prepare(`
+    UPDATE collection_jobs
+    SET
+      status = 'retry_wait',
+      claimed_context_key = NULL,
+      lease_token_hash = NULL,
+      lease_expires_at = NULL,
+      next_attempt_at = @nextAttemptAt,
+      error_code = @errorCode,
+      error_message = @errorMessage,
+      updated_at = @updatedAt
+    WHERE id = @jobId
+      AND status = 'claimed'
+      AND lease_expires_at <= @updatedAt
+    RETURNING *
+  `);
+  const waitForAuthenticationStatement = database.prepare(`
+    UPDATE collection_jobs
+    SET
+      status = 'waiting_auth',
+      claimed_context_key = NULL,
+      lease_token_hash = NULL,
+      lease_expires_at = NULL,
+      next_attempt_at = NULL,
+      error_code = 'AUTHENTICATION_REQUIRED',
+      error_message = @errorMessage,
+      attempt_count = MAX(attempt_count - 1, 0),
+      updated_at = @updatedAt
+    WHERE id = @jobId
+      AND owner_user_id = @ownerUserId
+      AND status = 'claimed'
+      AND lease_token_hash = @leaseTokenHash
+      AND lease_expires_at > @updatedAt
+    RETURNING *
+  `);
+  const findExpiredByOwnerStatement = database.prepare(`
+    SELECT * FROM collection_jobs
+    WHERE owner_user_id = @ownerUserId
+      AND status = 'claimed'
+      AND lease_expires_at <= @updatedAt
+    ORDER BY lease_expires_at, id
+  `);
+  const findAllExpiredStatement = database.prepare(`
+    SELECT * FROM collection_jobs
+    WHERE status = 'claimed'
+      AND lease_expires_at <= @updatedAt
+    ORDER BY lease_expires_at, id
+  `);
 
   return Object.freeze({
     claimNext(input) {
       try {
-        releaseExpiredStatement.run(input);
-        return mapCollectionJob(claimNextStatement.get(input));
+        return mapCollectionJob(
+          claimNextStatement.get({
+            ...input,
+            jobId: input.jobId ?? null,
+            resumeWaitingAuth: input.resumeWaitingAuth ? 1 : 0,
+          }),
+        );
       } catch (error) {
         throwDatabaseError('Unable to claim a collection job', error);
       }
@@ -192,6 +297,14 @@ export function createCollectionJobRepository(database) {
       }
     },
 
+    failExpired(input) {
+      try {
+        return mapCollectionJob(failExpiredStatement.get(input));
+      } catch (error) {
+        throwDatabaseError('Unable to fail an expired collection job', error);
+      }
+    },
+
     findActiveByIdentity({ itemId, ownerUserId, shopId }) {
       assertIdentifier(ownerUserId, 'ownerUserId');
       return mapCollectionJob(findActiveByIdentityStatement.get({ itemId, ownerUserId, shopId }));
@@ -201,6 +314,17 @@ export function createCollectionJobRepository(database) {
       assertIdentifier(jobId, 'jobId');
       assertIdentifier(ownerUserId, 'ownerUserId');
       return mapCollectionJob(findByIdStatement.get({ jobId, ownerUserId }));
+    },
+
+    findExpired({ ownerUserId, updatedAt }) {
+      try {
+        const rows = ownerUserId
+          ? findExpiredByOwnerStatement.all({ ownerUserId, updatedAt })
+          : findAllExpiredStatement.all({ updatedAt });
+        return rows.map((row) => mapCollectionJob(row));
+      } catch (error) {
+        throwDatabaseError('Unable to find expired collection jobs', error);
+      }
     },
 
     findLatestTargetContextKey({ itemId, ownerUserId, shopId }) {
@@ -213,6 +337,38 @@ export function createCollectionJobRepository(database) {
 
     findValidClaim(input) {
       return mapCollectionJob(findClaimStatement.get(input));
+    },
+
+    rebind(input) {
+      try {
+        return mapCollectionJob(rebindStatement.get(input));
+      } catch (error) {
+        throwDatabaseError('Unable to move the collection job to another Chrome profile', error);
+      }
+    },
+
+    retry(input) {
+      try {
+        return mapCollectionJob(retryStatement.get(input));
+      } catch (error) {
+        throwDatabaseError('Unable to retry a collection job', error);
+      }
+    },
+
+    retryExpired(input) {
+      try {
+        return mapCollectionJob(retryExpiredStatement.get(input));
+      } catch (error) {
+        throwDatabaseError('Unable to retry an expired collection job', error);
+      }
+    },
+
+    waitForAuthentication(input) {
+      try {
+        return mapCollectionJob(waitForAuthenticationStatement.get(input));
+      } catch (error) {
+        throwDatabaseError('Unable to wait for Shopee authentication', error);
+      }
     },
   });
 }

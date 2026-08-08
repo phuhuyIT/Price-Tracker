@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-import { COLLECTION_JOB_STATUSES, COLLECTION_JOB_TYPES } from '../constants/contractValues.js';
+import {
+  COLLECTION_JOB_SOURCES,
+  COLLECTION_JOB_STATUSES,
+  COLLECTION_JOB_TYPES,
+} from '../constants/contractValues.js';
 import { ERROR_CODES } from '../errors/errorCodes.js';
 import {
   isoTimestampSchema,
@@ -14,10 +18,19 @@ import { canonicalShopeeProductUrlSchema } from './shopeeUrlSchema.js';
 export const COLLECTION_JOB_FAILURE_CODES = Object.freeze([
   ERROR_CODES.AUTHENTICATION_REQUIRED,
   ERROR_CODES.COLLECTION_TIMEOUT,
+  ERROR_CODES.FETCH_FAILED,
+  ERROR_CODES.INVALID_PRODUCT_URL,
   ERROR_CODES.INVALID_SHOPEE_PAYLOAD,
+  ERROR_CODES.NETWORK_TIMEOUT,
+  ERROR_CODES.PRICE_SELECTOR_TIMEOUT,
+  ERROR_CODES.PRODUCT_NOT_FOUND,
   ERROR_CODES.PRODUCT_UNAVAILABLE,
   ERROR_CODES.RATE_LIMITED,
   ERROR_CODES.EXTENSION_UNAVAILABLE,
+  ERROR_CODES.SCHEMA_PARSE_ERROR,
+  ERROR_CODES.SHOPEE_SERVER_ERROR,
+  ERROR_CODES.SHOP_SUSPENDED,
+  ERROR_CODES.TAB_CLOSED_PREMATURELY,
 ]);
 
 export const collectionLeaseTokenSchema = z
@@ -35,7 +48,17 @@ export const collectionJobIdParamsSchema = z
   .strict();
 
 export const collectionJobClaimRequestSchema = z
-  .object({ pricingContextKey: pricingContextKeySchema })
+  .object({
+    jobId: positiveSafeIntegerSchema.optional(),
+    pricingContextKey: pricingContextKeySchema,
+    resumeWaitingAuth: z.boolean().optional().default(false),
+  })
+  .strict();
+
+export const collectionJobRebindRequestSchema = z
+  .object({
+    pricingContextKey: pricingContextKeySchema,
+  })
   .strict();
 
 export const collectionJobCompleteRequestSchema = z
@@ -63,8 +86,11 @@ export const collectionJobSchema = z
     errorMessage: z.string().max(500).nullable(),
     id: positiveSafeIntegerSchema,
     itemId: shopeeIdSchema,
+    jobSource: z.enum(Object.values(COLLECTION_JOB_SOURCES)),
     jobType: z.enum(Object.values(COLLECTION_JOB_TYPES)),
     leaseExpiresAt: isoTimestampSchema.nullable(),
+    nextAttemptAt: isoTimestampSchema.nullable(),
+    attemptCount: z.number().int().nonnegative().safe(),
     productId: positiveSafeIntegerSchema.nullable(),
     shopId: shopeeIdSchema,
     status: z.enum(Object.values(COLLECTION_JOB_STATUSES)),

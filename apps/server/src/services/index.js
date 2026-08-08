@@ -2,6 +2,10 @@ export { createAuthenticationService } from './authenticationService.js';
 export { createApplicationServices } from './applicationServices.js';
 export { createCollectionJobService } from './collectionJobService.js';
 export {
+  calculateCollectionRetryDelayMs,
+  classifyCollectionFailure,
+} from './collectionRetryPolicy.js';
+export {
   calculatePriceDropPercentage,
   COMPARISON_REASONS,
   createPriceComparisonService,

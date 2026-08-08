@@ -230,7 +230,32 @@ describe('product REST API', () => {
     expect(sameProfile.payload.data.job.id).toBe(refreshed.payload.data.job.id);
   });
 
-  it('rejects invalid leases and records authentication-required job failures', async () => {
+  it('claims the exact manually requested job before older queued work', async () => {
+    const { baseUrl } = await startApi();
+    const first = await requestJson(baseUrl, '/api/products/track', {
+      body: { url: 'https://shopee.vn/first-i.1259293184.26882883164' },
+      method: 'POST',
+    });
+    const second = await requestJson(baseUrl, '/api/products/track', {
+      body: { url: 'https://shopee.vn/second-i.1259293185.26882883165' },
+      method: 'POST',
+    });
+    const pricingContextKey = 'extension:targeted-profile';
+    const targeted = await requestJson(baseUrl, '/api/collection-jobs/claim', {
+      body: { jobId: second.payload.data.job.id, pricingContextKey },
+      method: 'POST',
+    });
+
+    expect(targeted.payload.data.job.id).toBe(second.payload.data.job.id);
+
+    const next = await requestJson(baseUrl, '/api/collection-jobs/claim', {
+      body: { pricingContextKey },
+      method: 'POST',
+    });
+    expect(next.payload.data.job.id).toBe(first.payload.data.job.id);
+  });
+
+  it('rejects invalid leases and waits for explicit authentication recovery', async () => {
     const { baseUrl } = await startApi();
     const tracked = await requestJson(baseUrl, '/api/products/track', {
       body: { url: loadValidSnapshot().canonicalUrl },
@@ -269,19 +294,47 @@ describe('product REST API', () => {
     );
     expect(failed.payload.data.job).toMatchObject({
       errorCode: 'AUTHENTICATION_REQUIRED',
-      status: 'failed',
+      status: 'waiting_auth',
     });
 
     const job = await requestJson(baseUrl, `/api/collection-jobs/${tracked.payload.data.job.id}`);
-    expect(job.payload.data.job.status).toBe('failed');
+    expect(job.payload.data.job.status).toBe('waiting_auth');
 
     const retried = await requestJson(baseUrl, '/api/products/track', {
       body: { url: loadValidSnapshot().canonicalUrl },
       method: 'POST',
     });
     expect(retried.payload.data.job).toMatchObject({
-      status: 'pending',
+      status: 'waiting_auth',
       targetContextKey: loadValidSnapshot().pricingContextKey,
+    });
+
+    const replacementContextKey = 'extension:replacement-profile';
+    const rebound = await requestJson(
+      baseUrl,
+      `/api/collection-jobs/${tracked.payload.data.job.id}/rebind`,
+      {
+        body: { pricingContextKey: replacementContextKey },
+        method: 'POST',
+      },
+    );
+    expect(rebound.payload.data.job).toMatchObject({
+      attemptCount: 0,
+      status: 'waiting_auth',
+      targetContextKey: replacementContextKey,
+    });
+
+    const resumed = await requestJson(baseUrl, '/api/collection-jobs/claim', {
+      body: {
+        pricingContextKey: replacementContextKey,
+        resumeWaitingAuth: true,
+      },
+      method: 'POST',
+    });
+    expect(resumed.payload.data.job).toMatchObject({
+      attemptCount: 1,
+      id: tracked.payload.data.job.id,
+      status: 'claimed',
     });
   });
 
