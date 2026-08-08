@@ -44,6 +44,28 @@ function selectLowestPrice(prices) {
   )[0];
 }
 
+function currentProductAvailability(variants) {
+  if (variants.length === 0) {
+    return 'unknown';
+  }
+
+  const values = variants.map((variant) => variant.availability);
+
+  if (values.some((availability) => availability === 'available')) {
+    return 'available';
+  }
+
+  if (values.every((availability) => availability === 'sold_out')) {
+    return 'sold_out';
+  }
+
+  if (values.every((availability) => ['sold_out', 'unavailable'].includes(availability))) {
+    return 'unavailable';
+  }
+
+  return 'unknown';
+}
+
 function productNotFound() {
   return new AppError({
     code: ERROR_CODES.PRODUCT_NOT_FOUND,
@@ -82,6 +104,7 @@ function publicProduct(product) {
     shopId: product.shopId,
     status: product.status,
     title: product.title,
+    trackingStatus: product.status,
     updatedAt: product.updatedAt,
   };
 }
@@ -121,12 +144,15 @@ function decorateProduct(product, repositories, ownerUserId) {
     const latestResult = latestResultByStream.get(streamKey(price)) ?? null;
     const isCurrent =
       latestResult?.checkId === price.checkId && latestResult.priceStatus === 'observed';
+    const isPurchasable =
+      isCurrent && !['sold_out', 'unavailable'].includes(latestResult.availability);
 
     return {
       availability: price.availability,
       currency: price.currency,
-      displayStatus: isCurrent ? 'current' : 'last_known',
+      displayStatus: isPurchasable ? 'current' : isCurrent ? 'unavailable' : 'last_known',
       isCurrent,
+      isPurchasable,
       latestResult: publicLatestResult(latestResult),
       priceAmount: price.priceAmount,
       priceDefinition: price.priceDefinition,
@@ -161,7 +187,7 @@ function decorateProduct(product, repositories, ownerUserId) {
   function lowestForContext(pricingContext) {
     const prices = activeVariants
       .map((variant) => latestPriceForContext(variant.latestPrices, pricingContext))
-      .filter(Boolean);
+      .filter((price) => price?.isPurchasable === true);
     const price = selectLowestPrice(prices);
 
     return price ? { ...price, pricingContext } : null;
@@ -175,6 +201,7 @@ function decorateProduct(product, repositories, ownerUserId) {
   return {
     ...publicProduct(product),
     activeVariantCount: activeVariants.length,
+    availability: currentProductAvailability(activeVariants),
     currentLowestPrice,
     lastError:
       product.lastErrorCode === null

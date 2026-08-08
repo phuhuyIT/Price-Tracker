@@ -211,6 +211,22 @@ describe('tracking and price-comparison services', () => {
           ownerUserId: owner.id,
         }),
       ).toHaveLength(1);
+      expect(result.product).toMatchObject({
+        availability,
+        currentLowestPrice: null,
+        status: 'active',
+        trackingStatus: 'active',
+        variants: [
+          expect.objectContaining({
+            availability,
+            lifecycleStatus: 'active',
+            preferredPrice: expect.objectContaining({
+              displayStatus: 'unavailable',
+              isPurchasable: false,
+            }),
+          }),
+        ],
+      });
     },
   );
 
