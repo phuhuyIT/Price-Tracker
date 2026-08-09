@@ -1,10 +1,4 @@
-import {
-  contextLabel,
-  formatDateTime,
-  formatVnd,
-  priceSourceLabel,
-  voucherLabel,
-} from './dashboardFormatters.js';
+import { formatDateTime, formatVnd } from './dashboardFormatters.js';
 
 const COLORS = Object.freeze([
   '#ee4d2d',
@@ -17,29 +11,25 @@ const COLORS = Object.freeze([
   '#69713a',
 ]);
 
-function contextSuffix(dataset) {
-  const key = dataset.pricingContextKey;
-  const shortKey = typeof key === 'string' && key.length > 8 ? ` · …${key.slice(-6)}` : '';
-  return `${contextLabel(dataset.pricingContext)}${shortKey}`;
-}
-
 function variantName(dataset) {
   return String(dataset.label ?? 'Variant').replace(/\s+\([^)]*\)$/u, '');
 }
 
 function chartDataset(dataset, index) {
   const color = COLORS[index % COLORS.length];
+  const name = variantName(dataset);
 
   return {
     backgroundColor: color,
     borderColor: color,
     borderWidth: 2,
     data: dataset.data,
-    label: `${variantName(dataset)} · ${contextSuffix(dataset)}`,
+    label: name,
     pointHoverRadius: 5,
     pointRadius: 3,
     spanGaps: false,
     tension: 0.18,
+    tooltipVariantName: name,
   };
 }
 
@@ -82,24 +72,30 @@ export function createHistoryChartController({ canvas, ChartConstructor = window
             position: 'bottom',
           },
           tooltip: {
+            backgroundColor: 'rgb(31 30 27 / 96%)',
+            bodyColor: '#ffcfbf',
+            bodyFont: {
+              size: 14,
+              weight: '700',
+            },
+            bodySpacing: 8,
+            borderColor: 'rgb(255 255 255 / 14%)',
+            borderWidth: 1,
             callbacks: {
-              afterLabel(context) {
-                const point = context.raw;
-                return [
-                  `Source: ${priceSourceLabel(point.priceSource)}`,
-                  `Voucher: ${voucherLabel(point.voucherStatus)}`,
-                  `Availability: ${point.availability ?? 'unknown'}`,
-                ];
-              },
               label(context) {
-                return context.raw.y === null
-                  ? `${context.dataset.label}: not observed`
-                  : `${context.dataset.label}: ${formatVnd(context.raw.y)}`;
+                return [context.dataset.tooltipVariantName ?? 'Variant', formatVnd(context.raw.y)];
               },
-              title(items) {
-                return items[0]?.raw?.x ? formatDateTime(items[0].raw.x) : '';
+              title() {
+                return '';
               },
             },
+            caretPadding: 8,
+            cornerRadius: 10,
+            displayColors: false,
+            filter(context) {
+              return context.raw?.y !== null;
+            },
+            padding: 12,
           },
         },
         responsive: true,
