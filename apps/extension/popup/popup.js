@@ -1,4 +1,5 @@
 import { RUNTIME_MESSAGES } from '../lib/runtimeMessages.js';
+import { createProductQuickWatch } from './productQuickWatch.js';
 
 const elements = {
   backendStatus: document.querySelector('#backend-status'),
@@ -38,6 +39,11 @@ async function callServiceWorker(message) {
 
   return response.data;
 }
+
+const productQuickWatch = createProductQuickWatch({
+  callServiceWorker,
+  formatPrice: (priceAmount) => vndFormatter.format(priceAmount),
+});
 
 function submissionMessage(status, automaticCapture) {
   if (automaticCapture) {
@@ -275,11 +281,23 @@ elements.optionsButton.addEventListener('click', () => {
   void chrome.runtime.openOptionsPage();
 });
 
-void loadPopupState()
-  .then(async () => {
-    await callServiceWorker({ type: RUNTIME_MESSAGES.CHECK_BACKEND });
+async function initialisePopup() {
+  try {
     await loadPopupState();
-  })
-  .catch((error) => {
+  } catch (error) {
     elements.submissionStatus.textContent = error.message;
-  });
+  }
+
+  await Promise.allSettled([
+    callServiceWorker({ type: RUNTIME_MESSAGES.CHECK_BACKEND }),
+    productQuickWatch.load(),
+  ]);
+
+  try {
+    await loadPopupState();
+  } catch (error) {
+    elements.submissionStatus.textContent = error.message;
+  }
+}
+
+void initialisePopup();

@@ -17,6 +17,7 @@ import {
   normaliseExtensionSettings,
 } from './lib/extensionSettings.js';
 import { createFullProductCollectionCoordinator } from './lib/fullProductCollection.js';
+import { createProductPinsService } from './lib/productPins.js';
 import { RUNTIME_MESSAGES } from './lib/runtimeMessages.js';
 import { createServiceWorkerQueue, RETRY_ALARM_NAME } from './lib/serviceWorkerQueue.js';
 import {
@@ -50,6 +51,7 @@ const fullProductCollection = createFullProductCollectionCoordinator({
   backgroundCollection,
   store,
 });
+const productPins = createProductPinsService({ backendClient, store });
 
 function success(data) {
   return { data, success: true };
@@ -426,9 +428,15 @@ async function handleMessage(message, sender) {
     case RUNTIME_MESSAGES.GET_POPUP_STATE:
       requireExtensionPage(sender);
       return getPopupState(message);
+    case RUNTIME_MESSAGES.GET_PRODUCT_SHORTLIST:
+      requireExtensionPage(sender);
+      return productPins.loadShortlist();
     case RUNTIME_MESSAGES.TRACK_CAPTURE:
       requireExtensionPage(sender);
       return trackCapture(message);
+    case RUNTIME_MESSAGES.TOGGLE_PRODUCT_PIN:
+      requireExtensionPage(sender);
+      return productPins.toggleProductPin(message.productId);
     case RUNTIME_MESSAGES.START_FULL_COLLECTION:
       requireExtensionPage(sender);
       return startFullCollection(message);
@@ -441,6 +449,9 @@ async function handleMessage(message, sender) {
     case RUNTIME_MESSAGES.SAVE_SETTINGS:
       requireExtensionPage(sender);
       return saveSettings(message.settings ?? {});
+    case RUNTIME_MESSAGES.SEARCH_PRODUCTS:
+      requireExtensionPage(sender);
+      return productPins.searchProducts(message.query);
     case RUNTIME_MESSAGES.REGENERATE_CONTEXT:
       requireExtensionPage(sender);
       return regenerateContext();

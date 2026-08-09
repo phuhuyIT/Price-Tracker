@@ -146,6 +146,76 @@ export function createBackendClient(fetchImplementation = fetch) {
       }
     },
 
+    /** Read one owner-scoped tracked product for the popup shortlist. */
+    async getProduct(settings, auth, productId) {
+      try {
+        const { body, response } = await fetchJson(
+          `${settings.backendBaseUrl}/api/products/${productId}`,
+          {
+            headers: requestHeaders(auth),
+          },
+        );
+
+        if (response.ok && body?.success === true && body.data) {
+          return { kind: 'success', product: body.data };
+        }
+
+        const errorCode = body?.error?.code ?? null;
+        return {
+          error: body?.error?.message ?? `Backend returned HTTP ${response.status}`,
+          errorCode,
+          kind: classifySubmissionFailure({ errorCode, status: response.status }),
+          status: response.status,
+        };
+      } catch (error) {
+        return {
+          error:
+            error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
+          errorCode: null,
+          kind: classifySubmissionFailure({ networkError: true }),
+          status: null,
+        };
+      }
+    },
+
+    /** Search or list owner-scoped products using the dashboard's validated query contract. */
+    async listProducts(settings, auth, { limit = 5, search = null } = {}) {
+      const query = new URLSearchParams({ limit: String(limit), page: '1' });
+
+      if (typeof search === 'string' && search.trim()) {
+        query.set('search', search.trim());
+      }
+
+      try {
+        const { body, response } = await fetchJson(
+          `${settings.backendBaseUrl}/api/products?${query.toString()}`,
+          {
+            headers: requestHeaders(auth),
+          },
+        );
+
+        if (response.ok && body?.success === true && Array.isArray(body.data)) {
+          return { kind: 'success', meta: body.meta ?? {}, products: body.data };
+        }
+
+        const errorCode = body?.error?.code ?? null;
+        return {
+          error: body?.error?.message ?? `Backend returned HTTP ${response.status}`,
+          errorCode,
+          kind: classifySubmissionFailure({ errorCode, status: response.status }),
+          status: response.status,
+        };
+      } catch (error) {
+        return {
+          error:
+            error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
+          errorCode: null,
+          kind: classifySubmissionFailure({ networkError: true }),
+          status: null,
+        };
+      }
+    },
+
     /** Queue first-time collection for one canonical Shopee product URL. */
     async trackProduct(settings, auth, url) {
       try {

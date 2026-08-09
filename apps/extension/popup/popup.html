@@ -16,6 +16,48 @@
         <span id="page-badge" class="badge badge-neutral">Checking</span>
       </header>
 
+      <section class="card quick-watch-card" aria-labelledby="quick-watch-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Your watchlist</p>
+            <h2 id="quick-watch-title">Quick watch</h2>
+          </div>
+          <span id="pin-count" class="pin-count">0/5 pinned</span>
+        </div>
+
+        <form id="product-search-form" class="product-search" role="search">
+          <label class="sr-only" for="product-search">Search tracked products to pin</label>
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input
+            id="product-search"
+            type="search"
+            autocomplete="off"
+            maxlength="200"
+            placeholder="Search tracked products to pin"
+            aria-controls="product-search-results"
+            aria-expanded="false"
+          />
+          <button
+            id="product-search-clear"
+            class="search-clear"
+            type="button"
+            aria-label="Clear product search"
+            hidden
+          >
+            ×
+          </button>
+          <div id="product-search-results" class="search-results" hidden>
+            <p id="product-search-status" class="search-status" role="status"></p>
+            <ul id="product-search-list" class="product-list search-product-list"></ul>
+          </div>
+        </form>
+
+        <p id="quick-watch-status" class="quick-watch-status" role="status">
+          Loading tracked products…
+        </p>
+        <ul id="quick-watch-list" class="product-list" aria-label="Pinned and recent products"></ul>
+      </section>
+
       <section class="card capture-card" aria-live="polite">
         <p id="capture-placeholder" class="muted">
           Open a supported Shopee product page and wait for its price to load.

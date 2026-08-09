@@ -1,4 +1,5 @@
 import { normaliseExtensionSettings } from './extensionSettings.js';
+import { normalisePinnedProductScopes, PINNED_PRODUCT_STORAGE_KEY } from './productPins.js';
 import { SUBMISSION_STATES } from './runtimeMessages.js';
 
 export const STORAGE_KEYS = Object.freeze({
@@ -9,6 +10,7 @@ export const STORAGE_KEYS = Object.freeze({
   LAST_SUBMISSION: 'lastSubmissionStatus',
   LATEST_CAPTURES: 'latestCaptures',
   MANUAL_COLLECTION_QUEUE: 'manualCollectionQueue',
+  PINNED_PRODUCTS: PINNED_PRODUCT_STORAGE_KEY,
   QUEUE: 'snapshotQueue',
   SETTINGS: 'extensionSettings',
 });
@@ -112,6 +114,9 @@ export function createServiceWorkerStore(chromeApi) {
       )
         ? stored[STORAGE_KEYS.MANUAL_COLLECTION_QUEUE]
         : [],
+      [STORAGE_KEYS.PINNED_PRODUCTS]: normalisePinnedProductScopes(
+        stored[STORAGE_KEYS.PINNED_PRODUCTS],
+      ),
       [STORAGE_KEYS.QUEUE]: Array.isArray(stored[STORAGE_KEYS.QUEUE])
         ? stored[STORAGE_KEYS.QUEUE]
         : [],
@@ -142,6 +147,7 @@ export function createServiceWorkerStore(chromeApi) {
         manualCollectionQueue: Array.isArray(stored[STORAGE_KEYS.MANUAL_COLLECTION_QUEUE])
           ? stored[STORAGE_KEYS.MANUAL_COLLECTION_QUEUE]
           : [],
+        pinnedProductsByScope: normalisePinnedProductScopes(stored[STORAGE_KEYS.PINNED_PRODUCTS]),
         queue: Array.isArray(stored[STORAGE_KEYS.QUEUE]) ? stored[STORAGE_KEYS.QUEUE] : [],
         settings: normaliseExtensionSettings(stored[STORAGE_KEYS.SETTINGS]),
       };
