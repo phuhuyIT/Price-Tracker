@@ -55,6 +55,10 @@ const environmentSchema = z
 
     TELEGRAM_BOT_TOKEN: optionalString,
     TELEGRAM_CHAT_ID: optionalString,
+    TELEGRAM_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(500).max(30_000).default(3_000),
+    TELEGRAM_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(5).default(2),
+    TELEGRAM_RETRY_BASE_DELAY_MS: z.coerce.number().int().min(0).max(30_000).default(500),
+    TELEGRAM_RETRY_MAX_DELAY_MS: z.coerce.number().int().min(0).max(60_000).default(2_000),
 
     EXTENSION_ALLOWED_ORIGIN: optionalUrl,
     API_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().min(1_000).max(86_400_000).default(60_000),
@@ -102,6 +106,14 @@ const environmentSchema = z
         message:
           'COLLECTION_DISPATCH_DELAY_MIN_MS must not exceed COLLECTION_DISPATCH_DELAY_MAX_MS',
         path: ['COLLECTION_DISPATCH_DELAY_MIN_MS'],
+      });
+    }
+
+    if (value.TELEGRAM_RETRY_BASE_DELAY_MS > value.TELEGRAM_RETRY_MAX_DELAY_MS) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'TELEGRAM_RETRY_BASE_DELAY_MS must not exceed TELEGRAM_RETRY_MAX_DELAY_MS',
+        path: ['TELEGRAM_RETRY_BASE_DELAY_MS'],
       });
     }
   });
@@ -190,6 +202,10 @@ export function loadConfig(environment = process.env) {
       botToken: value.TELEGRAM_BOT_TOKEN,
       chatId: value.TELEGRAM_CHAT_ID,
       enabled: Boolean(value.TELEGRAM_BOT_TOKEN && value.TELEGRAM_CHAT_ID),
+      maxAttempts: value.TELEGRAM_MAX_ATTEMPTS,
+      requestTimeoutMs: value.TELEGRAM_REQUEST_TIMEOUT_MS,
+      retryBaseDelayMs: value.TELEGRAM_RETRY_BASE_DELAY_MS,
+      retryMaxDelayMs: value.TELEGRAM_RETRY_MAX_DELAY_MS,
     }),
   });
 }

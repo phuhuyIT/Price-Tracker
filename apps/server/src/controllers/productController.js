@@ -65,11 +65,12 @@ export function createProductController(services) {
     },
 
     /** Persist one sanitised extension snapshot. */
-    saveSnapshot(request, response) {
+    async saveSnapshot(request, response) {
       const result = services.tracking.saveSnapshot({
         ownerUserId: request.auth.user.id,
         snapshot: request.body,
       });
+      await services.notifications.deliverTrackingResult(result);
       response.status(result.created ? 201 : 200).json(
         createSuccessResponse({
           created: result.created,

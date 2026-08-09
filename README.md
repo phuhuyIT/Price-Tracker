@@ -20,6 +20,8 @@
 > [docs/phase-8-chrome-session-collector.md](docs/phase-8-chrome-session-collector.md).
 > Scheduled dispatch, retries, and terminal failure semantics are documented in
 > [docs/phase-9-scheduled-checks.md](docs/phase-9-scheduled-checks.md).
+> Telegram price-drop delivery and duplicate prevention are documented in
+> [docs/phase-10-telegram-notifications.md](docs/phase-10-telegram-notifications.md).
 > The responsive dashboard and its context-safe history chart are documented in
 > [docs/phase-11-web-dashboard.md](docs/phase-11-web-dashboard.md).
 > Existing collector behavior is intentionally preserved as legacy discovery
@@ -321,6 +323,31 @@ shutdown behavior, and live verification checklist. The older `SCRAPE_*`
 settings remain for retained Playwright tooling and do not control the Phase 9
 production scheduler.
 
+## Phase 10 Telegram notifications
+
+Telegram notifications are optional. Tracking continues normally when either
+`TELEGRAM_BOT_TOKEN` or `TELEGRAM_CHAT_ID` is absent. With both configured, a
+qualifying context-safe price drop sends one HTML-safe alert after the price
+history transaction commits. The alert includes the product, variant, old and
+new VND prices, one-decimal reduction, price definition, pricing context, and
+Shopee URL.
+
+Temporary Telegram failures use a short bounded retry; permanent failures are
+not retried indefinitely. A successful notification event is written only
+after Telegram confirms delivery. The exact variant, price transition,
+definition, type, context, and context key prevent repeat alerts. Telegram
+failure never deletes or rolls back the stored price check.
+
+Verify the configured bot token and destination without sending a message:
+
+```powershell
+npm.cmd run telegram:test
+```
+
+Run the focused automated coverage with `npm.cmd run test:phase10`. See
+`docs/phase-10-telegram-notifications.md` for configuration, retry policy,
+security details, and the live delivery checklist.
+
 ## Phase 11 web dashboard
 
 Phase 11 is available at `http://127.0.0.1:3000` after starting the backend:
@@ -339,8 +366,8 @@ never stored or displayed as zero prices.
 
 Tracking and refresh queue extension jobs asynchronously. If background checks
 are disabled, click **Check now** in the extension after a dashboard action.
-Phase 10 Telegram notifications are intentionally not implemented by this
-phase.
+Phase 10 Telegram notifications run independently after a qualifying stored
+price transition and do not change dashboard behavior.
 
 Run the focused dashboard verification, including its local headless-Chrome
 interaction check:

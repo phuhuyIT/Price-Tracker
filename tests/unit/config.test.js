@@ -26,6 +26,15 @@ describe('environment configuration', () => {
       maxMissingRatio: 0.5,
       missingThreshold: 3,
     });
+    expect(result.telegram).toEqual({
+      botToken: undefined,
+      chatId: undefined,
+      enabled: false,
+      maxAttempts: 2,
+      requestTimeoutMs: 3_000,
+      retryBaseDelayMs: 500,
+      retryMaxDelayMs: 2_000,
+    });
   });
 
   it.each(['127.0.0.1', '127.12.1.8', '::1', '[::1]', 'localhost'])(
@@ -84,5 +93,18 @@ describe('environment configuration', () => {
         COLLECTION_DISPATCH_DELAY_MIN_MS: '10',
       }),
     ).toThrow(/COLLECTION_DISPATCH_DELAY_MIN_MS must not exceed/u);
+  });
+
+  it('enables Telegram only with both credentials and validates bounded retries', () => {
+    expect(loadConfig({ TELEGRAM_BOT_TOKEN: 'bot-token' }).telegram.enabled).toBe(false);
+    expect(
+      loadConfig({ TELEGRAM_BOT_TOKEN: 'bot-token', TELEGRAM_CHAT_ID: '-100123' }).telegram,
+    ).toMatchObject({ enabled: true, maxAttempts: 2, requestTimeoutMs: 3_000 });
+    expect(() =>
+      loadConfig({
+        TELEGRAM_RETRY_BASE_DELAY_MS: '2000',
+        TELEGRAM_RETRY_MAX_DELAY_MS: '1000',
+      }),
+    ).toThrow(/TELEGRAM_RETRY_BASE_DELAY_MS must not exceed/u);
   });
 });

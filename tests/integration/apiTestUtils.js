@@ -35,6 +35,9 @@ export async function createApiHarness({
   authEnabled = false,
   extensionAllowedOrigin = 'chrome-extension://abcdefghijklmnop',
   rateLimitMax = 1_000,
+  telegramBotToken,
+  telegramChatId,
+  telegramClient,
 } = {}) {
   const databaseHarness = createTestDatabase();
   const applicationConfig = loadConfig({
@@ -46,6 +49,8 @@ export async function createApiHarness({
     EXTENSION_ALLOWED_ORIGIN: extensionAllowedOrigin,
     HOST: '127.0.0.1',
     NODE_ENV: 'test',
+    TELEGRAM_BOT_TOKEN: telegramBotToken,
+    TELEGRAM_CHAT_ID: telegramChatId,
   });
   const app = createApp({
     applicationConfig,
@@ -53,6 +58,7 @@ export async function createApiHarness({
     clock: createClock(),
     database: databaseHarness.database,
     passwordHasher: createTestPasswordHasher(),
+    telegramClient,
   });
   const server = app.listen(0, '127.0.0.1');
   await new Promise((resolve) => server.once('listening', resolve));

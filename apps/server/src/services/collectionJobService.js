@@ -93,6 +93,7 @@ export function createCollectionJobService({
   clock = () => new Date(),
   leaseMs,
   maxAttempts = 4,
+  notificationService = null,
   random = Math.random,
   repositories,
   retryBaseDelayMs = 5_000,
@@ -183,9 +184,9 @@ export function createCollectionJobService({
       return job ? { job: publicJob(job), leaseToken } : null;
     },
 
-    complete({ jobId, leaseToken, ownerUserId, snapshot }) {
+    async complete({ jobId, leaseToken, ownerUserId, snapshot }) {
       const updatedAt = now();
-      return repositories.transaction((transactionRepositories) => {
+      const result = repositories.transaction((transactionRepositories) => {
         const job = transactionRepositories.collectionJobs.findValidClaim({
           jobId,
           leaseTokenHash: leaseHash(leaseToken),
@@ -239,8 +240,14 @@ export function createCollectionJobService({
           throw invalidLease();
         }
 
-        return { job: publicJob(completed), product: tracked.product };
+        return { job: publicJob(completed), product: tracked.product, trackingResult: tracked };
       });
+
+      if (notificationService) {
+        await notificationService.deliverTrackingResult(result.trackingResult);
+      }
+
+      return { job: result.job, product: result.product };
     },
 
     create(input) {

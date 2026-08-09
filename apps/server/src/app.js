@@ -40,6 +40,7 @@ function healthResponse() {
  * @param {import('better-sqlite3').Database} [input.database]
  * @param {object} [input.passwordHasher]
  * @param {object} [input.services]
+ * @param {object} [input.telegramClient]
  * @returns {import('express').Express}
  */
 export function createApp({
@@ -49,6 +50,7 @@ export function createApp({
   database,
   passwordHasher,
   services,
+  telegramClient,
 } = {}) {
   if (!services && !database) {
     throw new TypeError('createApp requires a migrated database or composed services');
@@ -58,9 +60,11 @@ export function createApp({
     services ??
     createApplicationServices({
       applicationConfig,
+      applicationLogger,
       clock,
       database,
       passwordHasher,
+      telegramClient,
     });
   const app = express();
 

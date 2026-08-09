@@ -1220,6 +1220,8 @@ A scheduled run can check multiple active products, record failures correctly an
 
 # Phase 10 — Implement Telegram Notifications
 
+Status: **implementation complete — live Telegram verification pending 2026-08-09**
+
 ## Objective
 
 Send one reliable alert for each qualifying price-drop transition.
@@ -1272,6 +1274,30 @@ Test:
 * Temporary Telegram failure.
 * Permanent Telegram failure.
 * Unsafe characters in product title.
+
+## Implementation status — 2026-08-09
+
+Completed:
+
+* [x] Added optional paired bot-token/chat configuration, bounded request
+  timeout, two-attempt default retry, capped exponential delay, and safe
+  disabled mode.
+* [x] Added an HTML-safe message formatter with product, variant, old/new VND
+  prices, one-decimal reduction, price definition, pricing context, and URL.
+* [x] Added an HTTPS Telegram Bot API client with defensive JSON handling,
+  `retry_after` support, temporary/permanent classification, and typed
+  `TELEGRAM_ERROR` failures without secret logging.
+* [x] Added post-commit notification delivery for direct snapshots and leased
+  extension refreshes. Delivery failure cannot roll back saved price history.
+* [x] Serialised in-process sends, rechecked exact transition history before
+  delivery, and persisted an event only after Telegram confirms success.
+* [x] Added `npm.cmd run telegram:test` using `getMe` and `getChat` without
+  sending a message.
+* [x] Added focused unit and integration coverage for the required Phase 10
+  cases.
+* [ ] Complete the live bot/chat checklist in
+  `docs/phase-10-telegram-notifications.md` before marking the exit condition
+  fully verified.
 
 ## Deliverables
 

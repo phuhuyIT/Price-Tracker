@@ -13,8 +13,8 @@ export function createCollectionJobController(services) {
       response.json(createSuccessResponse(result));
     },
 
-    complete(request, response) {
-      const result = services.collectionJobs.complete({
+    async complete(request, response) {
+      const result = await services.collectionJobs.complete({
         jobId: request.validated.params.jobId,
         leaseToken: request.validated.body.leaseToken,
         ownerUserId: request.auth.user.id,
