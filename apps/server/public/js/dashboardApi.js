@@ -94,6 +94,10 @@ export function createDashboardApi({ fetchImplementation = window.fetch.bind(win
       return request(`/api/products/${productId}/history?${query.toString()}`);
     },
 
+    listCollectionJobs() {
+      return request('/api/collection-jobs');
+    },
+
     listProducts({ availability, limit = 20, page = 1, search, status } = {}) {
       const query = new URLSearchParams({ limit, page });
 

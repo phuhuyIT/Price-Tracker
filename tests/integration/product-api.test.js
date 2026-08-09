@@ -221,6 +221,17 @@ describe('product REST API', () => {
       body: { url: `${snapshot.canonicalUrl}?from=dashboard#track` },
       method: 'POST',
     });
+    const pendingQueue = await requestJson(baseUrl, '/api/collection-jobs');
+    expect(pendingQueue.payload.data).toEqual({
+      jobs: [expect.objectContaining({ id: tracked.payload.data.job.id, productTitle: null })],
+      summary: {
+        claimed: 0,
+        pending: 1,
+        remaining: 1,
+        retryWait: 0,
+        waitingAuth: 0,
+      },
+    });
     const claim = await requestJson(baseUrl, '/api/collection-jobs/claim', {
       body: { pricingContextKey: snapshot.pricingContextKey },
       method: 'POST',
@@ -251,6 +262,9 @@ describe('product REST API', () => {
       job: { status: 'completed' },
       product: { preferredPricingContext: 'user_session' },
     });
+    const completedQueue = await requestJson(baseUrl, '/api/collection-jobs');
+    expect(completedQueue.payload.data.summary.remaining).toBe(0);
+    expect(completedQueue.payload.data.jobs).toEqual([]);
 
     const refreshed = await requestJson(
       baseUrl,
@@ -259,6 +273,15 @@ describe('product REST API', () => {
     );
     expect(refreshed.response.status).toBe(202);
     expect(refreshed.payload.data.job.targetContextKey).toBe(snapshot.pricingContextKey);
+    const refreshQueue = await requestJson(baseUrl, '/api/collection-jobs');
+    expect(refreshQueue.payload.data.jobs).toEqual([
+      expect.objectContaining({
+        id: refreshed.payload.data.job.id,
+        productId: completed.payload.data.product.id,
+        productTitle: snapshot.title,
+        status: 'pending',
+      }),
+    ]);
 
     const wrongProfile = await requestJson(baseUrl, '/api/collection-jobs/claim', {
       body: { pricingContextKey: 'extension:other-profile' },

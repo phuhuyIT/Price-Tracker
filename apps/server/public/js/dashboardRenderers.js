@@ -26,6 +26,69 @@ function badge(label, tone = 'info') {
   return `<span class="badge badge-${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
 }
 
+const COLLECTION_JOB_STATUS = Object.freeze({
+  claimed: { label: 'Collecting', tone: 'info' },
+  pending: { label: 'Queued', tone: 'warning' },
+  retry_wait: { label: 'Retry scheduled', tone: 'warning' },
+  waiting_auth: { label: 'Shopee sign-in needed', tone: 'danger' },
+});
+
+function collectionJobDetail(job) {
+  if (job.status === 'claimed') {
+    return `Collection in progress. Lease expires ${formatDateTime(job.leaseExpiresAt)}.`;
+  }
+
+  if (job.status === 'retry_wait') {
+    return `The previous attempt failed. Retry available ${formatDateTime(job.nextAttemptAt)}.`;
+  }
+
+  if (job.status === 'waiting_auth') {
+    return 'Sign in to Shopee in the assigned Chrome profile, then check the extension queue again.';
+  }
+
+  return job.targetContextKey
+    ? 'Waiting for the assigned Chrome profile to check this product.'
+    : 'Waiting for a connected extension to claim this price check.';
+}
+
+function renderCollectionJob(job) {
+  const status = COLLECTION_JOB_STATUS[job.status] ?? {
+    label: 'Queued',
+    tone: 'warning',
+  };
+  const title =
+    job.productTitle ??
+    (job.jobType === 'track' ? `Shopee item ${job.itemId}` : `Product ${job.productId}`);
+  const actionLabel = job.jobType === 'track' ? 'New product' : 'Price refresh';
+  const sourceLabel = job.jobSource === 'scheduler' ? 'Scheduled' : 'Manual';
+
+  return `
+    <li class="queue-item" data-collection-job-id="${escapeHtml(job.id)}">
+      <div class="queue-item-main">
+        <div class="queue-item-heading">
+          <a href="${escapeHtml(job.canonicalUrl)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(title)}">${escapeHtml(title)}</a>
+          ${badge(status.label, status.tone)}
+        </div>
+        <p>${escapeHtml(collectionJobDetail(job))}</p>
+        <div class="badge-row">
+          ${badge(`${sourceLabel} ${actionLabel.toLowerCase()}`)}
+          ${badge(job.targetContextKey ? 'Chrome profile assigned' : 'Any connected profile')}
+        </div>
+      </div>
+      <dl class="queue-item-meta">
+        <div><dt>Queue ID</dt><dd>#${escapeHtml(job.id)}</dd></div>
+        <div><dt>Attempts</dt><dd>${escapeHtml(job.attemptCount)}</dd></div>
+        <div><dt>Queued</dt><dd>${escapeHtml(formatDateTime(job.createdAt))}</dd></div>
+      </dl>
+    </li>
+  `;
+}
+
+/** Render every owner-scoped price check that has not reached a terminal state. */
+export function renderCollectionJobs(jobs) {
+  return jobs.map((job) => renderCollectionJob(job)).join('');
+}
+
 function priceBadges(price) {
   if (!price) {
     return badge('Awaiting observation', 'warning');

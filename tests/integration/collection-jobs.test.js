@@ -11,7 +11,7 @@ afterEach(() => {
   harness = null;
 });
 
-function createPendingJob(repositories, ownerUserId) {
+function createPendingJob(repositories, ownerUserId, overrides = {}) {
   return repositories.collectionJobs.create({
     canonicalUrl: 'https://shopee.vn/product-i.1259293184.26882883164',
     createdAt: '2026-08-02T00:00:00.000Z',
@@ -22,6 +22,7 @@ function createPendingJob(repositories, ownerUserId) {
     productId: null,
     shopId: '1259293184',
     targetContextKey: null,
+    ...overrides,
   });
 }
 
@@ -165,5 +166,38 @@ describe('collection-job persistence', () => {
         updatedAt: '2026-08-02T00:03:01.000Z',
       }),
     ).toMatchObject({ status: 'claimed', targetContextKey: 'extension:profile-b' });
+  });
+
+  it('lists only active collection jobs owned by the requested user', () => {
+    harness = createTestDatabase();
+    const owner = createTestOwner(harness.repositories, 'queue-owner@example.com');
+    const otherOwner = createTestOwner(harness.repositories, 'other-queue-owner@example.com');
+    const active = createPendingJob(harness.repositories, owner.id);
+    const terminal = createPendingJob(harness.repositories, owner.id, {
+      canonicalUrl: 'https://shopee.vn/terminal-i.1259293184.26882883165',
+      itemId: '26882883165',
+    });
+    createPendingJob(harness.repositories, otherOwner.id);
+    harness.repositories.collectionJobs.claimNext({
+      jobId: terminal.id,
+      leaseExpiresAt: '2026-08-02T00:02:00.000Z',
+      leaseTokenHash: '4'.repeat(64),
+      maxAttempts: 4,
+      ownerUserId: owner.id,
+      pricingContextKey: 'extension:profile-a',
+      updatedAt: '2026-08-02T00:00:00.000Z',
+    });
+    harness.repositories.collectionJobs.fail({
+      errorCode: 'PRODUCT_NOT_FOUND',
+      errorMessage: 'The product was not found',
+      jobId: terminal.id,
+      leaseTokenHash: '4'.repeat(64),
+      ownerUserId: owner.id,
+      updatedAt: '2026-08-02T00:01:00.000Z',
+    });
+
+    expect(harness.repositories.collectionJobs.listActive({ ownerUserId: owner.id })).toEqual([
+      expect.objectContaining({ id: active.id, productTitle: null, status: 'pending' }),
+    ]);
   });
 });

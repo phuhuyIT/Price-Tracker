@@ -365,9 +365,12 @@ variant lifecycle warnings. Missing observations create chart gaps and are
 never stored or displayed as zero prices.
 
 Tracking and refresh queue extension jobs asynchronously. If background checks
-are disabled, click **Check now** in the extension after a dashboard action.
-Phase 10 Telegram notifications run independently after a qualifying stored
-price transition and do not change dashboard behavior.
+are disabled, click **Check now** in the extension after a dashboard action. The
+dashboard's **Price check queue** lists every active owner-scoped job, including
+queued, collecting, retry-scheduled, and Shopee-sign-in-waiting states. It shows
+whether the job is bound to a Chrome profile and refreshes automatically every
+10 seconds. Phase 10 Telegram notifications run independently after a
+qualifying stored price transition and do not change dashboard behavior.
 
 Run the focused dashboard verification, including its local headless-Chrome
 interaction check:

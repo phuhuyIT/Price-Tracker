@@ -32,6 +32,9 @@ describe('Phase 11 dashboard', () => {
     expect(html).toContain('id="watchlist-filters"');
     expect(html).toContain('id="watchlist-search"');
     expect(html).toContain('id="watchlist-availability"');
+    expect(html).toContain('id="queue-count"');
+    expect(html).toContain('id="queue-list"');
+    expect(html).toContain('id="queue-reload-button"');
     expect(html).toContain('src="/vendor/chart.umd.min.js"');
     expect(html).not.toMatch(/<script[^>]+src="https:\/\//u);
 

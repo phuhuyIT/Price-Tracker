@@ -40,6 +40,13 @@ export function createCollectionJobController(services) {
       response.json(createSuccessResponse({ job }));
     },
 
+    list(request, response) {
+      const result = services.collectionJobs.listActive({
+        ownerUserId: request.auth.user.id,
+      });
+      response.json(createSuccessResponse(result));
+    },
+
     rebind(request, response) {
       const job = services.collectionJobs.rebind({
         jobId: request.validated.params.jobId,

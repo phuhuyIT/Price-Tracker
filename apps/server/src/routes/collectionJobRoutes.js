@@ -26,6 +26,7 @@ export function createCollectionJobRoutes({ applicationConfig, services }) {
   const validateJobId = validateRequest({ params: collectionJobIdParamsSchema });
 
   router.use(resolveOwner);
+  router.get('/', controller.list);
   router.post(
     '/claim',
     mutationRateLimit,

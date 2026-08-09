@@ -76,6 +76,7 @@ async function verifyLocalDashboard(browser) {
       method: 'POST',
     });
     assert.equal(snapshotResponse.status, 201);
+    const snapshotPayload = await snapshotResponse.json();
 
     const soldOutSnapshot = structuredClone(snapshot);
     soldOutSnapshot.shopId = '567729839';
@@ -94,6 +95,16 @@ async function verifyLocalDashboard(browser) {
       method: 'POST',
     });
     assert.equal(soldOutResponse.status, 201);
+    const queueResponse = await globalThis.fetch(
+      `${harness.baseUrl}/api/products/${snapshotPayload.data.product.id}/refresh`,
+      {
+        body: '{}',
+        headers: { 'content-type': 'application/json' },
+        method: 'POST',
+      },
+    );
+    assert.equal(queueResponse.status, 202);
+    const queued = await queueResponse.json();
 
     const page = await browser.newPage({ viewport: { height: 900, width: 1280 } });
     const pageErrors = [];
@@ -106,6 +117,36 @@ async function verifyLocalDashboard(browser) {
     await page.waitForFunction(
       () => globalThis.document.querySelectorAll('.product-card').length === 2,
     );
+    await page.waitForFunction(
+      () => globalThis.document.querySelectorAll('.queue-item').length === 1,
+    );
+    assert.match(await page.locator('.queue-item').textContent(), new RegExp(snapshot.title, 'u'));
+    assert.match(await page.locator('.queue-item').textContent(), /Queued/u);
+
+    const claimResponse = await globalThis.fetch(`${harness.baseUrl}/api/collection-jobs/claim`, {
+      body: JSON.stringify({ pricingContextKey: snapshot.pricingContextKey }),
+      headers: { 'content-type': 'application/json' },
+      method: 'POST',
+    });
+    assert.equal(claimResponse.status, 200);
+    const claim = await claimResponse.json();
+    assert.equal(claim.data.job.id, queued.data.job.id);
+    await page.locator('#queue-reload-button').click();
+    await page.getByText('Collecting', { exact: true }).waitFor({ state: 'visible' });
+
+    const completeResponse = await globalThis.fetch(
+      `${harness.baseUrl}/api/collection-jobs/${claim.data.job.id}/complete`,
+      {
+        body: JSON.stringify({ leaseToken: claim.data.leaseToken, snapshot }),
+        headers: { 'content-type': 'application/json' },
+        method: 'POST',
+      },
+    );
+    assert.equal(completeResponse.status, 200);
+    await page.locator('#queue-reload-button').click();
+    await page.locator('#queue-empty').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#queue-count').textContent(), '0');
+
     const card = cards.filter({ hasText: snapshot.title });
     assert.match(await card.textContent(), /Current lowest price/u);
     assert.match(await card.textContent(), /Price not observed/u);

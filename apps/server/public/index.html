@@ -181,6 +181,59 @@
           </div>
         </aside>
 
+        <section class="queue-panel" aria-labelledby="queue-heading">
+          <header class="queue-panel-header">
+            <div>
+              <p class="eyebrow">Collection activity</p>
+              <h2 id="queue-heading">Price check queue</h2>
+              <p>See every check that still needs your Chrome extension.</p>
+            </div>
+            <div class="queue-panel-actions">
+              <span class="queue-count" aria-live="polite">
+                <strong id="queue-count">&mdash;</strong>
+                <span>remaining</span>
+              </span>
+              <button
+                class="button button-secondary button-small"
+                id="queue-reload-button"
+                type="button"
+              >
+                Refresh queue
+              </button>
+            </div>
+          </header>
+
+          <p class="queue-update-status" id="queue-update-status" aria-live="polite">
+            Loading the remaining checks&hellip;
+          </p>
+          <div class="queue-error" id="queue-error" role="alert" hidden>
+            <span></span>
+            <button
+              class="button button-secondary button-small"
+              id="queue-retry-button"
+              type="button"
+            >
+              Try again
+            </button>
+          </div>
+          <div
+            class="queue-loading"
+            id="queue-loading"
+            aria-label="Loading price check queue"
+            hidden
+          >
+            <span></span>
+            <span></span>
+          </div>
+          <div class="queue-empty" id="queue-empty" hidden>
+            <strong>No price checks remaining</strong>
+            <p>
+              New manual and scheduled checks will appear here until the extension finishes them.
+            </p>
+          </div>
+          <ol class="queue-list" id="queue-list"></ol>
+        </section>
+
         <div class="section-heading">
           <div>
             <p class="eyebrow">Watchlist</p>

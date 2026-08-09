@@ -134,6 +134,9 @@ describe('API authentication and HTTP security', () => {
     const unauthenticated = await requestJson(baseUrl, '/api/products');
     expect(unauthenticated.response.status).toBe(401);
     expect(unauthenticated.payload.error.code).toBe('AUTHENTICATION_REQUIRED');
+    const unauthenticatedQueue = await requestJson(baseUrl, '/api/collection-jobs');
+    expect(unauthenticatedQueue.response.status).toBe(401);
+    expect(unauthenticatedQueue.payload.error.code).toBe('AUTHENTICATION_REQUIRED');
 
     const first = await register(baseUrl, {
       clientType: 'extension',
@@ -164,5 +167,28 @@ describe('API authentication and HTTP security', () => {
     expect(firstSaved.payload.data.product.id).not.toBe(secondSaved.payload.data.product.id);
     expect(hidden.response.status).toBe(404);
     expect(hidden.payload.error.code).toBe('PRODUCT_NOT_FOUND');
+
+    await requestJson(baseUrl, `/api/products/${firstSaved.payload.data.product.id}/refresh`, {
+      body: {},
+      headers: { authorization: `Bearer ${firstToken}` },
+      method: 'POST',
+    });
+    await requestJson(baseUrl, `/api/products/${secondSaved.payload.data.product.id}/refresh`, {
+      body: {},
+      headers: { authorization: `Bearer ${secondToken}` },
+      method: 'POST',
+    });
+    const firstQueue = await requestJson(baseUrl, '/api/collection-jobs', {
+      headers: { authorization: `Bearer ${firstToken}` },
+    });
+    const secondQueue = await requestJson(baseUrl, '/api/collection-jobs', {
+      headers: { authorization: `Bearer ${secondToken}` },
+    });
+    expect(firstQueue.payload.data.jobs.map((job) => job.productId)).toEqual([
+      firstSaved.payload.data.product.id,
+    ]);
+    expect(secondQueue.payload.data.jobs.map((job) => job.productId)).toEqual([
+      secondSaved.payload.data.product.id,
+    ]);
   });
 });

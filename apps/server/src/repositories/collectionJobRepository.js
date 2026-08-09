@@ -22,6 +22,7 @@ function mapCollectionJob(row) {
     ownerUserId: row.owner_user_id,
     platform: row.platform,
     productId: row.product_id,
+    productTitle: row.product_title ?? null,
     shopId: row.shop_id,
     status: row.status,
     targetContextKey: row.target_context_key,
@@ -257,6 +258,18 @@ export function createCollectionJobRepository(database) {
       AND lease_expires_at <= @updatedAt
     ORDER BY lease_expires_at, id
   `);
+  const listActiveStatement = database.prepare(`
+    SELECT
+      collection_jobs.*,
+      products.title AS product_title
+    FROM collection_jobs
+    LEFT JOIN products
+      ON products.id = collection_jobs.product_id
+      AND products.owner_user_id = collection_jobs.owner_user_id
+    WHERE collection_jobs.owner_user_id = @ownerUserId
+      AND collection_jobs.status IN ('pending', 'claimed', 'retry_wait', 'waiting_auth')
+    ORDER BY collection_jobs.created_at, collection_jobs.id
+  `);
 
   return Object.freeze({
     claimNext(input) {
@@ -337,6 +350,16 @@ export function createCollectionJobRepository(database) {
 
     findValidClaim(input) {
       return mapCollectionJob(findClaimStatement.get(input));
+    },
+
+    listActive({ ownerUserId }) {
+      assertIdentifier(ownerUserId, 'ownerUserId');
+
+      try {
+        return listActiveStatement.all({ ownerUserId }).map((row) => mapCollectionJob(row));
+      } catch (error) {
+        throwDatabaseError('Unable to list active collection jobs', error);
+      }
     },
 
     rebind(input) {

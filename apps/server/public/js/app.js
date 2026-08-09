@@ -1,6 +1,7 @@
 import { createDashboardApi, DashboardApiError } from './dashboardApi.js';
-import { localDateTimeToIso } from './dashboardFormatters.js';
+import { formatDateTime, localDateTimeToIso } from './dashboardFormatters.js';
 import {
+  renderCollectionJobs,
   renderPagination,
   renderProductCards,
   renderVariantOptions,
@@ -8,6 +9,7 @@ import {
 import { createHistoryChartController } from './historyChart.js';
 
 const PAGE_SIZE = 20;
+const QUEUE_POLL_INTERVAL_MS = 10_000;
 const AUTH_ERROR_CODES = new Set(['AUTHENTICATION_REQUIRED', 'SESSION_EXPIRED', 'SESSION_REVOKED']);
 
 const elements = Object.freeze({
@@ -38,6 +40,14 @@ const elements = Object.freeze({
   pageError: document.querySelector('#page-error'),
   pagination: document.querySelector('#pagination'),
   productGrid: document.querySelector('#product-grid'),
+  queueCount: document.querySelector('#queue-count'),
+  queueEmpty: document.querySelector('#queue-empty'),
+  queueError: document.querySelector('#queue-error'),
+  queueList: document.querySelector('#queue-list'),
+  queueLoading: document.querySelector('#queue-loading'),
+  queueReloadButton: document.querySelector('#queue-reload-button'),
+  queueRetryButton: document.querySelector('#queue-retry-button'),
+  queueUpdateStatus: document.querySelector('#queue-update-status'),
   registerForm: document.querySelector('#register-form'),
   registerTab: document.querySelector('#register-tab'),
   reloadButton: document.querySelector('#reload-button'),
@@ -54,6 +64,7 @@ const historyChart = createHistoryChartController({ canvas: elements.historyCanv
 const state = {
   authentication: { allowRegistration: false, enabled: false },
   busyProductIds: new Set(),
+  collectionJobs: [],
   filters: { availability: '', search: '', status: '' },
   historyProduct: null,
   page: 1,
@@ -64,6 +75,9 @@ const state = {
 };
 
 let productRequestSequence = 0;
+let collectionJobRequestSequence = 0;
+let collectionJobsLoading = false;
+let queuePollTimer = null;
 let searchDebounceTimer = null;
 
 function setConnection(status, label) {
@@ -92,7 +106,27 @@ function isAuthenticationError(error) {
   return error instanceof DashboardApiError && AUTH_ERROR_CODES.has(error.code);
 }
 
+function stopQueuePolling() {
+  if (queuePollTimer !== null) {
+    window.clearInterval(queuePollTimer);
+    queuePollTimer = null;
+  }
+}
+
+function startQueuePolling() {
+  stopQueuePolling();
+  queuePollTimer = window.setInterval(() => {
+    if (!document.hidden) {
+      void loadCollectionJobs({ showLoading: false });
+    }
+  }, QUEUE_POLL_INTERVAL_MS);
+}
+
 function showAuthView(message = null) {
+  stopQueuePolling();
+  collectionJobRequestSequence += 1;
+  collectionJobsLoading = false;
+  state.collectionJobs = [];
   state.user = null;
   setAuthPanel('login');
   elements.accountMenu.hidden = true;
@@ -112,6 +146,7 @@ function showDashboardView(user = null) {
   elements.dashboardView.hidden = false;
   elements.accountMenu.hidden = !user;
   elements.accountEmail.textContent = user?.email ?? '';
+  startQueuePolling();
 }
 
 function setFormBusy(form, busy) {
@@ -129,6 +164,60 @@ function showFormError(form, error) {
 function showPageError(error = null) {
   elements.pageError.hidden = !error;
   elements.pageError.querySelector('p').textContent = error ? errorMessage(error) : '';
+}
+
+function showQueueError(error = null) {
+  elements.queueError.hidden = !error;
+  elements.queueError.querySelector('span').textContent = error ? errorMessage(error) : '';
+}
+
+function renderCollectionQueue() {
+  elements.queueCount.textContent = String(state.collectionJobs.length);
+  elements.queueList.innerHTML = renderCollectionJobs(state.collectionJobs);
+  elements.queueList.hidden = state.collectionJobs.length === 0;
+  elements.queueEmpty.hidden = state.collectionJobs.length > 0;
+}
+
+async function loadCollectionJobs({ showLoading = state.collectionJobs.length === 0 } = {}) {
+  if (collectionJobsLoading) {
+    return;
+  }
+
+  const requestSequence = ++collectionJobRequestSequence;
+  collectionJobsLoading = true;
+  elements.queueReloadButton.disabled = true;
+  elements.queueLoading.hidden = !showLoading;
+  showQueueError();
+
+  try {
+    const response = await api.listCollectionJobs();
+
+    if (requestSequence !== collectionJobRequestSequence) {
+      return;
+    }
+
+    state.collectionJobs = Array.isArray(response.data?.jobs) ? response.data.jobs : [];
+    elements.queueUpdateStatus.textContent = `Updated ${formatDateTime(new Date().toISOString())}. Refreshes automatically every 10 seconds.`;
+    renderCollectionQueue();
+  } catch (error) {
+    if (requestSequence !== collectionJobRequestSequence) {
+      return;
+    }
+
+    if (isAuthenticationError(error)) {
+      showAuthView('Your dashboard session ended. Please sign in again.');
+      return;
+    }
+
+    elements.queueUpdateStatus.textContent = 'The last visible queue state may be out of date.';
+    showQueueError(error);
+  } finally {
+    if (requestSequence === collectionJobRequestSequence) {
+      collectionJobsLoading = false;
+      elements.queueLoading.hidden = true;
+      elements.queueReloadButton.disabled = false;
+    }
+  }
 }
 
 function bindImageFallbacks() {
@@ -282,7 +371,7 @@ async function submitAuthForm(form, operation) {
     form.reset();
     showDashboardView(response.data.user);
     setConnection('online', 'Backend connected');
-    await loadProducts({ page: 1 });
+    await Promise.all([loadProducts({ page: 1 }), loadCollectionJobs()]);
   } catch (error) {
     showFormError(form, error);
   } finally {
@@ -308,7 +397,10 @@ async function trackProduct(event) {
       showToast('This product is already in your watchlist.');
     }
 
-    await loadProducts({ page: 1, showLoading: false });
+    await Promise.all([
+      loadProducts({ page: 1, showLoading: false }),
+      loadCollectionJobs({ showLoading: false }),
+    ]);
   } catch (error) {
     if (isAuthenticationError(error)) {
       showAuthView('Your dashboard session ended. Please sign in again.');
@@ -354,7 +446,10 @@ async function refreshProduct(productId) {
         ? 'This check is waiting for Shopee sign-in. Sign in, then use Check now in the extension.'
         : 'Price refresh queued for your Chrome extension.';
     showToast(message);
-    await loadProducts({ showLoading: false });
+    await Promise.all([
+      loadProducts({ showLoading: false }),
+      loadCollectionJobs({ showLoading: false }),
+    ]);
   });
 }
 
@@ -392,7 +487,10 @@ async function deleteProduct(productId) {
     await api.deleteProduct(productId);
     showToast('Product and its price history were deleted.');
     const nextPage = state.products.length === 1 && state.page > 1 ? state.page - 1 : state.page;
-    await loadProducts({ page: nextPage, showLoading: false });
+    await Promise.all([
+      loadProducts({ page: nextPage, showLoading: false }),
+      loadCollectionJobs({ showLoading: false }),
+    ]);
   });
 }
 
@@ -529,8 +627,12 @@ function bindEvents() {
   });
   elements.logoutButton.addEventListener('click', () => void logout());
   elements.trackForm.addEventListener('submit', (event) => void trackProduct(event));
-  elements.reloadButton.addEventListener('click', () => void loadProducts());
+  elements.reloadButton.addEventListener('click', () => {
+    void Promise.all([loadProducts(), loadCollectionJobs({ showLoading: false })]);
+  });
   elements.retryLoadButton.addEventListener('click', () => void loadProducts());
+  elements.queueReloadButton.addEventListener('click', () => void loadCollectionJobs());
+  elements.queueRetryButton.addEventListener('click', () => void loadCollectionJobs());
   elements.emptyTrackButton.addEventListener('click', () =>
     elements.trackForm.elements.url.focus(),
   );
@@ -584,14 +686,14 @@ async function bootstrap() {
 
     if (!state.authentication.enabled) {
       showDashboardView();
-      await loadProducts();
+      await Promise.all([loadProducts(), loadCollectionJobs()]);
       return;
     }
 
     try {
       const current = await api.currentUser();
       showDashboardView(current.data.user);
-      await loadProducts();
+      await Promise.all([loadProducts(), loadCollectionJobs()]);
     } catch (error) {
       if (isAuthenticationError(error)) {
         showAuthView();

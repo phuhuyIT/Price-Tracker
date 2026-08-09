@@ -41,6 +41,35 @@ function publicJob(job) {
   };
 }
 
+function publicQueueJob(job) {
+  return {
+    ...publicJob(job),
+    productTitle: job.productTitle,
+  };
+}
+
+function activeJobSummary(jobs) {
+  const summary = {
+    claimed: 0,
+    pending: 0,
+    remaining: jobs.length,
+    retryWait: 0,
+    waitingAuth: 0,
+  };
+
+  for (const job of jobs) {
+    const key =
+      job.status === 'retry_wait'
+        ? 'retryWait'
+        : job.status === 'waiting_auth'
+          ? 'waitingAuth'
+          : job.status;
+    summary[key] += 1;
+  }
+
+  return summary;
+}
+
 function jobNotFound() {
   return new AppError({
     code: ERROR_CODES.COLLECTION_JOB_NOT_FOUND,
@@ -339,6 +368,15 @@ export function createCollectionJobService({
       }
 
       return publicJob(job);
+    },
+
+    listActive({ ownerUserId }) {
+      const jobs = repositories.collectionJobs.listActive({ ownerUserId });
+
+      return {
+        jobs: jobs.map((job) => publicQueueJob(job)),
+        summary: activeJobSummary(jobs),
+      };
     },
 
     rebind({ jobId, ownerUserId, pricingContextKey }) {

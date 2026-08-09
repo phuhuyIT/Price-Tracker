@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   escapeHtml,
+  renderCollectionJobs,
   renderPagination,
   renderProductCards,
 } from '../../../apps/server/public/js/dashboardRenderers.js';
@@ -59,5 +60,31 @@ describe('dashboard renderers', () => {
     expect(html).toContain('data-page="3"');
     expect(html).toContain('aria-current="page"');
     expect(html).toContain('data-page="7"');
+  });
+
+  it('renders safe, actionable collection queue states', () => {
+    const html = renderCollectionJobs([
+      {
+        attemptCount: 1,
+        canonicalUrl: 'https://shopee.vn/example-i.1.2',
+        createdAt: '2026-08-09T01:00:00.000Z',
+        id: 8,
+        itemId: '2',
+        jobSource: 'manual',
+        jobType: 'refresh',
+        leaseExpiresAt: null,
+        nextAttemptAt: '2026-08-09T01:05:00.000Z',
+        productId: 3,
+        productTitle: '<script>unsafe queue title</script>',
+        status: 'retry_wait',
+        targetContextKey: 'extension:assigned-profile',
+      },
+    ]);
+
+    expect(html).not.toContain('<script>');
+    expect(html).toContain('&lt;script&gt;unsafe queue title&lt;/script&gt;');
+    expect(html).toContain('Retry scheduled');
+    expect(html).toContain('Chrome profile assigned');
+    expect(html).toContain('data-collection-job-id="8"');
   });
 });
