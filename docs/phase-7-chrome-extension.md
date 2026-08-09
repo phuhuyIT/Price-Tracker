@@ -55,6 +55,21 @@ HTTPS and Chrome asks for that exact optional origin when settings are saved.
 The generated context key contains no Shopee account identifier and is read-only
 except for an explicit regenerate action.
 
+## Popup quick watch
+
+The popup shows up to five compact tracked-product rows. Products pinned by the
+user are ordered first; any unfilled positions use the backend's most recently
+updated tracked products. Each row shows the product name, current lowest price
+or explicit availability state, and whether it is pinned or recent.
+
+The popup search uses the existing owner-scoped `GET /api/products` search, so
+it searches the complete watchlist by product title, variant name, shop ID, or
+item ID rather than filtering only the five visible rows. Pinning is capped at
+five products. Pin IDs are kept in trusted `chrome.storage.local`, scoped by
+backend origin and price-tracker user, and are never sent to Shopee. A pin for a
+product that has since been deleted is removed the next time the shortlist is
+loaded.
+
 ## Persistent queue
 
 `chrome.storage.local` contains at most 50 exact snapshots. Content-script
@@ -180,6 +195,11 @@ Use a Shopee Vietnam product URL containing `-i.<shop-id>.<item-id>`.
       alarm). Confirm the queue empties after success.
 - [ ] Unsupported page: open a non-product or non-Shopee page and confirm Track
       is disabled.
+- [ ] Quick watch fallback: with fewer than five pins, confirm pinned products
+      appear first and recent tracked products fill the remaining positions.
+- [ ] Quick pin search: search by a product or variant name, pin a result, close
+      and reopen the popup, and confirm the pin persists. Confirm a sixth pin is
+      blocked until another product is unpinned.
 - [ ] Automatic capture: enable it temporarily, cause one semantic price
       change, and confirm it submits once. Restore it to off afterward.
 

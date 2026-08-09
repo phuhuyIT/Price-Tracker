@@ -190,7 +190,10 @@ $env:EXTENSION_ALLOWED_ORIGIN = "chrome-extension://<extension-id>"
 npm.cmd start
 ```
 
-The extension previews valid captures in its popup. Automatic passive
+The extension popup also keeps a five-product quick watch: locally pinned
+products appear first, recent tracked products fill empty positions, and the
+owner-scoped watchlist search allows fast pinning. The extension previews valid
+captures in the same popup. Automatic passive
 submission is off by default; click **Track & collect available prices** to
 queue the exact product, open an inactive collection tab, and attempt every
 selectable variant. The popup reports checked and priced coverage instead of
