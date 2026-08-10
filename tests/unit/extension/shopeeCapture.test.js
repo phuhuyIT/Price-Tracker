@@ -122,6 +122,34 @@ describe('Shopee extension capture normalisation', () => {
     ).toBeNull();
   });
 
+  it('rejects client-declared lifecycle coverage and derives it from product-detail evidence', async () => {
+    const sourceFixture = await fixture('shopee-multi-variant-user-session.json');
+    const detail = productDetailCapture(sourceFixture);
+    const clientDeclaredCoverage = {
+      ...detail,
+      coverageConfidence: 'verified',
+      lifecycleEligible: true,
+      variantCoverage: 'complete',
+    };
+
+    expect(extensionCaptureMessageSchema.safeParse(clientDeclaredCoverage).success).toBe(false);
+
+    const state = createShopeeCaptureState();
+    applyShopeeCapture(state, extensionCaptureMessageSchema.parse(detail));
+    const snapshot = normaliseShopeeCaptureState(state, {
+      pageUrl: sourceFixture.sourceUrl,
+      pricingContextKey: 'extension:test-installation',
+    });
+
+    expect(snapshot).toMatchObject({
+      coverageConfidence: 'verified',
+      expectedVariantCount: detail.product.models.length,
+      lifecycleEligible: true,
+      observedVariantCount: detail.product.models.length,
+      variantCoverage: 'complete',
+    });
+  });
+
   it('creates the required synthetic default variant for verified variantless products', async () => {
     const sourceFixture = await fixture('shopee-variantless-user-session.json');
     const state = createShopeeCaptureState();

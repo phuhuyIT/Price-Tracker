@@ -9,6 +9,12 @@ data/
 dist/
 *.log
 
+# Browser profiles contain cookies, login databases, and other private state.
+.chrome-profile/
+chrome-profile/
+user-data/
+User Data/
+
 # Local live-capture diagnostics retained outside repository history.
 tests/fixtures/*-debug*.json
 tests/fixtures/*-reset-user-session.json
