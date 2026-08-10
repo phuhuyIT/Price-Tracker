@@ -161,6 +161,7 @@ function startMockShopee() {
 async function main() {
   const targetUrl = `http://${MOCK_HOST}:${MOCK_PORT}/product-i.1.2`;
   const bridge = createBridge({ targetUrl, timeoutMs: 15_000 });
+  void bridge.result.catch(() => undefined);
   const mockShopee = startMockShopee();
   let context;
 
@@ -186,16 +187,20 @@ async function main() {
     const sourcePage = await context.newPage();
     await sourcePage.goto("data:text/html,<title>source-profile-tab</title>");
 
-    const sourceWindowId = await worker.evaluate(async () => {
+    const sourceTab = await worker.evaluate(async () => {
       const [tab] = await chrome.tabs.query({
         active: true,
         lastFocusedWindow: true,
       });
-      runJob(tab);
-      return tab.windowId;
+      return { id: tab.id, windowId: tab.windowId };
     });
+    const jobPromise = worker.evaluate(async (sourceTabId) => {
+      const tab = await chrome.tabs.get(sourceTabId);
+      await runJob(tab);
+    }, sourceTab.id);
 
     const productPage = await context.waitForEvent("page");
+    await productPage.waitForURL(targetUrl, { timeout: 10_000 });
     const productWindowId = await worker.evaluate(async (tabUrl) => {
       const tabs = await chrome.tabs.query({});
       const productTab = tabs.find(
@@ -204,9 +209,10 @@ async function main() {
       return productTab?.windowId;
     }, targetUrl);
 
-    assert.equal(productWindowId, sourceWindowId);
+    assert.equal(productWindowId, sourceTab.windowId);
 
     const item = await bridge.result;
+    await jobPromise;
     assert.equal(item.title, "Current profile integration test");
     assert.equal(item.variant_pricing.length, 2);
     assert.equal(item.variant_pricing[0].final_display_price, 7_500_000);
@@ -224,7 +230,7 @@ async function main() {
     assert.equal(firstVariantRequest.item_id, 2);
     assert.equal(firstVariantRequest.shop_id, 1);
     assert.equal(firstVariantRequest.quantity, 1);
-    await productPage.waitForEvent("close");
+    assert.equal(productPage.isClosed(), true);
 
     console.log("Current-profile extension integration passed");
   } finally {

@@ -10,16 +10,46 @@ const { fetchVariantPricing } = require("./variant-pricing");
 
 const RESPONSE_TIMEOUT_MS = 30_000;
 
-function waitForProductData(page) {
+function waitForProductData(page, timeoutMs = RESPONSE_TIMEOUT_MS) {
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
+    let settled = false;
+
+    const cleanup = () => {
+      clearTimeout(timeout);
       page.off("response", handleResponse);
-      reject(
+      page.off("close", handleClose);
+    };
+
+    const settle = (error, productData) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      cleanup();
+
+      if (error) {
+        reject(error);
+      } else {
+        resolve(productData);
+      }
+    };
+
+    const timeout = setTimeout(() => {
+      settle(
         new Error(
-          `Timed out after ${RESPONSE_TIMEOUT_MS / 1000} seconds waiting for Shopee product data.`,
+          `Timed out after ${timeoutMs / 1000} seconds waiting for Shopee product data.`,
         ),
       );
-    }, RESPONSE_TIMEOUT_MS);
+    }, timeoutMs);
+
+    function handleClose() {
+      settle(
+        new Error(
+          "The browser page closed before Shopee product data was captured.",
+        ),
+      );
+    }
 
     async function handleResponse(response) {
       if (!response.url().includes("/api/v4/pdp/get_pc")) {
@@ -34,9 +64,7 @@ function waitForProductData(page) {
           return;
         }
 
-        clearTimeout(timeout);
-        page.off("response", handleResponse);
-        resolve({
+        settle(null, {
           initialPriceBreakdown:
             payload?.data?.price_breakdown ??
             payload?.data?.product_price ??
@@ -50,6 +78,7 @@ function waitForProductData(page) {
     }
 
     page.on("response", handleResponse);
+    page.on("close", handleClose);
   });
 }
 
