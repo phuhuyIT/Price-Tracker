@@ -29,6 +29,7 @@
     "test:phase9": "vitest run tests/unit/jobs tests/unit/services/collectionRetryPolicy.test.js tests/unit/config.test.js tests/unit/extension tests/integration/database-migrations.test.js tests/integration/collection-jobs.test.js tests/integration/scheduled-collection.test.js tests/integration/product-api.test.js && npm run extension:build",
     "test:phase10": "vitest run tests/unit/config.test.js tests/unit/services/telegramClient.test.js tests/unit/services/telegramMessageFormatter.test.js tests/unit/services/notificationService.test.js tests/integration/telegram-notifications.test.js",
     "test:phase11": "vitest run tests/unit/dashboard tests/integration/dashboard.test.js tests/integration/product-api.test.js && npm run test:dashboard-browser",
+    "test:phase12": "npm test",
     "test:dashboard-browser": "node tests/integration/dashboard-browser.integration.mjs",
     "test:legacy": "npm run test:arguments && npm run test:phase1 && npm run test:selection && npm run test:variant && npm run test:playwright-variant && npm run test:current",
     "test:arguments": "node tests/current-profile-arguments.test.js",

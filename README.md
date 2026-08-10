@@ -24,6 +24,9 @@
 > [docs/phase-10-telegram-notifications.md](docs/phase-10-telegram-notifications.md).
 > The responsive dashboard and its context-safe history chart are documented in
 > [docs/phase-11-web-dashboard.md](docs/phase-11-web-dashboard.md).
+> Phase 12 automated hardening, security/resource evidence, and the remaining
+> live acceptance gate are documented in
+> [docs/phase-12-end-to-end-hardening.md](docs/phase-12-end-to-end-hardening.md).
 > Existing collector behavior is intentionally preserved as legacy discovery
 > tooling.
 > The persistent-profile Playwright mode described below is legacy discovery
@@ -381,6 +384,25 @@ npm.cmd run test:phase11
 
 See `docs/phase-11-web-dashboard.md` for the UI contracts, security boundary,
 warning policy, history semantics, and manual checklist.
+
+## Phase 12 end-to-end hardening
+
+Run the complete automated acceptance gate with:
+
+```powershell
+npm.cmd run test:phase12
+```
+
+This runs linting, formatting, all unit and integration tests, the deterministic
+extension build, the local dashboard Chromium workflow, and retained collector
+integrations. Phase 12 also verifies logger redaction, repository privacy,
+client-independent lifecycle coverage, listener cleanup, queue bounds, scheduler
+locking, transaction rollback, and snapshot idempotency.
+
+Automated hardening is complete. Real Shopee session behavior, extension queue
+recovery across a browser/backend restart, and Telegram delivery remain a manual
+gate. Follow `docs/phase-12-end-to-end-hardening.md` with a separate manual
+database; automated fixtures must not be reported as live verification.
 
 This project has two browser modes:
 

@@ -1442,8 +1442,8 @@ Test:
 4. Apply or remove a voucher.
 5. Restart the backend.
 6. Confirm data persists.
-7. Run a manual Playwright refresh.
-8. Run a scheduled refresh.
+7. Run a manual profile-bound extension refresh.
+8. Run a scheduled extension-dispatched refresh.
 9. Simulate a price drop.
 10. Confirm one Telegram notification.
 11. Repeat the same observation.
@@ -1739,8 +1739,8 @@ The MVP is complete when:
 * [ ] Pricing contexts are stored.
 * [ ] Incompatible pricing contexts are not compared.
 * [ ] Product history survives application restarts.
-* [ ] Manual Playwright refresh works.
-* [ ] Scheduled Playwright checks work.
+* [ ] Manual profile-bound extension refresh works.
+* [ ] Scheduled extension-dispatched checks work.
 * [ ] Failed checks never create zero-price logs.
 * [ ] A present variant with a failed price observation stays active and
   creates no price log.
