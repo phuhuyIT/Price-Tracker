@@ -245,8 +245,15 @@ browser restart, and enabled/disabled authentication cases, is in
 
 Background price checks are disabled by default. Enable **Allow background
 price checks** in extension options to let the extension poll the backend. The
-default interval is 30 minutes. **Check now** in the popup and options page can
-run one explicit check while periodic polling remains disabled.
+default interval is 30 minutes. **Collect next price check** in the popup and
+**Check now** on the options page can run one explicit check while periodic
+polling remains disabled.
+
+The popup labels the backend's persistent **Price checks** separately from the
+extension's local **Snapshot uploads**. While backend jobs remain, it refreshes
+their queued, collecting, retry, and authentication-wait counts. Manual mode
+collects one backend job per click; enabling background price checks lets the
+normal polling schedule claim later work.
 
 The popup's first tracking action also runs explicitly while periodic polling
 is disabled. Manual requests are persisted and target their returned job ID, so

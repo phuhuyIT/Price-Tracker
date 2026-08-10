@@ -18,9 +18,11 @@ Chrome.
 
 Background collection is disabled by default. The user must enable **Allow
 background price checks** in extension options. The default poll interval is 30
-minutes and can be changed from 1 to 1,440 minutes. The popup and options page
-also provide **Check now** for an explicit one-time check even while periodic
-polling remains disabled.
+minutes and can be changed from 1 to 1,440 minutes. The popup provides
+**Collect next price check**, and the options page provides **Check now**, for an
+explicit one-time check even while periodic polling remains disabled. The popup
+shows the backend **Price checks** queue independently from its local **Snapshot
+uploads** queue.
 
 The extension polls once on Chrome startup after opt-in. It will not claim a job
 unless an existing normal Chrome window is available, so collection never opens
