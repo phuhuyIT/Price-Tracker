@@ -51,4 +51,58 @@ describe('extension backend client product reads', () => {
       }),
     );
   });
+
+  it('reads a validated owner-scoped collection-job queue', async () => {
+    const fetchImplementation = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: {
+          jobs: [],
+          summary: { claimed: 0, pending: 0, remaining: 0, retryWait: 0, waitingAuth: 0 },
+        },
+        success: true,
+      }),
+    );
+    const client = createBackendClient(fetchImplementation);
+    const settings = { backendBaseUrl: 'https://tracker.example.com' };
+    const auth = { mode: 'enabled', token: 'extension-session' };
+
+    const result = await client.listCollectionJobs(settings, auth);
+
+    expect(result).toEqual({
+      jobs: [],
+      kind: 'success',
+      summary: { claimed: 0, pending: 0, remaining: 0, retryWait: 0, waitingAuth: 0 },
+    });
+    expect(fetchImplementation).toHaveBeenCalledWith(
+      'https://tracker.example.com/api/collection-jobs',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer extension-session' },
+        signal: expect.any(AbortSignal),
+      }),
+    );
+  });
+
+  it('rejects an inconsistent collection-job queue response', async () => {
+    const fetchImplementation = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: {
+          jobs: [],
+          summary: { claimed: 0, pending: 1, remaining: 1, retryWait: 0, waitingAuth: 0 },
+        },
+        success: true,
+      }),
+    );
+    const client = createBackendClient(fetchImplementation);
+
+    await expect(
+      client.listCollectionJobs(
+        { backendBaseUrl: 'https://tracker.example.com' },
+        { mode: 'disabled', token: null },
+      ),
+    ).resolves.toEqual({
+      error: 'Backend returned an invalid collection-job queue',
+      errorCode: null,
+      kind: 'permanent',
+    });
+  });
 });

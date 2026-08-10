@@ -98,3 +98,70 @@ export const collectionJobSchema = z
     updatedAt: isoTimestampSchema,
   })
   .strict();
+
+export const collectionJobQueueSummarySchema = z
+  .object({
+    claimed: z.number().int().nonnegative().safe(),
+    pending: z.number().int().nonnegative().safe(),
+    remaining: z.number().int().nonnegative().safe(),
+    retryWait: z.number().int().nonnegative().safe(),
+    waitingAuth: z.number().int().nonnegative().safe(),
+  })
+  .strict();
+
+export const collectionJobQueueSchema = z
+  .object({
+    jobs: z.array(
+      collectionJobSchema.extend({
+        productTitle: z.string().trim().min(1).max(500).nullable(),
+      }),
+    ),
+    summary: collectionJobQueueSummarySchema,
+  })
+  .strict()
+  .superRefine((queue, context) => {
+    const counted = {
+      claimed: 0,
+      pending: 0,
+      retryWait: 0,
+      waitingAuth: 0,
+    };
+
+    for (const job of queue.jobs) {
+      const key =
+        job.status === COLLECTION_JOB_STATUSES.RETRY_WAIT
+          ? 'retryWait'
+          : job.status === COLLECTION_JOB_STATUSES.WAITING_AUTH
+            ? 'waitingAuth'
+            : job.status;
+
+      if (!(key in counted)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Collection-job queue contains a terminal job',
+          path: ['jobs'],
+        });
+        continue;
+      }
+
+      counted[key] += 1;
+    }
+
+    for (const key of Object.keys(counted)) {
+      if (queue.summary[key] !== counted[key]) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Collection-job queue ${key} count does not match its jobs`,
+          path: ['summary', key],
+        });
+      }
+    }
+
+    if (queue.summary.remaining !== queue.jobs.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Collection-job queue remaining count does not match its jobs',
+        path: ['summary', 'remaining'],
+      });
+    }
+  });

@@ -1,10 +1,13 @@
 import { RUNTIME_MESSAGES } from '../lib/runtimeMessages.js';
+import { createCollectionJobQueueView } from './collectionJobQueueView.js';
 import { createProductQuickWatch } from './productQuickWatch.js';
 
 const elements = {
   backendStatus: document.querySelector('#backend-status'),
   captureDetails: document.querySelector('#capture-details'),
   capturePlaceholder: document.querySelector('#capture-placeholder'),
+  collectionJobStatus: document.querySelector('#collection-job-status'),
+  collectionJobSummary: document.querySelector('#collection-job-summary'),
   collectionStatus: document.querySelector('#collection-status'),
   dashboardButton: document.querySelector('#dashboard-button'),
   displayedPrice: document.querySelector('#displayed-price'),
@@ -13,10 +16,10 @@ const elements = {
   pageBadge: document.querySelector('#page-badge'),
   priceCoverage: document.querySelector('#price-coverage'),
   productTitle: document.querySelector('#product-title'),
-  queueStatus: document.querySelector('#queue-status'),
   selectedVariant: document.querySelector('#selected-variant'),
   submissionStatus: document.querySelector('#submission-status'),
   trackButton: document.querySelector('#track-button'),
+  uploadQueueStatus: document.querySelector('#upload-queue-status'),
   voucherStatus: document.querySelector('#voucher-status'),
 };
 
@@ -27,6 +30,8 @@ const vndFormatter = new Intl.NumberFormat('vi-VN', {
 });
 
 let activeTab = null;
+let collectionJobQueue = null;
+let collectionJobRefreshTimer = null;
 let popupState = null;
 let refreshTimer = null;
 
@@ -141,6 +146,30 @@ function collectionMessage(status) {
   }
 }
 
+function renderCollectionJobQueue(queue) {
+  collectionJobQueue = queue;
+
+  if (collectionJobRefreshTimer !== null) {
+    clearTimeout(collectionJobRefreshTimer);
+    collectionJobRefreshTimer = null;
+  }
+
+  const view = createCollectionJobQueueView(queue, {
+    backgroundCollectionEnabled: popupState?.backgroundCollectionEnabled,
+    localCollectionState: popupState?.collectionStatus?.state,
+  });
+  elements.collectionJobSummary.textContent = view.label;
+  elements.collectionJobStatus.textContent = view.message;
+  elements.pollCollectionJobs.disabled = view.buttonDisabled;
+  elements.pollCollectionJobs.textContent = view.buttonLabel;
+
+  if (view.shouldRefresh) {
+    collectionJobRefreshTimer = setTimeout(() => {
+      void loadCollectionJobQueue();
+    }, 2_000);
+  }
+}
+
 function render(state) {
   popupState = state;
 
@@ -165,11 +194,15 @@ function render(state) {
       : state.backend.status === 'unavailable'
         ? 'Offline'
         : 'Unknown';
-  elements.queueStatus.textContent =
+  elements.uploadQueueStatus.textContent =
     state.queue.total === 0
       ? 'Empty'
       : `${state.queue.total} (${state.queue.failed + state.queue.blocked} need attention)`;
   elements.dashboardButton.disabled = !state.dashboardUrl;
+
+  if (collectionJobQueue !== null) {
+    renderCollectionJobQueue(collectionJobQueue);
+  }
 
   if (state.capture) {
     const summary = state.capture.summary;
@@ -241,6 +274,15 @@ async function loadPopupState() {
   render(state);
 }
 
+async function loadCollectionJobQueue() {
+  try {
+    const queue = await callServiceWorker({ type: RUNTIME_MESSAGES.GET_COLLECTION_JOB_QUEUE });
+    renderCollectionJobQueue(queue);
+  } catch (error) {
+    renderCollectionJobQueue({ error: error.message, kind: 'temporary' });
+  }
+}
+
 elements.trackButton.addEventListener('click', async () => {
   elements.trackButton.disabled = true;
   elements.trackButton.textContent = 'Queueing full price collection…';
@@ -252,7 +294,7 @@ elements.trackButton.addEventListener('click', async () => {
       tabId: activeTab?.id ?? -1,
       type: RUNTIME_MESSAGES.START_FULL_COLLECTION,
     });
-    await loadPopupState();
+    await Promise.all([loadPopupState(), loadCollectionJobQueue()]);
   } catch (error) {
     elements.collectionStatus.textContent = error.message;
     elements.trackButton.textContent = 'Track & collect available prices';
@@ -267,13 +309,16 @@ elements.dashboardButton.addEventListener('click', () => {
 });
 
 elements.pollCollectionJobs.addEventListener('click', async () => {
-  elements.collectionStatus.textContent = 'Checking for queued jobs...';
+  elements.pollCollectionJobs.disabled = true;
+  elements.collectionJobStatus.textContent = 'Claiming the next available price-check job…';
 
   try {
     await callServiceWorker({ type: RUNTIME_MESSAGES.POLL_COLLECTION_JOBS });
-    await loadPopupState();
+    await Promise.all([loadPopupState(), loadCollectionJobQueue()]);
   } catch (error) {
-    elements.collectionStatus.textContent = error.message;
+    elements.collectionJobStatus.textContent = error.message;
+    elements.pollCollectionJobs.disabled = false;
+    elements.pollCollectionJobs.textContent = 'Retry price-check queue';
   }
 });
 
@@ -290,6 +335,7 @@ async function initialisePopup() {
 
   await Promise.allSettled([
     callServiceWorker({ type: RUNTIME_MESSAGES.CHECK_BACKEND }),
+    loadCollectionJobQueue(),
     productQuickWatch.load(),
   ]);
 

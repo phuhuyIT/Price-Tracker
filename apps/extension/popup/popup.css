@@ -375,7 +375,7 @@ dd {
 .status-grid {
   display: grid;
   gap: 8px;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 10px;
 }
 
@@ -393,6 +393,7 @@ dd {
 
 .status-item strong {
   font-size: 0.78rem;
+  overflow-wrap: anywhere;
 }
 
 .notice {

@@ -245,6 +245,7 @@ async function getPopupState(message) {
   return {
     automaticCapture: state.settings.automaticCapture,
     backend: state.backend,
+    backgroundCollectionEnabled: state.settings.backgroundCollectionEnabled,
     capture: matchingCapture
       ? { receivedAt: matchingCapture.receivedAt, summary: matchingCapture.summary }
       : null,
@@ -254,6 +255,11 @@ async function getPopupState(message) {
     queue: queueSummary(state.queue),
     supportedPage,
   };
+}
+
+async function getCollectionJobQueue() {
+  const state = await store.load();
+  return backendClient.listCollectionJobs(state.settings, state.auth);
 }
 
 async function trackCapture(message) {
@@ -428,6 +434,9 @@ async function handleMessage(message, sender) {
     case RUNTIME_MESSAGES.GET_POPUP_STATE:
       requireExtensionPage(sender);
       return getPopupState(message);
+    case RUNTIME_MESSAGES.GET_COLLECTION_JOB_QUEUE:
+      requireExtensionPage(sender);
+      return getCollectionJobQueue();
     case RUNTIME_MESSAGES.GET_PRODUCT_SHORTLIST:
       requireExtensionPage(sender);
       return productPins.loadShortlist();

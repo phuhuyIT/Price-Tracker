@@ -88,11 +88,18 @@
           <strong id="backend-status">Checking</strong>
         </div>
         <div class="status-item">
-          <span>Queue</span>
-          <strong id="queue-status">0</strong>
+          <span>Price checks</span>
+          <strong id="collection-job-summary">Checking</strong>
+        </div>
+        <div class="status-item">
+          <span>Snapshot uploads</span>
+          <strong id="upload-queue-status">Checking</strong>
         </div>
       </section>
 
+      <p id="collection-job-status" class="notice" role="status">
+        Checking backend price-check jobs…
+      </p>
       <p id="submission-status" class="notice" role="status"></p>
       <p id="collection-status" class="notice" role="status"></p>
 
@@ -100,7 +107,7 @@
         Track &amp; collect available prices
       </button>
       <button id="poll-collection-jobs" class="link-button" type="button">
-        Check remaining queued jobs
+        Checking price-check queue
       </button>
 
       <footer>

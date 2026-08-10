@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { collectionJobQueueSchema } from '@shopee-price-tracker/shared';
+
 import { createApiHarness, requestJson } from './apiTestUtils.js';
 import { loadValidSnapshot } from './databaseTestUtils.js';
 
@@ -222,6 +224,7 @@ describe('product REST API', () => {
       method: 'POST',
     });
     const pendingQueue = await requestJson(baseUrl, '/api/collection-jobs');
+    expect(collectionJobQueueSchema.safeParse(pendingQueue.payload.data).success).toBe(true);
     expect(pendingQueue.payload.data).toEqual({
       jobs: [expect.objectContaining({ id: tracked.payload.data.job.id, productTitle: null })],
       summary: {

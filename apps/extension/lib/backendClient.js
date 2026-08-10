@@ -1,4 +1,5 @@
 import { ERROR_CODES } from '../../../packages/shared/errors/errorCodes.js';
+import { collectionJobQueueSchema } from '../../../packages/shared/schemas/collectionJobSchemas.js';
 import { classifySubmissionFailure, REQUEST_TIMEOUT_MS } from './submissionQueue.js';
 
 function requestHeaders(auth, { includeJson = false } = {}) {
@@ -42,6 +43,44 @@ export function createBackendClient(fetchImplementation = fetch) {
   }
 
   return Object.freeze({
+    /** List active owner-scoped price-check jobs for extension status displays. */
+    async listCollectionJobs(settings, auth) {
+      try {
+        const { body, response } = await fetchJson(
+          `${settings.backendBaseUrl}/api/collection-jobs`,
+          {
+            headers: requestHeaders(auth),
+          },
+        );
+
+        if (response.ok && body?.success === true) {
+          const validation = collectionJobQueueSchema.safeParse(body.data);
+
+          return validation.success
+            ? { ...validation.data, kind: 'success' }
+            : {
+                error: 'Backend returned an invalid collection-job queue',
+                errorCode: null,
+                kind: 'permanent',
+              };
+        }
+
+        const errorCode = body?.error?.code ?? null;
+        return {
+          error: body?.error?.message ?? `Backend returned HTTP ${response.status}`,
+          errorCode,
+          kind: classifySubmissionFailure({ errorCode, status: response.status }),
+        };
+      } catch (error) {
+        return {
+          error:
+            error?.name === 'AbortError' ? 'Backend request timed out' : 'Backend is unavailable',
+          errorCode: null,
+          kind: 'temporary',
+        };
+      }
+    },
+
     /** Atomically claim the next job available to this Chrome profile. */
     async claimCollectionJob(
       settings,
