@@ -9,6 +9,10 @@ const vndFormatter = new Intl.NumberFormat('vi-VN', {
   style: 'currency',
 });
 
+const quantityFormatter = new Intl.NumberFormat('vi-VN', {
+  maximumFractionDigits: 0,
+});
+
 const CONTEXT_LABELS = Object.freeze({
   anonymous: 'Anonymous collector',
   unknown: 'Unknown context',
@@ -46,6 +50,13 @@ const LIFECYCLE_LABELS = Object.freeze({
 /** Format a positive integer VND amount for display. */
 export function formatVnd(amount) {
   return Number.isSafeInteger(amount) && amount > 0 ? vndFormatter.format(amount) : 'Not observed';
+}
+
+/** Format a known non-negative stock quantity. */
+export function formatStockQuantity(quantity) {
+  return Number.isSafeInteger(quantity) && quantity >= 0
+    ? quantityFormatter.format(quantity)
+    : 'Unknown';
 }
 
 /** Format an ISO timestamp in the browser's locale. */

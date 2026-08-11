@@ -126,6 +126,7 @@ export function persistSnapshot({
         ownerUserId,
         productId: product.id,
         seenAt: checkedAt,
+        stockQuantity: snapshotVariant.stockQuantity ?? null,
       });
       const observation = snapshotVariant.priceObservation;
 
@@ -138,6 +139,7 @@ export function persistSnapshot({
         presence: 'present',
         priceStatus: observation.status,
         reasonCode: observation.status === 'not_observed' ? observation.reason : null,
+        stockQuantity: snapshotVariant.stockQuantity ?? null,
         variantId: variant.id,
         variantLifecycle: variant.lifecycleStatus,
       });

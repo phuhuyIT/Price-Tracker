@@ -19,6 +19,7 @@ function product(overrides = {}) {
     lastSuccessAt: null,
     lowestPricesByContext: [],
     title: 'Safe product',
+    totalStockQuantity: 12,
     trackingStatus: 'active',
     variantCount: 1,
     variants: [
@@ -31,6 +32,7 @@ function product(overrides = {}) {
         missingSince: null,
         name: 'Default',
         preferredPrice: null,
+        stockQuantity: 12,
       },
     ],
     ...overrides,
@@ -52,6 +54,7 @@ describe('dashboard renderers', () => {
     expect(html).toContain('No price observed');
     expect(html).toContain('Price not observed');
     expect(html).not.toContain('0&nbsp;₫');
+    expect(html.match(/Stock 12/gu)).toHaveLength(2);
   });
 
   it('renders bounded pagination controls', () => {

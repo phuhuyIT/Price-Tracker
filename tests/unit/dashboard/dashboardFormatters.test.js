@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildProductWarnings,
   displayPriceLabel,
+  formatStockQuantity,
   formatVnd,
   localDateTimeToIso,
   selectProductDisplayPrice,
@@ -31,6 +32,12 @@ describe('dashboard formatters', () => {
     expect(formatVnd(199_000)).toBe(expected);
     expect(formatVnd(0)).toBe('Not observed');
     expect(formatVnd(null)).toBe('Not observed');
+  });
+
+  it('formats known stock quantities including zero', () => {
+    expect(formatStockQuantity(12)).toBe('12');
+    expect(formatStockQuantity(0)).toBe('0');
+    expect(formatStockQuantity(null)).toBe('Unknown');
   });
 
   it('prefers the purchasable current price and labels retained prices honestly', () => {

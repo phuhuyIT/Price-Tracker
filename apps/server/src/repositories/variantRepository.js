@@ -10,6 +10,7 @@ function mapVariant(row) {
     consecutiveCompleteMisses: row.consecutive_complete_misses,
     createdAt: row.created_at,
     currentAvailability: row.current_availability,
+    currentStockQuantity: row.current_stock_quantity,
     externalModelId: row.external_model_id,
     id: row.id,
     identityType: row.identity_type,
@@ -71,6 +72,7 @@ export function createVariantRepository(database) {
       missing_since,
       inactive_reason,
       current_availability,
+      current_stock_quantity,
       availability_updated_at,
       created_at,
       updated_at
@@ -86,6 +88,7 @@ export function createVariantRepository(database) {
       NULL,
       NULL,
       @availability,
+      @stockQuantity,
       @seenAt,
       @seenAt,
       @seenAt
@@ -101,6 +104,7 @@ export function createVariantRepository(database) {
       missing_since = NULL,
       inactive_reason = NULL,
       current_availability = excluded.current_availability,
+      current_stock_quantity = excluded.current_stock_quantity,
       availability_updated_at = excluded.availability_updated_at,
       updated_at = excluded.updated_at
     RETURNING *
@@ -250,6 +254,7 @@ export function createVariantRepository(database) {
       ownerUserId,
       productId,
       seenAt = nowIso(),
+      stockQuantity = null,
     }) {
       assertIdentifier(ownerUserId, 'ownerUserId');
       assertIdentifier(productId, 'productId');
@@ -271,6 +276,7 @@ export function createVariantRepository(database) {
             ownerUserId,
             productId,
             seenAt,
+            stockQuantity,
           }),
         );
 

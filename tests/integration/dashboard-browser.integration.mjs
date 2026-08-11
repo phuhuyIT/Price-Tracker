@@ -88,6 +88,7 @@ async function verifyLocalDashboard(browser) {
       availability: 'sold_out',
       modelId: `33000000000${index + 1}`,
       name: index === 0 ? 'Limited Collector Pack' : 'Standard Pack',
+      stockQuantity: 0,
     }));
     const soldOutResponse = await globalThis.fetch(`${harness.baseUrl}/api/products/snapshot`, {
       body: JSON.stringify(soldOutSnapshot),
@@ -150,12 +151,14 @@ async function verifyLocalDashboard(browser) {
     const card = cards.filter({ hasText: snapshot.title });
     assert.match(await card.textContent(), /Current lowest price/u);
     assert.match(await card.textContent(), /Price not observed/u);
+    assert.match(await card.textContent(), /Stock 12/u);
 
     await page.getByLabel('Search tracked products').fill('Limited Collector Pack');
     await page.waitForFunction(
       () => globalThis.document.querySelectorAll('.product-card').length === 1,
     );
     assert.match(await cards.first().textContent(), /AeroPress Original Coffee Maker/u);
+    assert.match(await cards.first().textContent(), /Stock 0/u);
 
     await page.locator('#clear-watchlist-filters').click();
     await page.waitForFunction(

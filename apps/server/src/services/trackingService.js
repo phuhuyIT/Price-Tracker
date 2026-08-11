@@ -212,6 +212,7 @@ export function createTrackingService({
             ownerUserId,
             productId: product.id,
             seenAt: checkedAt,
+            stockQuantity: snapshotVariant.stockQuantity,
           });
           const observation = snapshotVariant.priceObservation;
 
@@ -224,6 +225,7 @@ export function createTrackingService({
             presence: 'present',
             priceStatus: observation.status,
             reasonCode: observation.status === 'not_observed' ? observation.reason : null,
+            stockQuantity: snapshotVariant.stockQuantity,
             variantId: upserted.variant.id,
             variantLifecycle: upserted.variant.lifecycleStatus,
           });
@@ -289,6 +291,7 @@ export function createTrackingService({
               snapshot,
               suspiciousMassDisappearance,
             }),
+            stockQuantity: null,
             variantId: existingVariant.id,
             variantLifecycle: updatedVariant.lifecycleStatus,
           });

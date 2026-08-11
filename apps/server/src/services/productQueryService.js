@@ -66,6 +66,15 @@ function currentProductAvailability(variants) {
   return 'unknown';
 }
 
+function totalKnownStockQuantity(variants) {
+  if (variants.length === 0 || variants.some((variant) => variant.stockQuantity === null)) {
+    return null;
+  }
+
+  const total = variants.reduce((sum, variant) => sum + variant.stockQuantity, 0);
+  return Number.isSafeInteger(total) ? total : null;
+}
+
 function productNotFound() {
   return new AppError({
     code: ERROR_CODES.PRODUCT_NOT_FOUND,
@@ -88,6 +97,7 @@ function publicLatestResult(result) {
     pricingContextKey: result.pricingContextKey,
     reasonCode: result.reasonCode,
     source: result.source,
+    stockQuantity: result.stockQuantity,
     variantLifecycle: result.variantLifecycle,
   };
 }
@@ -125,6 +135,7 @@ function publicVariant(variant) {
     missingSince: variant.missingSince,
     modelId: variant.externalModelId,
     name: variant.name,
+    stockQuantity: variant.currentStockQuantity,
   };
 }
 
@@ -217,6 +228,7 @@ function decorateProduct(product, repositories, ownerUserId) {
           },
     lowestPricesByContext,
     preferredPricingContext: currentLowestPrice?.pricingContext ?? null,
+    totalStockQuantity: totalKnownStockQuantity(activeVariants),
     variantCount: decoratedVariants.length,
     variants: decoratedVariants,
   };
@@ -297,6 +309,7 @@ export function createProductQueryService({ repositories }) {
             checkId: point.checkId,
             priceSource: point.priceSource,
             reasonCode: point.reasonCode,
+            stockQuantity: point.stockQuantity,
             voucherStatus: point.voucherStatus,
             x: point.checkedAt,
             y: point.priceStatus === 'observed' ? point.priceAmount : null,

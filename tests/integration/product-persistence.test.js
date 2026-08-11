@@ -37,12 +37,12 @@ describe('transactional snapshot persistence', () => {
 
     expect(stored.created).toBe(true);
     expect(harness.repositories.products.countByOwner(owner.id)).toBe(1);
-    expect(
-      harness.repositories.variants.listByProduct({
-        ownerUserId: owner.id,
-        productId: stored.product.id,
-      }),
-    ).toHaveLength(2);
+    const variants = harness.repositories.variants.listByProduct({
+      ownerUserId: owner.id,
+      productId: stored.product.id,
+    });
+    expect(variants).toHaveLength(2);
+    expect(variants[0].currentStockQuantity).toBe(12);
 
     const results = harness.repositories.prices.listCheckResults({
       checkId: stored.check.id,
@@ -60,6 +60,7 @@ describe('transactional snapshot persistence', () => {
           presence: 'present',
           priceStatus: 'observed',
           reasonCode: null,
+          stockQuantity: 12,
         }),
         expect.objectContaining({
           presence: 'present',

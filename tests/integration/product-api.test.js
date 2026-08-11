@@ -103,7 +103,10 @@ describe('product REST API', () => {
 
   it('lists products with pagination and retrieves owner-scoped details', async () => {
     const { baseUrl } = await startApi();
-    const first = await postSnapshot(baseUrl);
+    const firstSnapshot = loadValidSnapshot();
+    firstSnapshot.variants[1].availability = 'sold_out';
+    firstSnapshot.variants[1].stockQuantity = 0;
+    const first = await postSnapshot(baseUrl, firstSnapshot);
     const second = await postSnapshot(baseUrl, secondProductSnapshot());
 
     const page = await requestJson(baseUrl, '/api/products?page=2&limit=1');
@@ -114,7 +117,8 @@ describe('product REST API', () => {
     const detail = await requestJson(baseUrl, `/api/products/${first.payload.data.product.id}`);
     expect(detail.payload.data).toMatchObject({
       id: first.payload.data.product.id,
-      variants: expect.any(Array),
+      totalStockQuantity: 12,
+      variants: [expect.objectContaining({ stockQuantity: 12 }), expect.any(Object)],
     });
     expect(second.response.status).toBe(201);
   });
@@ -127,6 +131,7 @@ describe('product REST API', () => {
     soldOut.variants = soldOut.variants.map((variant) => ({
       ...variant,
       availability: 'sold_out',
+      stockQuantity: 0,
     }));
     const second = await postSnapshot(baseUrl, soldOut);
     await requestJson(baseUrl, `/api/products/${second.payload.data.product.id}`, {
@@ -183,6 +188,9 @@ describe('product REST API', () => {
     expect(history.response.status).toBe(200);
     expect(history.payload.data.datasets).toHaveLength(1);
     expect(history.payload.data.datasets[0].data.map((point) => point.y)).toEqual([199_000, null]);
+    expect(history.payload.data.datasets[0].data.map((point) => point.stockQuantity)).toEqual([
+      12, 12,
+    ]);
     expect(
       databaseHarness.database.prepare('SELECT COUNT(*) AS count FROM price_logs').get().count,
     ).toBe(1);

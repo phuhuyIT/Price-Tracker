@@ -5,6 +5,7 @@ import {
   contextLabel,
   displayPriceLabel,
   formatDateTime,
+  formatStockQuantity,
   formatVnd,
   lifecycleLabel,
   priceSourceLabel,
@@ -136,6 +137,7 @@ function renderVariant(variant) {
         <div class="badge-row">
           ${badge(lifecycleLabel(variant.lifecycleStatus), badgeTone(variant.lifecycleStatus))}
           ${badge(availabilityLabel(variant.availability), badgeTone(variant.availability))}
+          ${Number.isSafeInteger(variant.stockQuantity) && variant.stockQuantity >= 0 ? badge(`Stock ${formatStockQuantity(variant.stockQuantity)}`, 'info') : ''}
           ${result?.priceStatus === 'not_observed' ? badge('Price not observed', 'warning') : ''}
         </div>
         ${
@@ -206,6 +208,7 @@ function renderProduct(product, busyProductIds) {
 
           <div class="badge-row">
             ${badge(availabilityLabel(product.availability), badgeTone(product.availability))}
+            ${Number.isSafeInteger(product.totalStockQuantity) && product.totalStockQuantity >= 0 ? badge(`Stock ${formatStockQuantity(product.totalStockQuantity)}`, 'info') : ''}
             ${priceBadges(displayPrice)}
           </div>
 
