@@ -30,10 +30,10 @@ currency, collection provenance, catalogue evidence and at least one variant.
 
 Collector and pricing context are fixed pairs:
 
-| Snapshot source | Pricing context  | Meaning                                             |
-| --------------- | ---------------- | --------------------------------------------------- |
-| `extension`   | `user_session` | Price observed in the user's active Chrome session  |
-| `playwright`  | `anonymous`    | Price observed in a fresh anonymous browser context |
+| Snapshot source | Pricing context | Meaning                                             |
+| --------------- | --------------- | --------------------------------------------------- |
+| `extension`     | `user_session`  | Price observed in the user's active Chrome session  |
+| `playwright`    | `anonymous`     | Price observed in a fresh anonymous browser context |
 
 Each snapshot includes an opaque application-generated `pricingContextKey`.
 It must not contain a Shopee account ID or credential. The enum retains
@@ -55,6 +55,11 @@ A `not_observed` result requires a lowercase reason code and cannot contain a
 price amount or any other observed-price field. Missing and malformed prices
 therefore cannot become zero-price history.
 
+Each variant also carries `stockQuantity`, a nullable non-negative safe integer.
+Positive stock must agree with `availability = available`; zero stock must agree
+with `availability = sold_out`. Missing, redacted, negative, malformed, or
+uncorrelated stock is `null`, never an invented zero.
+
 ## Variant identity and coverage
 
 Explicit Shopee variants use a positive numeric model ID and
@@ -69,8 +74,8 @@ only when all of these are true:
 
 Coverage rules:
 
-| Coverage     | Confidence          | Lifecycle eligible |
-| ------------ | ------------------- | ------------------ |
+| Coverage   | Confidence        | Lifecycle eligible |
+| ---------- | ----------------- | ------------------ |
 | `complete` | `verified`        | yes                |
 | `complete` | `likely_complete` | no                 |
 | `partial`  | `partial`         | no                 |

@@ -27,19 +27,21 @@ Do not load both folders expecting them to provide the same workflow.
    the message source, page origin, Shopee hostname, protocol version, and the
    strict capture schema.
 3. The bridge assembles the verified `get_pc` model catalogue with exactly
-   correlated `select_variation_pc` evidence. A variation response alone never
-   claims complete catalogue coverage.
+   correlated `select_variation_pc` or `select_variant_pc` evidence. A variation
+   response alone never claims complete catalogue coverage.
 4. The shared normaliser emits the Phase 3 snapshot contract. Model presence
    remains independent from price success, so a present model with a missing or
-   malformed price becomes `not_observed`, never zero or absent.
+   malformed price becomes `not_observed`, never zero or absent. Exact
+   non-negative selected-variant stock is retained as `stockQuantity`; redacted,
+   negative, failed, or uncorrelated stock becomes `null`.
 5. The service worker validates the snapshot again and keeps the latest capture
    for the popup. Because automatic capture defaults to off, submission begins
    only when the user clicks **Track Product**.
 
-If quantity changes, or the same selected tier returns changed price/voucher
-evidence, previously assembled variation prices are cleared before the new
-context is used. This avoids combining stale prices from different displayed
-states in one snapshot.
+If purchase quantity changes, or the same selected tier returns changed price,
+voucher, availability, or stock evidence, previously assembled variation
+captures are cleared before the new context is used. This avoids combining
+stale evidence from different displayed states in one snapshot.
 
 ## Settings and local identity
 

@@ -122,15 +122,21 @@ zero, or unmatched model price, and never forwards voucher details.
 
 For one-model products, model-level stock remains authoritative when present;
 otherwise product-level zero stock marks the synthetic `Default` variant as
-`sold_out`. Negative stock means hidden stock, not sold out. If both API stock
-levels are redacted, only a no-visible-variant product may fall back to an exact,
-visible **Đã bán hết** / **Sold out** label co-located with the captured product
-title in the main product-detail region. Recommendation-card labels cannot set
-product availability. A duplicate response with redacted stock cannot
-immediately erase an explicit API signal. Shopee may still display a valid
-amount for a sold-out item, so the observation can remain in history while the
-popup reports **Sold out** and the API excludes it from `currentLowestPrice`.
-Product `status` continues to mean tracking enabled or paused, independently of
+`sold_out`. A successful, exact-tier `select_variation_pc` or
+`select_variant_pc` response is newer targeted evidence: positive `data.stock`
+marks that variant `available`, while zero marks it `sold_out`; the exact count
+is retained as `stockQuantity`. A response whose price model identifies another
+catalogue model cannot supply stock evidence.
+Negative or malformed stock means hidden or unusable stock, not sold out. If all
+API stock levels are redacted, only a no-visible-variant product may fall back
+to an exact visible **Đã bán hết** / **Sold out** label co-located with the
+captured product title in the main product-detail region. Generic availability
+text, purchase controls, quantity labels, and recommendation-card labels cannot
+declare a product available. A duplicate response with redacted stock cannot
+immediately erase an explicit API signal. Shopee may still display a valid amount
+for a sold-out item, so the observation can remain in history while the popup
+reports **Sold out** and the API excludes it from `currentLowestPrice`. Product
+`status` continues to mean tracking enabled or paused, independently of
 availability.
 
 Duplicate same-product `get_pc` captures are quality-ranked. A weaker response

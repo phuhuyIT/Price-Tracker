@@ -46,12 +46,12 @@ The main view provides:
 - tracking-status and current-availability filters with accurate pagination;
 - paginated list loading, filtered empty states, and explicit retry after API
   failure;
-- product image, title, tracking state, availability, latest successful check,
-  and active/total variant counts;
+- product image, title, tracking state, availability, known total stock, latest
+  successful check, and active/total variant counts;
 - current lowest purchasable price or an honest last-known/unavailable label;
 - pricing-context, voucher-status, and price-source badges;
-- expandable per-variant lifecycle, availability, latest collection result,
-  last-seen time, and missing-since time;
+- expandable per-variant lifecycle, availability, known stock quantity, latest
+  collection result, last-seen time, and missing-since time;
 - manual refresh, pause/resume, history, and confirmed deletion actions; and
 - reauthentication when an enabled dashboard session expires or is revoked.
 

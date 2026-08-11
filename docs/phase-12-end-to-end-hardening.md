@@ -2,7 +2,7 @@
 
 ## Status
 
-Automated hardening is implemented and verified as of 2026-08-10. The live
+Automated hardening is implemented and verified as of 2026-08-11. The live
 Chrome/Shopee and Telegram checklist remains open because deterministic fixtures
 cannot prove the installed extension's current session, Shopee's current private
 API shape, voucher eligibility, or delivery through the user's real bot and
@@ -31,10 +31,10 @@ Run the complete Phase 12 gate:
 npm.cmd run test:phase12
 ```
 
-Verified result on 2026-08-10:
+Verified result on 2026-08-11:
 
 - ESLint, Prettier, and legacy syntax checks passed;
-- 45 Vitest files and 274 tests passed;
+- 46 Vitest files and 286 tests passed;
 - the deterministic 15-file Manifest V3 extension build passed;
 - the local headless-Chromium dashboard workflow passed; and
 - all retained fixture, variation-selection, Playwright, and current-profile
@@ -70,6 +70,25 @@ target_closed`. The test now waits for the target URL, keeps the service-worker
    refreshes while jobs remain, and describes manual mode as one job per click.
    Focused presentation and backend-client tests cover waiting, collecting, empty,
    unavailable, and inconsistent-response states.
+5. The service worker rejected every privileged message whose sender included a
+   Chrome tab. That protected privileged actions from content scripts, but also
+   rejected the extension's own options page because Chrome can open it in a tab.
+   Privileged UI messages now require both this extension's runtime ID and an exact
+   `chrome-extension://<runtime-id>/...` sender URL. Regression tests accept popup
+   and tab-hosted options pages while rejecting Shopee content scripts, another
+   extension, missing URLs, and malformed URLs.
+6. Live inspection showed that Shopee uses
+   `/api/v4/pdp/cart_panel/select_variant_pc` for this product and exposes the
+   selected tier's stock in `data.stock`. Both selected-variation endpoint
+   spellings are now captured. Positive stock marks the exactly correlated
+   variant available and zero marks it sold out; failed responses, negative or
+   malformed stock, and price-model mismatches cannot override catalogue
+   availability. The exact non-negative count flows through the sanitized
+   snapshot, per-check result, current variant state, product API/history, web
+   dashboard, and extension popup. Unknown stock stays nullable and cannot be
+   rendered as zero. The unsuccessful page-text and purchase-control availability
+   experiments were removed; only the older conservative sold-out DOM fallback
+   remains when API stock is redacted.
 
 No reproducible automated defect remains after the final gate. Live-only failures
 must be added here with reproduction steps before Phase 12 can be closed.
@@ -131,6 +150,21 @@ popup and dashboard, displayed variant progress, and finished with both queues
 empty. The product price and last-updated value refreshed, and the temporary
 Shopee tab closed automatically. This queue-visibility portion of the live gate
 passes.
+
+On 2026-08-11, one disposable `*/1 * * * *` scheduler tick with 1,000-1,500 ms
+dispatch delays queued four active products sequentially. Cron was disabled after
+that tick to prevent repeated live requests. Saving the background-collection
+option exposed resolved bug 5; after rebuilding and reloading the extension, the
+options page saved successfully and triggered an automatic drain without using
+the manual collection button. All four scheduler jobs completed sequentially on
+their first attempt and the active queue returned to empty. Four grouped extension
+checks stored 1, 21, 0, and 9 price rows respectively; every stored amount was a
+positive integer. The zero-row check preserved all 12 observed variants as
+`variation_response_missing`, with lifecycle changes disabled, rather than
+manufacturing zero prices. Cron and extension background collection were both
+disabled after the batch. The scheduled dispatch, automatic queue drain, grouped
+check, price-safety, inactive-tab, and automatic tab-cleanup portions of the live
+gate pass.
 
 The live session must verify these groups in order:
 

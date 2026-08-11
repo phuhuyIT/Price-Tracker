@@ -222,7 +222,11 @@ are never stored as the Default variant price.
 
 Shopee can keep displaying an amount after a product sells out. The collector
 therefore reads model stock first and falls back to product-level stock for a
-single-model product. When Shopee redacts both stock fields, a product with one
+single-model product. A successful, correlated `select_variation_pc` or
+`select_variant_pc` response supplies the newer selected-tier `data.stock`:
+positive values mean available, zero means sold out, and the exact count is
+stored and displayed. Negative, malformed, failed, or uncorrelated stock remains
+unknown rather than becoming zero. When Shopee redacts all API stock fields, a product with one
 synthetic `Default` variant may also use an exact visible **Đã bán hết** / **Sold
 out** label from the main product-detail region. This DOM fallback never applies
 to explicit variants or generic recommendation-card text. The popup shows
@@ -370,9 +374,9 @@ The same-origin dashboard supports tracking, paginated product cards,
 watchlist-wide product/variant/ID search, tracking-status and availability
 filters, manual refresh, pause/resume, confirmed deletion, authentication when
 enabled, and a filterable locally bundled Chart.js history view. Current and
-retained prices show pricing context, voucher state, source, availability, and
-variant lifecycle warnings. Missing observations create chart gaps and are
-never stored or displayed as zero prices.
+retained prices show pricing context, voucher state, source, availability,
+known stock quantity, and variant lifecycle warnings. Missing observations
+create chart gaps and are never stored or displayed as zero prices.
 
 Tracking and refresh queue extension jobs asynchronously. If background checks
 are disabled, click **Check now** in the extension after a dashboard action. The

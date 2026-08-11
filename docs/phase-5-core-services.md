@@ -56,13 +56,13 @@ The first observed price after a variant returns from `suspected_missing` or
 The service selects the immediately previous successful available observation
 only when all comparison dimensions match:
 
-* Internal variant ID.
-* Currency.
-* Price definition.
-* Price type.
-* Pricing context.
-* Pricing-context key.
-* Price source.
+- Internal variant ID.
+- Currency.
+- Price definition.
+- Price type.
+- Pricing context.
+- Pricing-context key.
+- Price source.
 
 The current observation must also be `available`. Initial baselines, unchanged
 prices, increases, reductions below the product threshold, unavailable prices,
@@ -78,8 +78,10 @@ delivery.
 
 All product queries require a trusted owner ID and never return another owner's
 records. The service provides paginated products, complete product details,
-variant lifecycle and availability, latest prices, last-known labels, and
-context-specific lowest prices.
+variant lifecycle, availability, current and per-check stock quantity, latest
+prices, last-known labels, and context-specific lowest prices. Product summaries
+include total stock only when every active variant has a known quantity; variant
+rows always expose their own nullable quantity.
 
 Prices remain separated by pricing context and key. The confirmed display
 priority is:
@@ -107,21 +109,21 @@ remain disabled in this mode.
 
 With authentication enabled:
 
-* Email and password inputs use the shared strict schemas.
-* Registration is independently gated by `AUTH_ALLOW_REGISTRATION`.
-* The selected local offline denylist rejects common and repeated passwords
+- Email and password inputs use the shared strict schemas.
+- Registration is independently gated by `AUTH_ALLOW_REGISTRATION`.
+- The selected local offline denylist rejects common and repeated passwords
   without sending password-derived data over the network.
-* Passwords use asynchronous Node.js `crypto.scrypt` with a unique 16-byte salt,
+- Passwords use asynchronous Node.js `crypto.scrypt` with a unique 16-byte salt,
   `N=2^17`, `r=8`, `p=1`, and a 64-byte derived key.
-* The encoded hash stores its version and work parameters for later upgrades.
-* Verification compares equal-length derived keys with `timingSafeEqual`.
-* Unknown-user login performs a real scrypt operation before returning the same
+- The encoded hash stores its version and work parameters for later upgrades.
+- Verification compares equal-length derived keys with `timingSafeEqual`.
+- Unknown-user login performs a real scrypt operation before returning the same
   generic `INVALID_CREDENTIALS` result.
-* Sessions use 32 random bytes encoded as base64url.
-* SQLite stores only a SHA-256 token hash, never the plaintext token.
-* Dashboard sessions use cookie transport; extension sessions use bearer
+- Sessions use 32 random bytes encoded as base64url.
+- SQLite stores only a SHA-256 token hash, never the plaintext token.
+- Dashboard sessions use cookie transport; extension sessions use bearer
   transport.
-* Expired and revoked sessions produce distinct typed errors.
+- Expired and revoked sessions produce distinct typed errors.
 
 The service returns a plaintext token once under the internal `sessionToken`
 field. Phase 6 must put dashboard tokens only in an HTTP-only cookie and omit
@@ -131,10 +133,10 @@ that internal field from dashboard response bodies.
 
 Phase 5 adds owner-scoped read operations for:
 
-* Finding a check by product-scoped idempotency key.
-* Latest real prices per variant and pricing-context stream.
-* Latest per-variant check results per pricing-context stream.
-* Check-aligned history timelines with optional real prices.
+- Finding a check by product-scoped idempotency key.
+- Latest real prices per variant and pricing-context stream.
+- Latest per-variant check results per pricing-context stream.
+- Check-aligned history timelines with optional real prices.
 
 No schema migration was required because the Phase 4 tables and indexes already
 represent these records.

@@ -35,19 +35,19 @@ pricing fields.
 
 ### Fixture inventory
 
-| Fixture | Provenance | Purpose |
-| --- | --- | --- |
-| `shopee-multi-variant-user-session.json` | Sanitised live capture | Complete three-model catalogue and three observed prices |
-| `shopee-boxer-user-session.json` | Sanitised live capture | Complete 93-model catalogue, two selected platform-voucher prices, one exact product-detail fallback, and 90 unpriced models |
+| Fixture                                                | Provenance                     | Purpose                                                                                                                                   |
+| ------------------------------------------------------ | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `shopee-multi-variant-user-session.json`               | Sanitised live capture         | Complete three-model catalogue and three observed prices                                                                                  |
+| `shopee-boxer-user-session.json`                       | Sanitised live capture         | Complete 93-model catalogue, two selected platform-voucher prices, one exact product-detail fallback, and 90 unpriced models              |
 | `shopee-boxer-targeted-availability-user-session.json` | Compact sanitised live capture | Complete 93-model catalogue with 12 targeted observed prices, 21 targeted unavailable combinations, and 60 deliberately untargeted models |
-| `shopee-variantless-user-session.json` | Sanitised live capture | One implicit Shopee model with empty tier labels and one verified product-detail fallback price |
-| `shopee-shop-voucher-user-session.json` | Sanitised live capture | Complete 40-model catalogue with 40 exact shop-voucher prices |
-| `shopee-flash-sale-user-session.json` | Sanitised live capture | Complete six-model catalogue with one exact product-detail flash-sale fallback and five unpriced variants |
-| `shopee-variant-price-failure.derived.json` | Derived from live capture | Complete catalogue remains present when one price request fails |
-| `shopee-partial-selected-variation.derived.json` | Derived from live capture | Selected response alone is partial and lifecycle-neutral |
-| `shopee-suspicious-empty-catalogue.derived.json` | Derived from live capture | Empty catalogue after three known models is suspicious, not mass removal |
-| `shopee-api-failure.derived.json` | Derived from live capture | Failed product-detail request has unknown coverage |
-| `shopee-unrecognised-price-shape.derived.json` | Derived from live capture | Catalogue remains complete while an unknown price shape becomes `not_observed` |
+| `shopee-variantless-user-session.json`                 | Sanitised live capture         | One implicit Shopee model with empty tier labels and one verified product-detail fallback price                                           |
+| `shopee-shop-voucher-user-session.json`                | Sanitised live capture         | Complete 40-model catalogue with 40 exact shop-voucher prices                                                                             |
+| `shopee-flash-sale-user-session.json`                  | Sanitised live capture         | Complete six-model catalogue with one exact product-detail flash-sale fallback and five unpriced variants                                 |
+| `shopee-variant-price-failure.derived.json`            | Derived from live capture      | Complete catalogue remains present when one price request fails                                                                           |
+| `shopee-partial-selected-variation.derived.json`       | Derived from live capture      | Selected response alone is partial and lifecycle-neutral                                                                                  |
+| `shopee-suspicious-empty-catalogue.derived.json`       | Derived from live capture      | Empty catalogue after three known models is suspicious, not mass removal                                                                  |
+| `shopee-api-failure.derived.json`                      | Derived from live capture      | Failed product-detail request has unknown coverage                                                                                        |
+| `shopee-unrecognised-price-shape.derived.json`         | Derived from live capture      | Catalogue remains complete while an unknown price shape becomes `not_observed`                                                            |
 
 Derived fixtures intentionally contain only the minimum fields needed for
 their boundary case. They are deterministic test inputs, not claims that
@@ -78,7 +78,11 @@ An empty or malformed `models` array is not verified removal evidence.
 
 ```text
 POST /api/v4/pdp/cart_panel/select_variation_pc
+POST /api/v4/pdp/cart_panel/select_variant_pc
 ```
+
+Shopee currently uses both endpoint spellings. They share the same selected-tier
+capture contract.
 
 Confirmed live request fields:
 
@@ -92,6 +96,9 @@ selected_tiers
 Confirmed live behavior:
 
 - One response is correlated to one exact `selected_tiers` selection.
+- A successful response's `data.stock` is the selected variant's current stock:
+  positive means available, zero means sold out, and negative or malformed stock
+  remains unknown.
 - The selected model is identified by
   `response.data.product_price.price_model.price_single_model_id`.
 - The displayed price is at
@@ -116,23 +123,23 @@ live fixture. They must remain isolated in the Shopee adapter.
 
 ## Verified field mapping
 
-| Normalised meaning | Captured Shopee field | Evidence |
-| --- | --- | --- |
-| Shop ID | `response.data.item.shop_id` | Live |
-| Item ID | `response.data.item.item_id` | Live |
-| Product title | `response.data.item.title` | Live |
-| Product image identifier | `response.data.item.image` | Live |
-| Currency | `response.data.item.currency` | Live |
-| Variant catalogue | `response.data.item.models` | Live |
-| Variant ID | `response.data.item.models[].model_id` | Live |
-| Variant name | `response.data.item.models[].name` | Live |
-| Variant tier selection | `response.data.item.models[].extinfo.tier_index` | Live |
-| Base promotional price | `response.data.item.models[].price` | Live |
-| Original crossed-out price | `response.data.item.models[].price_before_discount` | Live |
-| Selected model ID | `response.data.product_price.price_model.price_single_model_id` | Live |
-| Displayed selected-variant price | `response.data.product_price.price.single_value` | Live |
-| Public discount percent | `response.data.product_price.discount` | Live |
-| Applied final-price vouchers | `response.data.product_price.final_price_vouchers` | Live, null in this capture |
+| Normalised meaning               | Captured Shopee field                                           | Evidence                   |
+| -------------------------------- | --------------------------------------------------------------- | -------------------------- |
+| Shop ID                          | `response.data.item.shop_id`                                    | Live                       |
+| Item ID                          | `response.data.item.item_id`                                    | Live                       |
+| Product title                    | `response.data.item.title`                                      | Live                       |
+| Product image identifier         | `response.data.item.image`                                      | Live                       |
+| Currency                         | `response.data.item.currency`                                   | Live                       |
+| Variant catalogue                | `response.data.item.models`                                     | Live                       |
+| Variant ID                       | `response.data.item.models[].model_id`                          | Live                       |
+| Variant name                     | `response.data.item.models[].name`                              | Live                       |
+| Variant tier selection           | `response.data.item.models[].extinfo.tier_index`                | Live                       |
+| Base promotional price           | `response.data.item.models[].price`                             | Live                       |
+| Original crossed-out price       | `response.data.item.models[].price_before_discount`             | Live                       |
+| Selected model ID                | `response.data.product_price.price_model.price_single_model_id` | Live                       |
+| Displayed selected-variant price | `response.data.product_price.price.single_value`                | Live                       |
+| Public discount percent          | `response.data.product_price.discount`                          | Live                       |
+| Applied final-price vouchers     | `response.data.product_price.final_price_vouchers`              | Live, null in this capture |
 
 The saved fixture preserves the response wrapper beneath
 `endpointEvidence`. It does not contain raw HTTP headers or the rest of the raw

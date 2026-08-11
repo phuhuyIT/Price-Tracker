@@ -47,10 +47,11 @@ unobserved variant.
 For the Shopee MVP, a successfully validated `/api/v4/pdp/get_pc` response with
 matching product IDs and a valid `item.models` catalogue is the normal source
 of verified complete coverage. A
-`/api/v4/pdp/cart_panel/select_variation_pc` response is partial catalogue
+`/api/v4/pdp/cart_panel/select_variation_pc` or
+`/api/v4/pdp/cart_panel/select_variant_pc` response is partial catalogue
 evidence by itself. A composite snapshot may still be complete when its
 catalogue came from verified `get_pc` data and variation responses only
-supplemented its prices.
+supplemented its prices and targeted availability.
 
 An empty or malformed models array does not prove that every known variant was
 removed. A genuinely variantless product is normalised to one `default`

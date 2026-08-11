@@ -54,10 +54,10 @@ request data.
 transport, expiry, last-seen time, and revocation time. SQLite enforces the
 accepted transport pairs:
 
-| Client | Transport |
-| --- | --- |
-| `dashboard` | `cookie` |
-| `extension` | `bearer` |
+| Client      | Transport |
+| ----------- | --------- |
+| `dashboard` | `cookie`  |
+| `extension` | `bearer`  |
 
 Plaintext session tokens and Shopee credentials have no persistence columns.
 
@@ -87,7 +87,7 @@ mutable display name. It stores:
 - last-seen time;
 - consecutive eligible complete-catalogue misses;
 - missing-since time and inactive reason; and
-- availability and its update time.
+- availability, nullable current stock quantity, and their update time.
 
 Positive presence resets missing state and may reactivate a variant even when
 its price was not observed. Eligible misses are applied through an explicit
@@ -106,8 +106,11 @@ and suspicious-disappearance state. Failed checks store a typed error and
 cannot contain an observed price.
 
 `variant_check_results` records presence, price collection status, reason,
-availability, and lifecycle for each known variant. This table represents
-chart gaps without inserting null or zero amounts.
+availability, nullable exact stock quantity, and lifecycle for each known
+variant. This table represents chart gaps and stock evidence without inserting
+null or zero price amounts. Migration `004-variant-stock.sql` adds current and
+per-check stock columns with database constraints that preserve zero as genuine
+sold-out stock and reject availability conflicts.
 
 `price_logs` accepts only positive integer VND amounts with the complete
 comparability tuple:

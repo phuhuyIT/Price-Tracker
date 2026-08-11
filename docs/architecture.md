@@ -49,6 +49,7 @@ The configured endpoint matcher initially recognises:
 ```text
 /api/v4/pdp/get_pc
 /api/v4/pdp/cart_panel/select_variation_pc
+/api/v4/pdp/cart_panel/select_variant_pc
 ```
 
 Endpoint matching, raw-price conversion, voucher interpretation, and response
@@ -163,8 +164,8 @@ Rules:
   Partial, unknown, failed, duplicate, and suspicious snapshots cannot
   increment lifecycle miss counters.
 - Per-variant check results record `present`, `absent`, or `unknown` and
-  `observed` or `not_observed`, allowing chart gaps without null or zero rows
-  in `price_logs`.
+  `observed` or `not_observed`, plus nullable exact stock quantity, allowing
+  chart gaps and stock history without null or zero rows in `price_logs`.
 - Notification delivery occurs after the price-history transaction commits.
 - Only terminal failed extractions create failed checks, and they never create
   price logs. Retry waits and authentication waits create no check rows.
@@ -181,8 +182,8 @@ phase to represent the refined roadmap requirements, including:
 - Explicit shipping-excluded provenance.
 - Variant-catalogue coverage, confidence, and expected/observed/priced counts.
 - Variant lifecycle status, last-seen time, consecutive eligible misses,
-  missing-since time, inactive reason, and current availability.
-- Per-variant check results for presence, price collection, and chart gaps.
+  missing-since time, inactive reason, current availability, and current stock.
+- Per-variant check results for presence, price collection, stock, and chart gaps.
 - Suspicious mass-disappearance confirmation state.
 - Notification deduplication inputs for price definition and context.
 - Price-tracker users and revocable sessions.
