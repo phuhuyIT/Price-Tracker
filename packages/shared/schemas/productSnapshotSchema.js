@@ -69,6 +69,7 @@ export const productVariantSchema = z
     modelId: z.union([shopeeIdSchema, z.literal('default')]),
     name: z.string().trim().min(1).max(300),
     priceObservation: priceObservationSchema,
+    stockQuantity: nonNegativeSafeIntegerSchema.nullable().default(null),
   })
   .strict()
   .superRefine((variant, context) => {
@@ -88,6 +89,18 @@ export const productVariantSchema = z
         code: z.ZodIssueCode.custom,
         message: 'The synthetic default variant name must be "Default"',
         path: ['name'],
+      });
+    }
+
+    if (
+      variant.stockQuantity !== null &&
+      ((variant.stockQuantity === 0 && variant.availability !== 'sold_out') ||
+        (variant.stockQuantity > 0 && variant.availability !== 'available'))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Known stock quantity must agree with variant availability',
+        path: ['stockQuantity'],
       });
     }
   });
@@ -314,6 +327,7 @@ export const variantCheckResultSchema = z
     presence: variantPresenceSchema,
     priceStatus: z.enum(Object.values(PRICE_OBSERVATION_STATUS)),
     reasonCode: reasonCodeSchema.optional(),
+    stockQuantity: nonNegativeSafeIntegerSchema.nullable().default(null),
     variantId: positiveSafeIntegerSchema,
     variantLifecycle: variantLifecycleSchema,
   })
@@ -362,6 +376,26 @@ export const variantCheckResultSchema = z
         code: z.ZodIssueCode.custom,
         message: 'An absent or unknown variant check cannot declare current availability',
         path: ['availability'],
+      });
+    }
+
+    if (result.presence !== VARIANT_PRESENCE.PRESENT && result.stockQuantity !== null) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'An absent or unknown variant check cannot declare stock quantity',
+        path: ['stockQuantity'],
+      });
+    }
+
+    if (
+      result.stockQuantity !== null &&
+      ((result.stockQuantity === 0 && result.availability !== 'sold_out') ||
+        (result.stockQuantity > 0 && result.availability !== 'available'))
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Known stock quantity must agree with result availability',
+        path: ['stockQuantity'],
       });
     }
   });

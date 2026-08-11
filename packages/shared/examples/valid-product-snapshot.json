@@ -23,6 +23,7 @@
       "identityType": "shopee_model",
       "name": "200g - Pha Máy",
       "availability": "available",
+      "stockQuantity": 12,
       "priceObservation": {
         "status": "observed",
         "priceAmount": 199000,
@@ -39,6 +40,7 @@
       "identityType": "shopee_model",
       "name": "500g - Pha Phin",
       "availability": "unknown",
+      "stockQuantity": null,
       "priceObservation": {
         "status": "not_observed",
         "reason": "variation_response_missing"

@@ -3,9 +3,10 @@ import {
   EXTENSION_CAPTURE_MESSAGE_TYPE,
 } from '../constants/extensionProtocol.js';
 import { EXTENSION_MESSAGE_PROTOCOL_VERSION } from '../constants/contractValues.js';
-import { SHOPEE_PRODUCT_ENDPOINTS } from '../constants/shopeeEndpoints.js';
-
-const [PRODUCT_DETAIL_ENDPOINT, SELECTED_VARIATION_ENDPOINT] = SHOPEE_PRODUCT_ENDPOINTS;
+import {
+  SHOPEE_PRODUCT_DETAIL_ENDPOINT,
+  SHOPEE_SELECTED_VARIATION_ENDPOINTS,
+} from '../constants/shopeeEndpoints.js';
 
 const FINAL_PRICE_PATHS = Object.freeze([
   ['price', 'singlevalue'],
@@ -35,6 +36,13 @@ function safeTimestamp(value) {
     : new Date().toISOString();
 }
 
+function sanitiseStockQuantity(value) {
+  const stockQuantity = Number(value);
+  return value !== null && value !== '' && Number.isSafeInteger(stockQuantity) && stockQuantity >= 0
+    ? stockQuantity
+    : null;
+}
+
 function normaliseSelectedTiers(value) {
   const entries = Array.isArray(value)
     ? value.map((option, tier) => [String(tier), option])
@@ -62,23 +70,19 @@ function normaliseSelectedTiers(value) {
   return Object.keys(result).length > 0 ? result : null;
 }
 
-function inferAvailability(model) {
+function inferAvailability(
+  model,
+  stockQuantity = sanitiseStockQuantity(model?.stock ?? model?.normal_stock),
+) {
   if (model?.sold_out === true || model?.is_sold_out === true) {
     return 'sold_out';
   }
 
-  const stock = model?.stock ?? model?.normal_stock;
+  const stockAvailability =
+    stockQuantity === null ? 'unknown' : stockQuantity === 0 ? 'sold_out' : 'available';
 
-  if (stock !== null && stock !== undefined && stock !== '' && Number.isFinite(Number(stock))) {
-    const stockAmount = Number(stock);
-
-    if (stockAmount > 0) {
-      return 'available';
-    }
-
-    if (stockAmount === 0) {
-      return 'sold_out';
-    }
+  if (stockAvailability !== 'unknown') {
+    return stockAvailability;
   }
 
   const itemStatus = String(model?.item_status ?? '')
@@ -237,25 +241,36 @@ function sanitiseTierVariations(value) {
   }));
 }
 
-function sanitiseModels(value, productAvailability = 'unknown') {
+function sanitiseModels(value, product) {
   if (!Array.isArray(value)) {
     return [];
   }
 
   return value.map((model) => {
     const selectedTiers = normaliseSelectedTiers(model?.extinfo?.tier_index);
-    const modelAvailability = inferAvailability(model);
+    const modelStockQuantity = sanitiseStockQuantity(model?.stock ?? model?.normal_stock);
+    const modelAvailability = inferAvailability(model, modelStockQuantity);
     const availability =
       modelAvailability !== 'unknown'
         ? modelAvailability
-        : ['sold_out', 'unavailable'].includes(productAvailability) || value.length === 1
-          ? productAvailability
+        : ['sold_out', 'unavailable'].includes(product.availability) || value.length === 1
+          ? product.availability
           : 'unknown';
+    const candidateStockQuantity =
+      modelStockQuantity ??
+      (modelAvailability === 'unknown' && value.length === 1 ? product.stockQuantity : null);
+    const stockQuantity =
+      candidateStockQuantity !== null &&
+      ((candidateStockQuantity === 0 && availability === 'sold_out') ||
+        (candidateStockQuantity > 0 && availability === 'available'))
+        ? candidateStockQuantity
+        : null;
 
     return {
       availability,
       modelId: positiveId(model?.modelid ?? model?.model_id),
       name: typeof model?.name === 'string' ? model.name.slice(0, 300) : '',
+      stockQuantity,
       tierIndex: selectedTiers ? Object.values(selectedTiers) : [],
     };
   });
@@ -279,12 +294,16 @@ export function sanitiseProductDetailCapture(payload, { capturedAt } = {}) {
     return null;
   }
 
-  const models = sanitiseModels(item.models, inferAvailability(item));
+  const productStockQuantity = sanitiseStockQuantity(item.stock ?? item.normal_stock);
+  const models = sanitiseModels(item.models, {
+    availability: inferAvailability(item, productStockQuantity),
+    stockQuantity: productStockQuantity,
+  });
 
   return {
     ...captureEnvelope({
       capturedAt,
-      endpoint: PRODUCT_DETAIL_ENDPOINT,
+      endpoint: SHOPEE_PRODUCT_DETAIL_ENDPOINT,
       kind: EXTENSION_CAPTURE_KINDS.PRODUCT_DETAIL,
     }),
     priceEvidence: sanitiseProductDetailPriceEvidence(payload, models),
@@ -313,21 +332,29 @@ function safeErrorCode(payload) {
 /** Create allowlisted selected-variation evidence without request headers or credentials. */
 export function sanitiseSelectedVariationCapture(
   payload,
-  { capturedAt, ok, requestBody, status } = {},
+  { capturedAt, endpoint = SHOPEE_SELECTED_VARIATION_ENDPOINTS[0], ok, requestBody, status } = {},
 ) {
   const selectedTiers = normaliseSelectedTiers(requestBody?.selected_tiers);
   const itemId = positiveId(requestBody?.item_id);
   const shopId = positiveId(requestBody?.shop_id);
   const quantity = positiveSafeInteger(requestBody?.quantity ?? 1);
 
-  if (!selectedTiers || !itemId || !shopId || !quantity) {
+  if (
+    !selectedTiers ||
+    !itemId ||
+    !shopId ||
+    !quantity ||
+    !SHOPEE_SELECTED_VARIATION_ENDPOINTS.includes(endpoint)
+  ) {
     return null;
   }
+
+  const stockQuantity = ok === true ? sanitiseStockQuantity(payload?.data?.stock) : null;
 
   return {
     ...captureEnvelope({
       capturedAt,
-      endpoint: SELECTED_VARIATION_ENDPOINT,
+      endpoint,
       kind: EXTENSION_CAPTURE_KINDS.SELECTED_VARIATION,
     }),
     priceEvidence: sanitisePriceEvidence(payload),
@@ -337,6 +364,7 @@ export function sanitiseSelectedVariationCapture(
       ok: ok === true,
       status: Number.isInteger(status) && status >= 0 && status <= 599 ? status : null,
     },
+    stockQuantity,
   };
 }
 

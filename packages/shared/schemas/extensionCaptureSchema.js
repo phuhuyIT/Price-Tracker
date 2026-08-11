@@ -7,15 +7,21 @@ import {
   EXTENSION_COLLECTION_STATUS_MESSAGE_TYPE,
 } from '../constants/extensionProtocol.js';
 import { EXTENSION_MESSAGE_PROTOCOL_VERSION } from '../constants/contractValues.js';
-import { SHOPEE_PRODUCT_ENDPOINTS } from '../constants/shopeeEndpoints.js';
-import { isoTimestampSchema, positiveSafeIntegerSchema, shopeeIdSchema } from './commonSchemas.js';
+import {
+  SHOPEE_PRODUCT_DETAIL_ENDPOINT,
+  SHOPEE_SELECTED_VARIATION_ENDPOINTS,
+} from '../constants/shopeeEndpoints.js';
+import {
+  isoTimestampSchema,
+  nonNegativeSafeIntegerSchema,
+  positiveSafeIntegerSchema,
+  shopeeIdSchema,
+} from './commonSchemas.js';
 import {
   availabilityStatusSchema,
   observedPriceSourceSchema,
   voucherStatusSchema,
 } from './enumSchemas.js';
-
-const [PRODUCT_DETAIL_ENDPOINT, SELECTED_VARIATION_ENDPOINT] = SHOPEE_PRODUCT_ENDPOINTS;
 
 export const selectedTiersSchema = z
   .record(z.string().regex(/^\d+$/u), z.number().int().nonnegative().safe())
@@ -59,6 +65,7 @@ const productModelEvidenceSchema = z
     availability: availabilityStatusSchema,
     modelId: shopeeIdSchema,
     name: z.string().max(300),
+    stockQuantity: nonNegativeSafeIntegerSchema.nullable(),
     tierIndex: z.array(z.number().int().nonnegative().safe()).max(20),
   })
   .strict();
@@ -73,7 +80,7 @@ const tierVariationEvidenceSchema = z
 export const productDetailCaptureSchema = z
   .object({
     ...captureEnvelopeFields,
-    endpoint: z.literal(PRODUCT_DETAIL_ENDPOINT),
+    endpoint: z.literal(SHOPEE_PRODUCT_DETAIL_ENDPOINT),
     kind: z.literal(EXTENSION_CAPTURE_KINDS.PRODUCT_DETAIL),
     priceEvidence: sanitisedPriceEvidenceSchema,
     product: z
@@ -93,7 +100,7 @@ export const productDetailCaptureSchema = z
 export const selectedVariationCaptureSchema = z
   .object({
     ...captureEnvelopeFields,
-    endpoint: z.literal(SELECTED_VARIATION_ENDPOINT),
+    endpoint: z.enum(SHOPEE_SELECTED_VARIATION_ENDPOINTS),
     kind: z.literal(EXTENSION_CAPTURE_KINDS.SELECTED_VARIATION),
     priceEvidence: sanitisedPriceEvidenceSchema,
     request: z
@@ -111,6 +118,7 @@ export const selectedVariationCaptureSchema = z
         status: z.number().int().min(0).max(599).nullable(),
       })
       .strict(),
+    stockQuantity: nonNegativeSafeIntegerSchema.nullable(),
   })
   .strict();
 

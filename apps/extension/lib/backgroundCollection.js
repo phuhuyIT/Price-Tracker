@@ -47,6 +47,11 @@ function collectionResult(snapshot, jobId, productId, processedVariantCount) {
   const explicitlyUnavailable = snapshot.variants.filter((variant) =>
     ['sold_out', 'unavailable'].includes(variant.availability),
   ).length;
+  const stockVariant =
+    observed[0] ??
+    snapshot.variants.find(
+      (variant) => Number.isSafeInteger(variant.stockQuantity) && variant.stockQuantity >= 0,
+    );
   const expectedVariantCount = snapshot.expectedVariantCount ?? snapshot.variants.length;
   const pricedVariantCount = observed.length;
   const resolvedVariantCount = pricedVariantCount + explicitlyUnavailable;
@@ -69,6 +74,7 @@ function collectionResult(snapshot, jobId, productId, processedVariantCount) {
 
   return status(state, {
     availability,
+    displayedStockQuantity: stockVariant?.stockQuantity ?? null,
     expectedVariantCount,
     itemId: snapshot.itemId,
     jobId,
@@ -604,6 +610,13 @@ export function createBackgroundCollectionAgent({
 
       if (!active || active.tabId !== tabId) {
         return { ignored: true };
+      }
+
+      if (active.pendingSnapshot) {
+        await store.set({
+          [STORAGE_KEYS.ACTIVE_COLLECTION]: { ...active, tabId: null },
+        });
+        return { pendingCompletion: true };
       }
 
       return failActive(

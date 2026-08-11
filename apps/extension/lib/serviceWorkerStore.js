@@ -18,6 +18,7 @@ export const STORAGE_KEYS = Object.freeze({
 export const DEFAULT_COLLECTION_STATUS = Object.freeze({
   availability: 'unknown',
   at: null,
+  displayedStockQuantity: null,
   error: null,
   expectedVariantCount: null,
   itemId: null,

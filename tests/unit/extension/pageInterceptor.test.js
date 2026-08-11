@@ -65,6 +65,58 @@ describe('page interceptor', () => {
     expect(target.postMessage).not.toHaveBeenCalled();
   });
 
+  it('captures stock from the live select_variant_pc endpoint', async () => {
+    const endpoint = 'https://shopee.vn/api/v4/pdp/cart_panel/select_variant_pc';
+    const response = {
+      clone: vi.fn(() => ({
+        json: vi.fn(async () => ({
+          data: {
+            price_breakdown: {
+              price: { single_value: 30_520_000_000 },
+              price_model: { price_single_model_id: 190_287_104_059 },
+            },
+            stock: 12,
+          },
+        })),
+      })),
+      ok: true,
+      status: 200,
+      url: endpoint,
+    };
+    const target = {
+      fetch: vi.fn(async () => response),
+      location: {
+        href: 'https://shopee.vn/product-i.175753395.16270477304',
+        origin: 'https://shopee.vn',
+      },
+      postMessage: vi.fn(),
+    };
+
+    installPageInterceptor(target);
+    await target.fetch(endpoint, {
+      body: JSON.stringify({
+        item_id: 16_270_477_304,
+        quantity: 1,
+        selected_tiers: { 0: 0 },
+        shop_id: 175_753_395,
+      }),
+      method: 'POST',
+    });
+    await vi.waitFor(() => expect(target.postMessage).toHaveBeenCalledOnce());
+
+    expect(target.postMessage.mock.calls[0][0]).toMatchObject({
+      endpoint: '/api/v4/pdp/cart_panel/select_variant_pc',
+      kind: 'selected_variation',
+      request: {
+        itemId: '16270477304',
+        selectedTiers: { 0: 0 },
+        shopId: '175753395',
+      },
+      stockQuantity: 12,
+    });
+    expect(target.postMessage.mock.calls[0][0]).not.toHaveProperty('data');
+  });
+
   it('emits only a typed authentication status for Shopee error 90309999', async () => {
     const response = {
       clone: vi.fn(() => ({ json: vi.fn(async () => ({ error: 90_309_999 })) })),

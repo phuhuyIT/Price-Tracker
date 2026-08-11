@@ -126,16 +126,27 @@ function normaliseVariant({ implicitDefault, index, model, priceScale, state }) 
   const externalModelId = model.modelId;
   const variation = state.variations.get(selectedTiersKey(model.tierIndex));
   const fallback = state.productDetail.priceEvidence;
+  const variationModelMismatch =
+    variation?.priceEvidence.modelId && variation.priceEvidence.modelId !== externalModelId;
+  const targetedStockQuantity =
+    variation?.response.ok && !variationModelMismatch ? variation.stockQuantity : null;
+  const targetedAvailability =
+    targetedStockQuantity === null
+      ? 'unknown'
+      : targetedStockQuantity === 0
+        ? 'sold_out'
+        : 'available';
   const base = {
-    availability: model.availability,
+    availability: targetedAvailability !== 'unknown' ? targetedAvailability : model.availability,
     identityType: implicitDefault
       ? VARIANT_IDENTITY_TYPES.SYNTHETIC_DEFAULT
       : VARIANT_IDENTITY_TYPES.SHOPEE_MODEL,
     modelId: implicitDefault ? 'default' : externalModelId,
     name: implicitDefault ? 'Default' : model.name.trim() || `Variant ${index + 1}`,
+    stockQuantity: targetedStockQuantity ?? model.stockQuantity,
   };
 
-  if (variation?.priceEvidence.modelId && variation.priceEvidence.modelId !== externalModelId) {
+  if (variationModelMismatch) {
     return { ...base, priceObservation: notObserved('variation_response_model_mismatch') };
   }
 
@@ -246,7 +257,8 @@ export function applyShopeeCapture(state, capture) {
   const contextChanged =
     (state.quantity !== null && state.quantity !== capture.request.quantity) ||
     (existing !== undefined &&
-      JSON.stringify(existing.priceEvidence) !== JSON.stringify(capture.priceEvidence));
+      (JSON.stringify(existing.priceEvidence) !== JSON.stringify(capture.priceEvidence) ||
+        existing.stockQuantity !== capture.stockQuantity));
 
   if (contextChanged) {
     state.variations.clear();
@@ -374,6 +386,8 @@ export function createShopeeCaptureSummary(state, snapshot) {
     displayedAvailability:
       displayedVariant?.availability ?? selectedVariant?.availability ?? 'unknown',
     displayedPriceAmount: displayedVariant?.priceObservation.priceAmount ?? null,
+    displayedStockQuantity:
+      displayedVariant?.stockQuantity ?? selectedVariant?.stockQuantity ?? null,
     itemId: snapshot.itemId,
     selectedVariant: selectedVariant?.name ?? displayedVariant?.name ?? null,
     shopId: snapshot.shopId,

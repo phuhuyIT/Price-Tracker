@@ -39,6 +39,21 @@ describe('product snapshot schema', () => {
     expect(result.variants[1].priceObservation).not.toHaveProperty('priceAmount');
   });
 
+  it('accepts known stock and rejects invalid or availability-conflicting quantities', () => {
+    const valid = validSnapshot();
+    expect(productSnapshotSchema.parse(valid).variants[0].stockQuantity).toBe(12);
+
+    for (const stockQuantity of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+      const invalid = validSnapshot();
+      invalid.variants[0].stockQuantity = stockQuantity;
+      expect(productSnapshotSchema.safeParse(invalid).success).toBe(false);
+    }
+
+    const conflicting = validSnapshot();
+    conflicting.variants[0].stockQuantity = 0;
+    expect(productSnapshotSchema.safeParse(conflicting).success).toBe(false);
+  });
+
   it.each([0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1])(
     'rejects invalid price amount %s',
     (priceAmount) => {
@@ -329,6 +344,28 @@ describe('per-variant check result schema', () => {
       variantCheckResultSchema.safeParse({
         ...absentResult,
         presence: 'unknown',
+      }).success,
+    ).toBe(false);
+  });
+
+  it('accepts consistent present stock but rejects stock on absent results', () => {
+    const present = {
+      availability: 'available',
+      lifecycleEligible: false,
+      presence: 'present',
+      priceStatus: 'observed',
+      stockQuantity: 12,
+      variantId: 1,
+      variantLifecycle: 'active',
+    };
+    expect(variantCheckResultSchema.safeParse(present).success).toBe(true);
+    expect(
+      variantCheckResultSchema.safeParse({
+        ...present,
+        availability: 'unknown',
+        presence: 'absent',
+        priceStatus: 'not_observed',
+        reasonCode: 'missing_from_verified_complete_snapshot',
       }).success,
     ).toBe(false);
   });

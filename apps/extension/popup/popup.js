@@ -17,6 +17,7 @@ const elements = {
   priceCoverage: document.querySelector('#price-coverage'),
   productTitle: document.querySelector('#product-title'),
   selectedVariant: document.querySelector('#selected-variant'),
+  stockQuantity: document.querySelector('#stock-quantity'),
   submissionStatus: document.querySelector('#submission-status'),
   trackButton: document.querySelector('#track-button'),
   uploadQueueStatus: document.querySelector('#upload-queue-status'),
@@ -27,6 +28,10 @@ const vndFormatter = new Intl.NumberFormat('vi-VN', {
   currency: 'VND',
   maximumFractionDigits: 0,
   style: 'currency',
+});
+
+const quantityFormatter = new Intl.NumberFormat('vi-VN', {
+  maximumFractionDigits: 0,
 });
 
 let activeTab = null;
@@ -229,6 +234,12 @@ function render(state) {
               : vndFormatter.format(summary.displayedPriceAmount);
     elements.selectedVariant.textContent =
       relevantCollection?.lowestPriceVariant ?? summary.selectedVariant ?? 'Not selected';
+    const stockQuantity =
+      relevantCollection?.displayedStockQuantity ?? summary.displayedStockQuantity;
+    elements.stockQuantity.textContent =
+      Number.isSafeInteger(stockQuantity) && stockQuantity >= 0
+        ? quantityFormatter.format(stockQuantity)
+        : 'Unknown';
     elements.voucherStatus.textContent = summary.voucherStatus.replaceAll('_', ' ');
     elements.priceCoverage.textContent = relevantCollection
       ? priceCoverageMessage(relevantCollection)

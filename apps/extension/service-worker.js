@@ -17,6 +17,7 @@ import {
   normaliseExtensionSettings,
 } from './lib/extensionSettings.js';
 import { createFullProductCollectionCoordinator } from './lib/fullProductCollection.js';
+import { isTrustedExtensionPageSender } from './lib/messageSender.js';
 import { createProductPinsService } from './lib/productPins.js';
 import { RUNTIME_MESSAGES } from './lib/runtimeMessages.js';
 import { createServiceWorkerQueue, RETRY_ALARM_NAME } from './lib/serviceWorkerQueue.js';
@@ -99,6 +100,7 @@ function sameSnapshotPage(snapshot, pageUrl) {
 
 function sanitiseCaptureSummary(value, snapshot) {
   const displayedPriceAmount = Number(value?.displayedPriceAmount);
+  const displayedStockQuantity = value?.displayedStockQuantity;
   const capturedAt =
     typeof value?.capturedAt === 'string' && Number.isFinite(Date.parse(value.capturedAt))
       ? value.capturedAt
@@ -114,6 +116,10 @@ function sanitiseCaptureSummary(value, snapshot) {
     displayedPriceAmount:
       Number.isSafeInteger(displayedPriceAmount) && displayedPriceAmount > 0
         ? displayedPriceAmount
+        : null,
+    displayedStockQuantity:
+      Number.isSafeInteger(displayedStockQuantity) && displayedStockQuantity >= 0
+        ? displayedStockQuantity
         : null,
     itemId: snapshot.itemId,
     selectedVariant:
@@ -346,7 +352,7 @@ async function regenerateContext() {
 }
 
 function requireExtensionPage(sender) {
-  if (sender.id !== chrome.runtime.id || sender.tab) {
+  if (!isTrustedExtensionPageSender(sender, chrome.runtime.id)) {
     throw extensionError('This action is restricted to extension pages', 'UNTRUSTED_SENDER');
   }
 }

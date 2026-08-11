@@ -161,6 +161,7 @@ describe('background Chrome collection agent', () => {
           availability: 'available',
           name: 'Default',
           priceObservation: { priceAmount: 199_000, status: 'observed' },
+          stockQuantity: 12,
         },
       ],
     };
@@ -256,6 +257,7 @@ describe('background Chrome collection agent', () => {
             availability: 'sold_out',
             name: 'Default',
             priceObservation: { priceAmount: 199_000, status: 'observed' },
+            stockQuantity: 0,
           },
         ],
       },
@@ -264,6 +266,7 @@ describe('background Chrome collection agent', () => {
 
     expect(harness.store.state.collectionStatus).toMatchObject({
       availability: 'sold_out',
+      displayedStockQuantity: 0,
       expectedVariantCount: 1,
       lowestPriceAmount: null,
       pricedVariantCount: 0,
@@ -479,6 +482,60 @@ describe('background Chrome collection agent', () => {
       expect.any(String),
     );
     expect(harness.tabs.remove).toHaveBeenCalledWith(17);
+  });
+
+  it('preserves a captured snapshot and the backend result when its tab closes during save', async () => {
+    const harness = createHarness({ settings: { backgroundCollectionEnabled: true } });
+    harness.backendClient.claimCollectionJob.mockResolvedValue({ claim: claim(), kind: 'success' });
+    let resolveCompletion;
+    harness.backendClient.completeCollectionJob.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCompletion = resolve;
+        }),
+    );
+    await harness.agent.poll();
+    const snapshot = {
+      expectedVariantCount: 1,
+      itemId: '26882883164',
+      pricedVariantCount: 1,
+      pricingContextKey: 'extension:test-profile',
+      shopId: '1259293184',
+      variants: [
+        {
+          availability: 'available',
+          name: 'Default',
+          priceObservation: { priceAmount: 199_000, status: 'observed' },
+          stockQuantity: 12,
+        },
+      ],
+    };
+    const completion = harness.agent.complete({ snapshot, tabId: 17 });
+    await vi.waitFor(() =>
+      expect(harness.backendClient.completeCollectionJob).toHaveBeenCalledOnce(),
+    );
+
+    await expect(harness.agent.handleTabRemoved(17)).resolves.toEqual({
+      pendingCompletion: true,
+    });
+    expect(harness.backendClient.failCollectionJob).not.toHaveBeenCalled();
+    expect(harness.store.state.activeCollection).toMatchObject({
+      pendingSnapshot: snapshot,
+      tabId: null,
+    });
+
+    resolveCompletion({
+      error: 'The backend rejected the captured snapshot',
+      kind: 'permanent',
+    });
+    await completion;
+
+    expect(harness.backendClient.failCollectionJob).not.toHaveBeenCalled();
+    expect(harness.store.state.activeCollection).toBeNull();
+    expect(harness.store.state.collectionStatus).toMatchObject({
+      error: 'The backend rejected the captured snapshot',
+      state: 'failed',
+    });
   });
 
   it('reports a temporary tab that the user closes before collection finishes', async () => {

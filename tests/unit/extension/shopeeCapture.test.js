@@ -34,6 +34,20 @@ function variationCapture(evidence, capturedAt) {
   });
 }
 
+function variationCaptureWithStock(evidence, capturedAt, stock, overrides = {}) {
+  const payload = structuredClone(evidence.response.payload);
+  payload.data.stock = stock;
+
+  return sanitiseSelectedVariationCapture(payload, {
+    capturedAt,
+    endpoint: '/api/v4/pdp/cart_panel/select_variant_pc',
+    ok: evidence.response.ok,
+    requestBody: evidence.request.body,
+    status: evidence.response.status,
+    ...overrides,
+  });
+}
+
 function withoutPrice(capture, offsetMs = 1) {
   return {
     ...structuredClone(capture),
@@ -181,6 +195,83 @@ describe('Shopee extension capture normalisation', () => {
     ]);
   });
 
+  it.each([
+    { expected: 'available', stock: 12 },
+    { expected: 'sold_out', stock: 0 },
+  ])(
+    'uses correlated select_variant_pc data.stock=$stock as $expected',
+    async ({ expected, stock }) => {
+      const sourceFixture = await fixture('shopee-variantless-user-session.json');
+      const rawDetail = structuredClone(sourceFixture.endpointEvidence.productDetail.response);
+      rawDetail.data.item.stock = null;
+      rawDetail.data.item.models[0].stock = null;
+      const variation = variationCaptureWithStock(
+        sourceFixture.endpointEvidence.selectedVariations[0],
+        sourceFixture.capturedAt,
+        stock,
+      );
+      const state = createShopeeCaptureState();
+
+      applyShopeeCapture(
+        state,
+        extensionCaptureMessageSchema.parse(
+          sanitiseProductDetailCapture(rawDetail, { capturedAt: sourceFixture.capturedAt }),
+        ),
+      );
+      applyShopeeCapture(state, extensionCaptureMessageSchema.parse(variation));
+      const snapshot = normaliseShopeeCaptureState(state, {
+        pageUrl: sourceFixture.sourceUrl,
+        pricingContextKey: 'extension:test-installation',
+      });
+
+      expect(variation).toMatchObject({
+        endpoint: '/api/v4/pdp/cart_panel/select_variant_pc',
+        stockQuantity: stock,
+      });
+      expect(snapshot.variants[0]).toMatchObject({
+        availability: expected,
+        stockQuantity: stock,
+      });
+      expect(createShopeeCaptureSummary(state, snapshot).displayedStockQuantity).toBe(stock);
+    },
+  );
+
+  it('does not apply selected stock when the response price identifies another model', async () => {
+    const sourceFixture = await fixture('shopee-variantless-user-session.json');
+    const rawDetail = structuredClone(sourceFixture.endpointEvidence.productDetail.response);
+    rawDetail.data.item.stock = null;
+    rawDetail.data.item.models[0].stock = null;
+    const evidence = structuredClone(sourceFixture.endpointEvidence.selectedVariations[0]);
+    evidence.response.payload.data.price_breakdown.price_model.price_single_model_id = 99_999_999;
+    const state = createShopeeCaptureState();
+
+    applyShopeeCapture(
+      state,
+      extensionCaptureMessageSchema.parse(
+        sanitiseProductDetailCapture(rawDetail, { capturedAt: sourceFixture.capturedAt }),
+      ),
+    );
+    applyShopeeCapture(
+      state,
+      extensionCaptureMessageSchema.parse(
+        variationCaptureWithStock(evidence, sourceFixture.capturedAt, 12),
+      ),
+    );
+    const snapshot = normaliseShopeeCaptureState(state, {
+      pageUrl: sourceFixture.sourceUrl,
+      pricingContextKey: 'extension:test-installation',
+    });
+
+    expect(snapshot.variants[0]).toMatchObject({
+      availability: 'unknown',
+      priceObservation: {
+        reason: 'variation_response_model_mismatch',
+        status: 'not_observed',
+      },
+      stockQuantity: null,
+    });
+  });
+
   it('uses product-level zero stock for a sold-out variantless product', async () => {
     const sourceFixture = await fixture('shopee-variantless-user-session.json');
     const rawResponse = structuredClone(sourceFixture.endpointEvidence.productDetail.response);
@@ -202,6 +293,7 @@ describe('Shopee extension capture normalisation', () => {
     expect(snapshot.variants[0]).toMatchObject({
       availability: 'sold_out',
       priceObservation: { priceAmount: 25_600, status: 'observed' },
+      stockQuantity: 0,
     });
     expect(createShopeeCaptureSummary(state, snapshot)).toMatchObject({
       displayedAvailability: 'sold_out',

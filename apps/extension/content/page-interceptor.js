@@ -3,14 +3,17 @@ import {
   EXTENSION_COLLECTION_STATUS_CODES,
   EXTENSION_COLLECTION_STATUS_MESSAGE_TYPE,
 } from '../../../packages/shared/constants/extensionProtocol.js';
-import { SHOPEE_PRODUCT_ENDPOINTS } from '../../../packages/shared/constants/shopeeEndpoints.js';
+import {
+  isShopeeSelectedVariationEndpoint,
+  SHOPEE_PRODUCT_DETAIL_ENDPOINT,
+  SHOPEE_PRODUCT_ENDPOINTS,
+} from '../../../packages/shared/constants/shopeeEndpoints.js';
 import {
   parseVariationRequestBody,
   sanitiseProductDetailCapture,
   sanitiseSelectedVariationCapture,
 } from '../../../packages/shared/shopee/shopeeCaptureSanitizer.js';
 
-const [PRODUCT_DETAIL_ENDPOINT, SELECTED_VARIATION_ENDPOINT] = SHOPEE_PRODUCT_ENDPOINTS;
 const INSTALL_MARKER = '__shopeePriceTrackerPageInterceptorV1';
 
 function endpointPath(value, baseUrl) {
@@ -102,18 +105,20 @@ async function inspectFetchResponse(target, input, init, response) {
   }
 
   const clone = response.clone();
-  const requestBodyPromise =
-    path === SELECTED_VARIATION_ENDPOINT ? fetchRequestBody(input, init) : Promise.resolve(null);
+  const requestBodyPromise = isShopeeSelectedVariationEndpoint(path)
+    ? fetchRequestBody(input, init)
+    : Promise.resolve(null);
 
   try {
     const [payload, requestBody] = await Promise.all([clone.json(), requestBodyPromise]);
     const capturedAt = new Date().toISOString();
     postCollectionStatus(target, response.status, payload, capturedAt);
     const capture =
-      path === PRODUCT_DETAIL_ENDPOINT
+      path === SHOPEE_PRODUCT_DETAIL_ENDPOINT
         ? sanitiseProductDetailCapture(payload, { capturedAt })
         : sanitiseSelectedVariationCapture(payload, {
             capturedAt,
+            endpoint: path,
             ok: response.ok,
             requestBody,
             status: response.status,
@@ -213,10 +218,11 @@ export function installPageInterceptor(target = window) {
             const capturedAt = new Date().toISOString();
             postCollectionStatus(target, this.status, payload, capturedAt);
             const capture =
-              path === PRODUCT_DETAIL_ENDPOINT
+              path === SHOPEE_PRODUCT_DETAIL_ENDPOINT
                 ? sanitiseProductDetailCapture(payload, { capturedAt })
                 : sanitiseSelectedVariationCapture(payload, {
                     capturedAt,
+                    endpoint: path,
                     ok: this.status >= 200 && this.status < 300,
                     requestBody: parseVariationRequestBody(request.body),
                     status: this.status,
