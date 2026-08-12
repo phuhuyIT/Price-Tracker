@@ -1,5 +1,6 @@
 import { RUNTIME_MESSAGES } from '../lib/runtimeMessages.js';
 import { createCollectionJobQueueView } from './collectionJobQueueView.js';
+import { createProductCaptureView } from './productCaptureView.js';
 import { createProductQuickWatch } from './productQuickWatch.js';
 
 const elements = {
@@ -214,35 +215,30 @@ function render(state) {
     const relevantCollection = isCollectionForCapture(state.collectionStatus, summary)
       ? state.collectionStatus
       : null;
+    const productView = createProductCaptureView(summary, relevantCollection);
+    const currentSelection = productView.currentSelection;
     const hasCollectionActivity =
       relevantCollection && !['disabled', 'idle'].includes(relevantCollection.state);
-    const collectedPrice = Number(relevantCollection?.lowestPriceAmount);
-    const displayedAvailability =
-      relevantCollection?.availability ?? summary.displayedAvailability ?? 'unknown';
     elements.capturePlaceholder.hidden = true;
     elements.captureDetails.hidden = false;
     elements.productTitle.textContent = summary.title;
     elements.displayedPrice.textContent =
-      displayedAvailability === 'sold_out'
+      currentSelection.availability === 'sold_out'
         ? 'Sold out'
-        : displayedAvailability === 'unavailable'
+        : currentSelection.availability === 'unavailable'
           ? 'Unavailable'
-          : Number.isSafeInteger(collectedPrice) && collectedPrice > 0
-            ? vndFormatter.format(collectedPrice)
-            : summary.displayedPriceAmount === null
-              ? 'Price not observed'
-              : vndFormatter.format(summary.displayedPriceAmount);
-    elements.selectedVariant.textContent =
-      relevantCollection?.lowestPriceVariant ?? summary.selectedVariant ?? 'Not selected';
-    const stockQuantity =
-      relevantCollection?.displayedStockQuantity ?? summary.displayedStockQuantity;
+          : currentSelection.priceAmount === null
+            ? 'Price not observed'
+            : vndFormatter.format(currentSelection.priceAmount);
+    elements.selectedVariant.textContent = currentSelection.selectedVariant ?? 'Not selected';
+    const stockQuantity = currentSelection.stockQuantity;
     elements.stockQuantity.textContent =
       Number.isSafeInteger(stockQuantity) && stockQuantity >= 0
         ? quantityFormatter.format(stockQuantity)
         : 'Unknown';
-    elements.voucherStatus.textContent = summary.voucherStatus.replaceAll('_', ' ');
-    elements.priceCoverage.textContent = relevantCollection
-      ? priceCoverageMessage(relevantCollection)
+    elements.voucherStatus.textContent = currentSelection.voucherStatus.replaceAll('_', ' ');
+    elements.priceCoverage.textContent = productView.collectionStatus
+      ? priceCoverageMessage(productView.collectionStatus)
       : 'Not collected';
     elements.submissionStatus.textContent = hasCollectionActivity
       ? ''

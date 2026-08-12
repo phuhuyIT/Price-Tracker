@@ -372,29 +372,29 @@ export function createShopeeCaptureSummary(state, snapshot) {
     (variant) => !['sold_out', 'unavailable'].includes(variant.availability),
   );
   const displayedVariant =
-    selectedVariant?.priceObservation.status === PRICE_OBSERVATION_STATUS.OBSERVED
-      ? selectedVariant
-      : (purchasableObservedVariants.length > 0
-          ? purchasableObservedVariants
-          : observedVariants
-        ).toSorted(
-          (left, right) => left.priceObservation.priceAmount - right.priceObservation.priceAmount,
-        )[0];
+    selectedVariant ??
+    (purchasableObservedVariants.length > 0
+      ? purchasableObservedVariants
+      : observedVariants
+    ).toSorted(
+      (left, right) => left.priceObservation.priceAmount - right.priceObservation.priceAmount,
+    )[0];
+  const displayedObservation =
+    displayedVariant?.priceObservation.status === PRICE_OBSERVATION_STATUS.OBSERVED
+      ? displayedVariant.priceObservation
+      : null;
 
   return {
     capturedAt: snapshot.capturedAt,
     displayedAvailability:
       displayedVariant?.availability ?? selectedVariant?.availability ?? 'unknown',
-    displayedPriceAmount: displayedVariant?.priceObservation.priceAmount ?? null,
+    displayedPriceAmount: displayedObservation?.priceAmount ?? null,
     displayedStockQuantity:
       displayedVariant?.stockQuantity ?? selectedVariant?.stockQuantity ?? null,
     itemId: snapshot.itemId,
     selectedVariant: selectedVariant?.name ?? displayedVariant?.name ?? null,
     shopId: snapshot.shopId,
     title: snapshot.title,
-    voucherStatus:
-      displayedVariant?.priceObservation.status === PRICE_OBSERVATION_STATUS.OBSERVED
-        ? displayedVariant.priceObservation.voucherStatus
-        : 'unknown',
+    voucherStatus: displayedObservation?.voucherStatus ?? 'unknown',
   };
 }

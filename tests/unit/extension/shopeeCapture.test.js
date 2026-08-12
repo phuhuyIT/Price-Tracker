@@ -119,6 +119,45 @@ describe('Shopee extension capture normalisation', () => {
     ).toHaveLength(2);
   });
 
+  it('does not display another variant price when the latest selected tier is unpriced', async () => {
+    const sourceFixture = await fixture('shopee-multi-variant-user-session.json');
+    const state = createShopeeCaptureState();
+    applyShopeeCapture(
+      state,
+      extensionCaptureMessageSchema.parse(productDetailCapture(sourceFixture)),
+    );
+    applyShopeeCapture(
+      state,
+      extensionCaptureMessageSchema.parse(
+        variationCapture(
+          sourceFixture.endpointEvidence.selectedVariations[0],
+          sourceFixture.capturedAt,
+        ),
+      ),
+    );
+    applyShopeeCapture(
+      state,
+      extensionCaptureMessageSchema.parse(
+        withoutPrice(
+          variationCapture(
+            sourceFixture.endpointEvidence.selectedVariations[1],
+            sourceFixture.capturedAt,
+          ),
+        ),
+      ),
+    );
+    const snapshot = normaliseShopeeCaptureState(state, {
+      pageUrl: sourceFixture.sourceUrl,
+      pricingContextKey: 'extension:test-installation',
+    });
+
+    expect(createShopeeCaptureSummary(state, snapshot)).toMatchObject({
+      displayedPriceAmount: null,
+      selectedVariant: 'PHA PHIN',
+      voucherStatus: 'unknown',
+    });
+  });
+
   it('does not create a catalogue from selected-variation evidence alone', async () => {
     const sourceFixture = await fixture('shopee-multi-variant-user-session.json');
     const state = createShopeeCaptureState();
