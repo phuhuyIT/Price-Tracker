@@ -135,10 +135,13 @@ async function verifyLocalDashboard(browser) {
     await page.locator('#queue-reload-button').click();
     await page.getByText('Collecting', { exact: true }).waitFor({ state: 'visible' });
 
+    const refreshedSnapshot = structuredClone(snapshot);
+    refreshedSnapshot.capturedAt = '2026-07-31T10:00:00.000Z';
+    refreshedSnapshot.variants[0].priceObservation.priceAmount = 179_000;
     const completeResponse = await globalThis.fetch(
       `${harness.baseUrl}/api/collection-jobs/${claim.data.job.id}/complete`,
       {
-        body: JSON.stringify({ leaseToken: claim.data.leaseToken, snapshot }),
+        body: JSON.stringify({ leaseToken: claim.data.leaseToken, snapshot: refreshedSnapshot }),
         headers: { 'content-type': 'application/json' },
         method: 'POST',
       },
@@ -178,15 +181,39 @@ async function verifyLocalDashboard(browser) {
     await page.locator('#chart-shell').waitFor({ state: 'visible' });
     const chartState = await page.evaluate(() => {
       const chart = globalThis.Chart.getChart(globalThis.document.querySelector('#history-chart'));
+      const observedPrices = chart?.data.datasets.flatMap((dataset) =>
+        dataset.data.filter((point) => point.y !== null).map((point) => point.y),
+      );
+
       return {
         datasetCount: chart?.data.datasets.length,
         containsGap: chart?.data.datasets.some((dataset) =>
           dataset.data.some((point) => point.y === null),
         ),
+        dateTickCount: chart?.scales.x.ticks.length,
+        datesAreVisible: chart?.scales.x.ticks.every((tick) => tick.label !== 'Never'),
+        lowestObservedPrice: Math.min(...observedPrices),
+        lowestParsedPrice: Math.min(
+          ...chart
+            .getSortedVisibleDatasetMetas()
+            .flatMap((metadata) =>
+              metadata._parsed.filter((point) => point.y !== null).map((point) => point.y),
+            ),
+        ),
         spanGaps: chart?.data.datasets.every((dataset) => dataset.spanGaps === false),
+        yScaleIncludesLowestPrice: chart?.scales.y.min <= Math.min(...observedPrices),
       };
     });
-    assert.deepEqual(chartState, { containsGap: true, datasetCount: 2, spanGaps: true });
+    assert.deepEqual(chartState, {
+      containsGap: true,
+      datasetCount: 2,
+      dateTickCount: 2,
+      datesAreVisible: true,
+      lowestObservedPrice: 179_000,
+      lowestParsedPrice: 179_000,
+      spanGaps: true,
+      yScaleIncludesLowestPrice: true,
+    });
 
     await page.getByRole('button', { name: 'Close' }).click();
     await card.getByRole('button', { name: 'Pause' }).click();

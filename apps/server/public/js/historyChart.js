@@ -61,7 +61,10 @@ export function createHistoryChartController({ canvas, ChartConstructor = window
           mode: 'nearest',
         },
         maintainAspectRatio: false,
-        parsing: false,
+        parsing: {
+          xAxisKey: 'x',
+          yAxisKey: 'y',
+        },
         plugins: {
           legend: {
             labels: {

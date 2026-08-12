@@ -536,12 +536,14 @@ async function loadHistory() {
       return;
     }
 
-    historyChart.render(history);
     elements.chartShell.hidden = false;
+    historyChart.render(history);
     elements.historyStatus.textContent =
       'Gaps mark successful checks where Shopee did not expose a valid price.';
     elements.historyStatus.dataset.state = 'note';
   } catch (error) {
+    historyChart.destroy();
+    elements.chartShell.hidden = true;
     elements.historyStatus.textContent = errorMessage(error);
     elements.historyStatus.dataset.state = 'error';
   }

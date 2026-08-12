@@ -38,6 +38,15 @@ describe('history chart controller', () => {
     const firstConfiguration = ChartConstructor.mock.calls[0][1];
     expect(firstConfiguration.data.datasets[0].data[1].y).toBeNull();
     expect(firstConfiguration.data.datasets[0].spanGaps).toBe(false);
+    expect(firstConfiguration.options.parsing).toEqual({
+      xAxisKey: 'x',
+      yAxisKey: 'y',
+    });
+
+    const xTick = firstConfiguration.options.scales.x.ticks;
+    const getLabelForValue = vi.fn(() => history.datasets[0].data[0].x);
+    expect(xTick.callback.call({ getLabelForValue }, 0)).not.toBe('Never');
+    expect(getLabelForValue).toHaveBeenCalledWith(0);
 
     const tooltip = firstConfiguration.options.plugins.tooltip;
     const dataset = firstConfiguration.data.datasets[0];
