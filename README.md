@@ -24,8 +24,8 @@
 > [docs/phase-10-telegram-notifications.md](docs/phase-10-telegram-notifications.md).
 > The responsive dashboard and its context-safe history chart are documented in
 > [docs/phase-11-web-dashboard.md](docs/phase-11-web-dashboard.md).
-> Phase 12 automated hardening, security/resource evidence, and the remaining
-> live acceptance gate are documented in
+> Phase 12 automated hardening, security/resource evidence, and completed live
+> acceptance are documented in
 > [docs/phase-12-end-to-end-hardening.md](docs/phase-12-end-to-end-hardening.md).
 > Existing collector behavior is intentionally preserved as legacy discovery
 > tooling.
@@ -410,10 +410,12 @@ integrations. Phase 12 also verifies logger redaction, repository privacy,
 client-independent lifecycle coverage, listener cleanup, queue bounds, scheduler
 locking, transaction rollback, and snapshot idempotency.
 
-Automated hardening is complete. Real Shopee session behavior, extension queue
-recovery across a browser/backend restart, and Telegram delivery remain a manual
-gate. Follow `docs/phase-12-end-to-end-hardening.md` with a separate manual
-database; automated fixtures must not be reported as live verification.
+Phase 12 automated and live acceptance are complete. Real Shopee session
+behavior, scheduled extension dispatch, queue recovery across a browser/backend
+restart, Telegram delivery and duplicate suppression, lifecycle safety, history
+rendering, and cascade deletion were verified with separate disposable data. See
+`docs/phase-12-end-to-end-hardening.md` for the evidence and accepted external
+Shopee response limitation.
 
 This project has two browser modes:
 

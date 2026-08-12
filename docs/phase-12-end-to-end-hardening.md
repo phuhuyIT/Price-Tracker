@@ -2,14 +2,11 @@
 
 ## Status
 
-Automated hardening is implemented and verified as of 2026-08-11. The live
-Chrome/Shopee and Telegram checklist remains open because deterministic fixtures
-cannot prove the installed extension's current session, Shopee's current private
-API shape, voucher eligibility, or delivery through the user's real bot and
-destination chat.
-
-Phase 12 is not complete until those live checks pass or every failed check is
-recorded as an accepted limitation.
+Phase 12 is complete as of 2026-08-12. Automated hardening and the live
+Chrome/Shopee, scheduler, queue-recovery, Telegram, lifecycle, persistence,
+history, and cascade-deletion gates all passed. Current Shopee response
+availability remains an external limitation, but missing responses are stored as
+truthful gaps rather than zero or stale prices.
 
 ## Production collection boundary
 
@@ -31,10 +28,10 @@ Run the complete Phase 12 gate:
 npm.cmd run test:phase12
 ```
 
-Verified result on 2026-08-11:
+Verified result on 2026-08-12:
 
 - ESLint, Prettier, and legacy syntax checks passed;
-- 46 Vitest files and 286 tests passed;
+- 47 Vitest files and 288 tests passed;
 - the deterministic 15-file Manifest V3 extension build passed;
 - the local headless-Chromium dashboard workflow passed; and
 - all retained fixture, variation-selection, Playwright, and current-profile
@@ -89,9 +86,23 @@ target_closed`. The test now waits for the target URL, keeps the service-worker
    rendered as zero. The unsuccessful page-text and purchase-control availability
    experiments were removed; only the older conservative sold-out DOM fallback
    remains when API stock is redacted.
+7. A completed full-catalogue collection left its aggregate
+   `lowestPriceVariant` and `lowestPriceAmount` in collection status. The popup
+   incorrectly used those aggregate fields instead of the current page capture,
+   so selecting another variant could continue to display the collected minimum
+   variant and price. Current selection details and full-catalogue results now
+   have an explicit presentation boundary: variant, price, stock, availability,
+   and voucher always come from the current page capture, while catalogue totals
+   remain in price coverage and collection status. The shared normaliser also no
+   longer falls back to another observed variant's price when an explicitly
+   selected tier is unpriced. Focused tests cover both boundaries. After the
+   rebuilt extension was reloaded on 2026-08-12, the user changed away from
+   `Đen 2026` and confirmed that the popup followed the newly selected variant
+   and its displayed price.
 
-No reproducible automated defect remains after the final gate. Live-only failures
-must be added here with reproduction steps before Phase 12 can be closed.
+No reproducible automated or live defect remains after the final gate. Any new
+regression must be added here with reproduction steps and reopen the affected
+acceptance criterion.
 
 ## Security checklist
 
@@ -166,45 +177,110 @@ disabled after the batch. The scheduled dispatch, automatic queue drain, grouped
 check, price-safety, inactive-tab, and automatic tab-cleanup portions of the live
 gate pass.
 
+On 2026-08-12, `telegram:test` confirmed that the configured bot and private
+destination were reachable without sending a message. A controlled live test
+then used an isolated temporary database to store four extension-source
+observations: 250,000 VND, 199,000 VND, 250,000 VND, and 199,000 VND for the
+same variant and pricing context. All four snapshot requests succeeded, exactly
+one Telegram send was attempted, exactly one `notification_events` row was
+created, and the user confirmed receipt of the correct 250,000 to 199,000 VND
+alert. Repeating the exact transition sent no duplicate. The temporary database
+was removed afterward and the normal tracker database was not changed. The live
+Telegram delivery and duplicate-suppression portion of the gate passes.
+
+Also on 2026-08-12, the extension snapshot queue was exercised against a
+separate manual database with the backend offline. Seven locally stored records
+remained visible after every Chrome window was closed and Chrome was restarted.
+After the same backend and allowed extension origin were restored, an explicit
+retry drained six current retryable snapshots and stored three products in the
+manual database. The only remaining record was an older 2026-08-11 permanent
+failure with HTTP 403 `CORS_ORIGIN_DENIED`; its metadata confirmed that it
+predated this test and came from the formerly incorrect origin configuration.
+The user explicitly cleared that dead-letter record and confirmed the local
+queue returned to zero. The live backend/browser restart persistence and
+reconnection-drain portion of the gate passes.
+
+The combined product workflow then exposed resolved bug 7. After the rebuilt
+extension was reloaded, changing away from `Đen 2026` updated the popup to the
+actual current variant and displayed price. A successful partial collection for
+the six-variant product stored exact prices of 404,000, 424,000, 464,000, and
+464,000 VND with positive stock, voucher status `applied`, the
+`displayed_post_voucher_excluding_shipping` definition, and
+`shipping_included = 0`. Two later Shopee attempts exposed no selected-variation
+responses; each stored six `variation_response_missing` results and no price
+logs, preserving the earlier history as real chart gaps rather than zero or
+stale prices. After the backend restarted, all three disposable products, six
+variants, exact prices, and gaps remained. The user confirmed that the dashboard
+history showed dates on the horizontal axis, separate variant series, the exact
+prices, and gaps, and that the inactive collection tab closed automatically.
+The combined selected-variant, voucher, shipping-exclusion, persistence,
+history, truthful-gap, and cleanup portion of the live gate passes. Intermittent
+missing Shopee variation responses remain an external limitation; the safe
+no-price behavior is verified.
+
+The disposable response and lifecycle cases were then exercised through the
+real snapshot API against the same manual database. A valid unavailable
+observation was accepted with no price log, while an invalid zero-price body was
+rejected with HTTP 422 `INVALID_SHOPEE_PAYLOAD` and created no product or check.
+A partial omission left the missing variant active with zero misses. Three
+verified complete omissions advanced it through one and two suspected misses to
+inactive at the configured third miss, and its later presence without a price
+reactivated it without creating a price or notification. A separate four-variant
+case confirmed mass-disappearance quarantine: the first 75% disappearance
+recorded one confirmation and no misses; the identical second snapshot recorded
+the second confirmation and only then advanced the three omitted variants to one
+suspected miss. The notification count stayed unchanged throughout. The sole
+existing event belongs to the earlier real 424,000 to 404,000 VND product-price
+transition. The unavailable, invalid-price, ordinary lifecycle,
+mass-disappearance, reactivation, and no-spurious-alert portions of the gate
+pass.
+
+Finally, the user deleted the disposable six-variant product through the
+dashboard and confirmed its removal. A direct audit of the manual database found
+zero remaining rows for product ID 5 / item `27162511840` in `products`,
+`product_variants`, `price_checks`, or `collection_jobs`, and its associated
+notification event was removed. Global referential checks also found zero
+orphaned variants, checks, price logs, variant check results, collection jobs, or
+notification events. The dashboard deletion and database-cascade portion of the
+gate passes.
+
 The live session must verify these groups in order:
 
-1. Track a disposable product from the dashboard and extension; change a
-   variant and voucher; confirm exact positive integer VND prices, shipping
-   exclusion, persistence after restart, and the dashboard history.
-2. Run a manual profile-bound refresh, then enable a disposable short schedule
-   and verify sequential scheduled dispatch, queue visibility, inactive tab
-   cleanup, and grouped successful checks. Restore the normal schedule afterward.
-3. With the backend stopped, submit one safe capture and confirm the bounded
-   extension queue survives a browser restart and drains after reconnection.
-4. Exercise a disposable unavailable/invalid response case without repeatedly
-   hitting Shopee or attempting to bypass its controls. Confirm no zero-price
-   record is created.
-5. With real Telegram credentials kept only in the ignored `.env`, create one
-   controlled qualifying transition, confirm one correct alert, repeat the exact
-   observation, and confirm no duplicate event or alert.
-6. Confirm the fixture-backed lifecycle cases in the manual database: present but
-   unpriced, partial omission neutrality, three eligible misses, mass-disappearance
-   quarantine and confirmation, and reactivation without an immediate alert.
-7. Delete the disposable product and confirm product, variants, checks, prices,
-   history, jobs, and notification events are removed through cascades.
+1. **Passed 2026-08-12:** a disposable multi-variant product confirmed current
+   selection display, exact positive integer VND prices, voucher state, shipping
+   exclusion, persistence after restart, dashboard history dates and variant
+   series, and truthful gaps when Shopee later omitted price responses.
+2. **Passed 2026-08-11:** a manual profile-bound refresh and disposable short
+   schedule confirmed sequential dispatch, queue visibility, grouped checks,
+   inactive-tab cleanup, and automatic tab cleanup. The normal disabled schedule
+   was restored afterward.
+3. **Passed 2026-08-12:** with the backend stopped, locally queued captures
+   survived a complete Chrome restart and all current retryable records drained
+   after reconnection. One unrelated older permanent CORS failure was inspected
+   and explicitly cleared afterward.
+4. **Passed 2026-08-12:** a disposable unavailable observation stored no price,
+   and an invalid zero-price snapshot was rejected without creating a product or
+   check.
+5. **Passed 2026-08-12:** with real Telegram credentials kept only in the
+   ignored `.env`, one controlled qualifying transition delivered the correct
+   alert and repeating the exact transition created no duplicate event or alert.
+6. **Passed 2026-08-12:** fixture-backed API submissions confirmed present but
+   unpriced handling, partial omission neutrality, inactive status after three
+   eligible misses, mass-disappearance quarantine and confirmation, and
+   reactivation without a price or alert.
+7. **Passed 2026-08-12:** dashboard deletion removed the disposable product and
+   database audits confirmed its variants, checks, prices, history, jobs, and
+   notification event were removed through cascades with no orphaned rows.
 
 These steps require user-visible Chrome interaction and real external state. They
 must not be marked passed from mocked tests alone.
 
 ## Acceptance report
 
-Automated acceptance currently passes for persistence, integer price safety,
+Automated and live acceptance pass for persistence, integer price safety,
 context-safe comparison, lifecycle handling, chart gaps, notification policy,
 authentication, privacy, queue bounds, scheduler locking, cleanup, API behavior,
 dashboard behavior, and extension build integrity.
 
-The remaining acceptance gates are:
-
-- live installed-extension capture against Shopee's current response shape;
-- live manual and scheduled profile-bound collection;
-- live queue persistence across backend/browser restart;
-- one real Telegram price-drop delivery and duplicate check; and
-- Phase 13 installation/release documentation and Phase 14 deployment checks.
-
-Until those items are completed, Phase 12 remains **automated complete, manual
-pending**.
+Phase 12 is **complete**. Phase 13 installation/release documentation and Phase
+14 deployment remain separate future phases.
