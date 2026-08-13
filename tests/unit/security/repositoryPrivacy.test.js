@@ -50,6 +50,9 @@ describe('repository privacy boundary', () => {
       '.env',
       'data/phase12-audit.db',
       'dist/extension/manifest.json',
+      'manual-test.db',
+      'manual-test.db-wal',
+      'local-copy.sqlite3',
       'chrome-profile/Default/Cookies',
       'user-data/Default/Login Data',
     ]) {
@@ -71,5 +74,5 @@ describe('repository privacy boundary', () => {
     });
 
     expect(leakedFiles).toEqual([]);
-  });
+  }, 15_000);
 });

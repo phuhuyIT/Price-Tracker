@@ -1,590 +1,372 @@
 # Shopee Price Tracker
 
-> The repository is being evolved from this working collector demo into the
-> Shopee Price Tracker MVP described in [Task_list.md](Task_list.md). The Phase
-> 0 product decisions are recorded in
-> [docs/phase-0-mvp-definition.md](docs/phase-0-mvp-definition.md), and the
-> Phase 1 evidence is recorded in
-> [docs/phase-1-shopee-analysis.md](docs/phase-1-shopee-analysis.md). The target
-> system design is in [docs/architecture.md](docs/architecture.md), and the new
-> project foundation is documented in
-> [docs/phase-2-project-foundation.md](docs/phase-2-project-foundation.md), and
-> the shared validation contract is documented in
-> [docs/phase-3-shared-contracts.md](docs/phase-3-shared-contracts.md).
-> The SQLite schema, migrations, repository contracts, and persistence
-> safeguards are documented in
-> [docs/phase-4-database-layer.md](docs/phase-4-database-layer.md).
-> The current-session MV3 collector is documented in
-> [docs/phase-7-chrome-extension.md](docs/phase-7-chrome-extension.md).
-> Logged-in background collection is documented in
-> [docs/phase-8-chrome-session-collector.md](docs/phase-8-chrome-session-collector.md).
-> Scheduled dispatch, retries, and terminal failure semantics are documented in
-> [docs/phase-9-scheduled-checks.md](docs/phase-9-scheduled-checks.md).
-> Telegram price-drop delivery and duplicate prevention are documented in
-> [docs/phase-10-telegram-notifications.md](docs/phase-10-telegram-notifications.md).
-> The responsive dashboard and its context-safe history chart are documented in
-> [docs/phase-11-web-dashboard.md](docs/phase-11-web-dashboard.md).
-> Phase 12 automated hardening, security/resource evidence, and completed live
-> acceptance are documented in
-> [docs/phase-12-end-to-end-hardening.md](docs/phase-12-end-to-end-hardening.md).
-> Existing collector behavior is intentionally preserved as legacy discovery
-> tooling.
-> The persistent-profile Playwright mode described below is legacy discovery
-> behavior. Production collection uses the installed extension and the exact
-> Chrome profile in which the user is already signed in to Shopee.
+Shopee Price Tracker v1.0.0 is a local-first Shopee Vietnam price-history
+application. A Chrome Manifest V3 extension observes the prices exposed to the
+user's current Shopee session, a Node.js backend stores variants and history in
+SQLite, a responsive dashboard manages the watchlist, and optional Telegram
+alerts report genuine price reductions.
 
-## Phase 2 foundation
+This release is designed for one local computer. The backend binds to loopback,
+the database remains on that computer, and the extension is loaded unpacked.
+Public hosting, Chrome Web Store distribution, and multi-device sync are outside
+the v1.0.0 boundary.
 
-The new application is organised as npm workspaces:
+## Price definition
+
+The tracked price is:
+
+> The price displayed by Shopee to the observing browser session after applicable
+> product discounts and vouchers, excluding shipping fees.
+
+Its stable identifier is `displayed_post_voucher_excluding_shipping`. Every
+stored amount is a positive integer number of VND. A missing, malformed,
+unavailable, uncorrelated, or zero price is never substituted with another
+variant's price and never creates a price log. Known missing observations become
+gaps in history.
+
+Voucher eligibility, account state, quantity, time, and Shopee experiments can
+change the displayed amount. The tracker records an observation, not a guaranteed
+checkout total.
+
+## Architecture
 
 ```text
-apps/server       ESM Node.js/Express application
-apps/extension    loadable Manifest V3 extension source
-packages/shared   ESM package for contracts introduced in Phase 3
-tests/unit        Vitest unit tests
-tests/integration Vitest integration tests
+Shopee product page
+  -> MAIN-world response interceptor
+  -> isolated extension bridge and shared normaliser
+  -> persistent extension upload queue
+  -> Express API
+  -> services and repositories
+  -> SQLite history
+  -> optional Telegram alert
+
+node-cron -> persistent collection jobs -> signed-in Chrome extension
+Express -> same-origin dashboard -> product and history APIs
 ```
 
-Requirements:
+Production manual and scheduled checks are performed by `apps/extension` in the
+Chrome profile already signed in to Shopee. Playwright remains anonymous
+discovery and integration-test tooling; it does not receive or persist the
+user's Shopee profile.
 
-- Node.js 20 or newer
-- npm
-- Playwright Chromium for the preserved browser integration tests
+The detailed boundaries are documented in
+[docs/architecture.md](docs/architecture.md) and
+[docs/developer-guide.md](docs/developer-guide.md).
 
-Install and prepare local configuration:
+## Prerequisites
 
-```powershell
-npm.cmd install
-Copy-Item .env.example .env
-npm.cmd run playwright:install
+- Windows, macOS, or Linux capable of running Node.js 20 or newer
+- npm and the checked-in `package-lock.json`
+- Google Chrome 116 or newer
+- a normal Chrome profile signed in to Shopee Vietnam for reliable collection
+- optional Telegram bot and destination chat
+
+Playwright Chromium is required for the complete test suite and retained
+anonymous tooling, but not for normal extension-based production collection.
+
+## Quick start
+
+Run these commands from the repository root. Windows PowerShell examples use
+`npm.cmd`; use `npm` on platforms where that is the normal executable.
+
+1. Install the locked dependencies and create private configuration:
+
+   ```powershell
+   npm.cmd ci
+   Copy-Item .env.example .env
+   ```
+
+2. Run the database migrations and build the MVP extension:
+
+   ```powershell
+   npm.cmd run db:migrate
+   npm.cmd run extension:build
+   ```
+
+3. Open `chrome://extensions`, enable **Developer mode**, choose **Load
+   unpacked**, and select `dist/extension`.
+
+4. Copy the extension ID shown by Chrome. Set its exact origin in `.env`:
+
+   ```dotenv
+   EXTENSION_ALLOWED_ORIGIN=chrome-extension://your-extension-id
+   ```
+
+5. Start the backend:
+
+   ```powershell
+   npm.cmd start
+   ```
+
+6. Open the extension's **Options** page. Keep the backend URL at
+   `http://127.0.0.1:3000`, save, and confirm **Backend connected**. Background
+   collection and automatic capture are intentionally disabled by default in
+   the extension.
+
+7. Open `http://127.0.0.1:3000`, add a valid Shopee Vietnam product URL, then
+   use **Collect next price check** or **Check now** in the extension if
+   background collection remains disabled.
+
+The full first-install procedure and validation checklist are in
+[docs/setup.md](docs/setup.md).
+
+## Normal workflow
+
+- Add a Shopee URL from the dashboard or track the product currently shown in
+  the extension popup.
+- Watch the dashboard's **Price check queue** for pending, collecting,
+  retry-waiting, or Shopee-sign-in-waiting jobs.
+- Use the extension popup to inspect the current selected variant, displayed
+  price, availability, stock quantity when exposed, and collection coverage.
+- Open dashboard history to compare separate variant and pricing-context series.
+- Enable **Allow background price checks** only after one manual collection
+  succeeds in the intended Chrome profile.
+- Pause products that should not receive scheduled jobs; delete only disposable
+  products after confirming the cascade warning.
+
+## Configuration
+
+Startup validates every environment value. Invalid configuration fails with a
+clear error before the server begins listening.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `NODE_ENV` | `development` | `development`, `test`, or `production` behavior |
+| `HOST` | `127.0.0.1` | HTTP bind host; must be loopback when authentication is disabled |
+| `PORT` | `3000` | Backend and dashboard port |
+| `DATABASE_PATH` | `./data/shopee-tracker.db` | Persistent SQLite file |
+| `AUTH_ENABLED` | `false` | Require price-tracker application sessions |
+| `AUTH_ALLOW_REGISTRATION` | `false` | Expose account creation when authentication is enabled |
+| `AUTH_SESSION_TTL_HOURS` | `720` | Application session lifetime |
+| `COLLECTION_JOB_LEASE_MS` | `300000` | Claimed extension-job lease |
+| `COLLECTION_MAX_ATTEMPTS` | `4` | Total retry-budget claims |
+| `COLLECTION_RETRY_BASE_DELAY_MS` | `5000` | Collection retry base delay |
+| `COLLECTION_RETRY_MAX_DELAY_MS` | `300000` | Collection retry delay cap |
+| `COLLECTION_DISPATCH_DELAY_MIN_MS` | `5000` | Minimum delay between scheduled products |
+| `COLLECTION_DISPATCH_DELAY_MAX_MS` | `10000` | Maximum delay between scheduled products |
+| `CRON_ENABLED` | `true` | Enable scheduled job dispatch |
+| `CRON_SCHEDULE` | `0 */12 * * *` | node-cron dispatch expression |
+| `SHOPEE_HEADLESS` | `true` | Retained anonymous Playwright mode |
+| `SHOPEE_PRICE_SCALE` | `100000` | Verified raw Shopee price divisor |
+| `SCRAPE_TIMEOUT_MS` | `45000` | Retained Playwright timeout |
+| `SCRAPE_DELAY_MIN_MS` | `5000` | Retained Playwright minimum delay |
+| `SCRAPE_DELAY_MAX_MS` | `10000` | Retained Playwright maximum delay |
+| `SCRAPE_MAX_RETRIES` | `2` | Retained Playwright retry limit |
+| `PRICE_DROP_THRESHOLD_PERCENT` | `1` | Default product alert threshold |
+| `VARIANT_MISSING_THRESHOLD` | `3` | Verified complete misses before inactivity |
+| `MAX_VARIANT_MISSING_RATIO` | `0.5` | Mass-disappearance quarantine threshold |
+| `VARIANT_MASS_MISSING_CONFIRMATIONS` | `2` | Matching suspicious catalogues required |
+| `TELEGRAM_BOT_TOKEN` | empty | Optional Telegram Bot API token |
+| `TELEGRAM_CHAT_ID` | empty | Optional Telegram destination |
+| `TELEGRAM_REQUEST_TIMEOUT_MS` | `3000` | Telegram request timeout |
+| `TELEGRAM_MAX_ATTEMPTS` | `2` | Total Telegram delivery attempts |
+| `TELEGRAM_RETRY_BASE_DELAY_MS` | `500` | Telegram retry base delay |
+| `TELEGRAM_RETRY_MAX_DELAY_MS` | `2000` | Telegram retry delay cap |
+| `EXTENSION_ALLOWED_ORIGIN` | empty | Exact allowed MVP extension origin |
+| `API_RATE_LIMIT_WINDOW_MS` | `60000` | API rate-limit window |
+| `API_RATE_LIMIT_MAX` | `60` | Product mutations allowed per window |
+| `LOG_LEVEL` | `info` | Pino log level, including `silent` |
+
+The `SCRAPE_*`, `SHOPEE_HEADLESS`, and anonymous Playwright settings do not
+control production scheduled collection. The scheduler creates persistent jobs;
+the installed extension performs them.
+
+## Authentication modes
+
+### Disabled local mode
+
+`AUTH_ENABLED=false` is the v1.0.0 default. Product routes transparently use one
+reserved passwordless local owner. Authentication endpoints return
+`AUTH_DISABLED`, account controls remain hidden, and startup rejects a
+non-loopback `HOST`.
+
+### Enabled account mode
+
+Set both values while creating the first account:
+
+```dotenv
+AUTH_ENABLED=true
+AUTH_ALLOW_REGISTRATION=true
 ```
 
-Foundation commands:
+Restart the backend, register through the dashboard, then sign in separately in
+the extension Options page so it receives its bearer session. Set
+`AUTH_ALLOW_REGISTRATION=false` and restart after the required accounts exist.
+
+Dashboard sessions use an HTTP-only cookie. Extension sessions use an opaque
+bearer token stored in trusted extension storage. SQLite stores only token
+hashes. Signing out calls `/api/auth/logout`, revokes the presented server-side
+session, and removes the client copy. Sessions also expire after
+`AUTH_SESSION_TTL_HOURS`.
+
+The reserved local owner's products are not transferred automatically to a
+registered user when authentication is enabled.
+
+## Database
+
+The backend uses one `better-sqlite3` connection with foreign keys, WAL mode,
+and ordered checksummed migrations. Migrations run automatically at startup and
+can be applied explicitly:
 
 ```powershell
-npm.cmd run dev
-npm.cmd start
-npm.cmd test
-npm.cmd run test:watch
-npm.cmd run lint
-npm.cmd run format
 npm.cmd run db:migrate
+```
+
+To back up live data, stop the server cleanly and copy the configured database
+file. Keep backups private because product history and application account data
+belong to the local user. Do not copy an actively changing `.db`, `.db-wal`, and
+`.db-shm` set independently.
+
+The release bundle contains an empty current schema snapshot plus all source
+migrations. It contains no user data.
+
+## Extension installation and configuration
+
+Always load `dist/extension`, not `apps/extension` and not the legacy
+`chrome-extension` discovery tool. After source updates:
+
+```powershell
 npm.cmd run extension:build
 ```
 
-The server binds to `127.0.0.1:3000` by default. With `AUTH_ENABLED=false`, the
-configuration validator rejects non-loopback binding. After running
-`npm.cmd run extension:build`, load `dist/extension` as an unpacked extension
-from `chrome://extensions`.
+Then click **Reload** on the unpacked extension card. For v1.0.0, its manifest
+version must show `1.0.0`. If Chrome assigns a different extension ID after
+reinstallation, update `EXTENSION_ALLOWED_ORIGIN`, restart the backend, and save
+extension options again.
 
-For the preserved anonymous Playwright connectivity check:
+The extension never sends Shopee cookies, request headers, tokens, account IDs,
+addresses, or raw API responses to the backend.
+
+## Scheduler
+
+The default cron expression dispatches active products every 12 hours. One
+process-level lock prevents overlapping runs, and products are queued
+sequentially with configured delay and jitter. The Chrome extension must have
+**Allow background price checks** enabled to drain jobs automatically.
+
+For an initial installation, it is reasonable to keep `CRON_ENABLED=false`
+until manual collection succeeds. Restore the intended schedule afterward.
+
+## Telegram
+
+Leave either Telegram credential empty to disable notifications without
+affecting tracking. To enable them:
+
+1. Create a bot with BotFather and start a chat or add it to the destination.
+2. Put `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` only in the ignored `.env`.
+3. Verify access without sending a message:
+
+   ```powershell
+   npm.cmd run telegram:test
+   ```
+
+A notification event is recorded only after Telegram confirms delivery. A
+delivery failure never rolls back price history, and the same successful price
+transition is not sent twice.
+
+## Retained anonymous Playwright tooling
+
+Install its Chromium binary with:
+
+```powershell
+npm.cmd run playwright:install
+```
+
+The safe connectivity command uses a fresh anonymous context:
 
 ```powershell
 npm.cmd run legacy:anonymous-connectivity -- "https://shopee.vn/product-i.shop.item"
 ```
 
-This legacy command opens a fresh anonymous browser context and verifies page
-navigation only. It is not used by production tracking or refresh jobs.
+It does not sign in, load the user's Chrome profile, or perform production
+scheduled checks. The older root-level and `chrome-extension` tools remain only
+for discovery and regression compatibility.
 
-## Phase 3 shared contracts
+## Fixture maintenance
 
-The `@shopee-price-tracker/shared` workspace now owns strict Zod contracts for
-Shopee URLs, product snapshots, variants, observed and missing prices,
-catalogue coverage, API boundaries, and price-tracker authentication.
-
-Run only the shared-contract tests with:
+When Shopee changes a recognised response, capture a new allowlisted fixture
+through the retained current-profile bridge:
 
 ```powershell
-npm.cmd run test:phase3
+npm.cmd run legacy:current -- "https://shopee.vn/product-i.shop.item" --fixture "tests/fixtures/new-capture.json"
 ```
 
-An example accepted payload is available at
-`packages/shared/examples/valid-product-snapshot.json`. New snapshots must use
-either `extension` + `user_session` or `playwright` + `anonymous`; an unknown
-pricing context is rejected.
+The destination must not already exist. Review the output for only public
+product/model, selected-tier, stock, and pricing evidence. Never commit cookies,
+headers, request signatures, authentication data, addresses, or a raw response.
+See [docs/developer-guide.md](docs/developer-guide.md) for the complete fixture
+and adapter workflow.
 
-## Phase 4 database layer
-
-The server now uses one shared `better-sqlite3` connection with foreign keys
-and WAL mode. Ordered, checksummed migrations run automatically before the
-server listens and are also available through:
+## Development and tests
 
 ```powershell
-npm.cmd run db:migrate
-```
-
-The initial schema stores owner-scoped products, stable variants and lifecycle
-state, grouped checks, per-variant gaps, real positive-integer VND prices,
-successful notification transitions, users, and revocable hashed sessions.
-No Shopee credentials, cookies, headers, or null/zero price placeholders are
-stored.
-
-Run only the Phase 4 persistence tests with:
-
-```powershell
-npm.cmd run test:phase4
-```
-
-## Phase 5 core backend services
-
-The server now has HTTP-independent services for transactional snapshot
-tracking, comparable-price evaluation, owner-scoped product queries, and
-price-tracker authentication. Exact snapshot replays are idempotent; partial or
-suspicious catalogues cannot incorrectly deactivate variants; and chart gaps
-come from check results without storing null or zero prices.
-
-Current product prices remain separated by pricing context and context key.
-Production checks remain bound to one extension installation so Shopee account,
-voucher, and session contexts are never silently mixed.
-
-Authentication still defaults to disabled local mode. When enabled, passwords
-use a local offline denylist and versioned asynchronous scrypt hashes, while
-SQLite stores only hashes of random opaque session tokens.
-
-Run only the Phase 5 service tests with:
-
-```powershell
-npm.cmd run test:phase5
-```
-
-See `docs/phase-5-core-services.md` for the service and security boundaries.
-
-## Phase 6 REST API
-
-The Express server now exposes the complete authentication and product API at
-`/api`. Product routes transparently use the reserved local owner while
-`AUTH_ENABLED=false`; when authentication is enabled they require either the
-dashboard's HTTP-only cookie or the extension's bearer session.
-
-HTTP protections include a 64 KiB JSON limit, Helmet security headers and CSP,
-exact-origin CORS, request IDs, structured request logs, stricter authentication
-throttling, and rate limiting for every product mutation. Snapshot requests are
-strictly validated and reject raw responses, cookies, headers, and
-authentication data.
-
-The required `POST /api/products/track` and manual-refresh contracts are
-asynchronous. A new URL or refresh creates a persistent collection job and
-returns `202 Accepted`; an existing tracked URL still returns its stored summary
-immediately.
-
-Run only the Phase 6 API tests with:
-
-```powershell
-npm.cmd run test:phase6
-```
-
-See `docs/phase-6-rest-api.md` for endpoint behavior, authentication transports,
-and the collector handoff.
-
-## Phase 7 Chrome extension collector
-
-Build and verify the price-tracker extension:
-
-```powershell
+npm.cmd run dev
+npm.cmd run lint
+npm.cmd run format:check
+npm.cmd run test:foundation
 npm.cmd run test:phase7
-```
-
-Load `dist/extension` from `chrome://extensions`. This is the new MVP collector;
-the separate `chrome-extension` folder below remains legacy exact-profile
-discovery tooling.
-
-After loading the MVP extension, copy its ID and restart the backend with:
-
-```powershell
-$env:EXTENSION_ALLOWED_ORIGIN = "chrome-extension://<extension-id>"
-npm.cmd start
-```
-
-The extension popup also keeps a five-product quick watch: locally pinned
-products appear first, recent tracked products fill empty positions, and the
-owner-scoped watchlist search allows fast pinning. The extension previews valid
-captures in the same popup. Automatic passive
-submission is off by default; click **Track & collect available prices** to
-queue the exact product, open an inactive collection tab, and attempt every
-selectable variant. The popup reports checked and priced coverage instead of
-treating a catalogue-only snapshot as full price success. The options page
-configures the backend, debug summaries, the generated local pricing-context
-key, queue retry, and optional price-tracker sign-in. It never captures or sends
-Shopee cookies, headers, or authentication data.
-
-For a product with no visible variants, the collector first accepts only an
-exact, model-matched product-detail price. It supports Shopee's observed
-`data.pricing.data.product_price` and `data.product_price` response layouts,
-reading `price.single_value` only when `price_model.price_single_model_id`
-matches the catalogue model. When Shopee also returns a weaker or uncorrelated
-`price_breakdown`, the collector ranks all allowlisted price containers instead
-of letting that object hide the exact `product_price`. If the response has no
-trustworthy price, it briefly waits and may use Shopee's single hidden option to
-trigger the correlated response. An available product that still has no exact price fails with a
-retryable `PRICE_SELECTOR_TIMEOUT`; an explicitly unavailable product may
-complete without a price. Price ranges, zero values, and another model's price
-are never stored as the Default variant price.
-
-Shopee can keep displaying an amount after a product sells out. The collector
-therefore reads model stock first and falls back to product-level stock for a
-single-model product. A successful, correlated `select_variation_pc` or
-`select_variant_pc` response supplies the newer selected-tier `data.stock`:
-positive values mean available, zero means sold out, and the exact count is
-stored and displayed. Negative, malformed, failed, or uncorrelated stock remains
-unknown rather than becoming zero. When Shopee redacts all API stock fields, a product with one
-synthetic `Default` variant may also use an exact visible **Đã bán hết** / **Sold
-out** label from the main product-detail region. This DOM fallback never applies
-to explicit variants or generic recommendation-card text. The popup shows
-**Sold out** instead of presenting the amount as a current purchasable price.
-The backend keeps tracking enabled so a later check can detect a restock; API
-`trackingStatus` and `availability` are separate fields, and
-`currentLowestPrice` excludes sold-out or unavailable observations.
-
-Shopee may emit several `get_pc` responses during one page load. A later
-catalogue-only response cannot erase an earlier exact model-matched price for
-the same product. A later exact response can replace it, and compatible
-selected-variation captures remain available while duplicate product details
-arrive.
-
-The full manual procedure, including variant, voucher, quantity, offline queue,
-browser restart, and enabled/disabled authentication cases, is in
-`docs/phase-7-chrome-extension.md`.
-
-## Phase 8 logged-in Chrome session collector
-
-Background price checks are disabled by default. Enable **Allow background
-price checks** in extension options to let the extension poll the backend. The
-default interval is 30 minutes. **Collect next price check** in the popup and
-**Check now** on the options page can run one explicit check while periodic
-polling remains disabled.
-
-The popup labels the backend's persistent **Price checks** separately from the
-extension's local **Snapshot uploads**. While backend jobs remain, it refreshes
-their queued, collecting, retry, and authentication-wait counts. Manual mode
-collects one backend job per click; enabling background price checks lets the
-normal polling schedule claim later work.
-
-The popup's first tracking action also runs explicitly while periodic polling
-is disabled. Manual requests are persisted and target their returned job ID, so
-they are not replaced by an older queued product when the extension claims
-work.
-
-If a background poll claims that job at the same moment as the manual action,
-the extension reconciles its local queue with the backend job status. Completed
-or failed IDs are removed, retry-wait jobs retain their scheduled alarm, and a
-manual job left by an obsolete extension context can move to the current profile
-only after the user explicitly clicks the collection action. A concurrent poll
-also schedules a prompt follow-up instead of leaving the manual request dormant.
-
-When work is queued, the extension uses its stable local pricing-context key to
-claim the job, opens the product in the last-focused normal Chrome window with
-`active: false`, captures sanitised Shopee product and variation responses, and
-closes the temporary tab after success or failure. The tab never receives focus,
-although Chrome may show it briefly in the tab strip.
-
-The first local extension that opts in or explicitly checks for work may claim a
-new unbound product. That profile binding is retained for retries and future
-refreshes. A different Chrome profile cannot silently collect the job, which
-prevents comparisons across different Shopee accounts or voucher contexts.
-An explicit manual collection may reassign an unclaimed pending, retry-wait, or
-authentication-wait job after an extension reinstall; a live claimed lease is
-never reassigned.
-
-If the bound Chrome profile is signed out of Shopee, no snapshot or zero price
-is stored. The job moves to `waiting_auth`, the extension displays a Chrome
-notification and badge, and the popup/options page asks the user to sign in to
-Shopee in that same profile. Authentication does not consume the remaining
-retry attempts and does not create a failed price check. After signing in, click
-**Check now** to resume that profile-bound job.
-
-Run the focused automated checks:
-
-```powershell
-npm.cmd run test:phase8
-```
-
-See `docs/phase-8-chrome-session-collector.md` for the API, privacy boundaries,
-failure behavior, and manual verification checklist.
-
-## Phase 9 scheduled price checks
-
-The server now uses `node-cron` to dispatch refresh jobs for active products.
-The dispatcher does not open Playwright or wait for Chrome: it queues
-profile-bound extension jobs sequentially, adds a configurable delay and
-jitter between products, prevents overlapping runs, and writes structured run
-summaries. The extension performs the asynchronous collection and can drain the
-queue while background checks are enabled.
-
-Collection failures follow one shared policy. The default is four total
-attempts. Transport, timeout, rate-limit, Shopee 5xx, and premature-tab-close
-errors use capped exponential backoff with additive jitter. Invalid URLs,
-unavailable products, suspended shops, invalid payloads, and schema changes fail
-without retry. Only a terminal failure creates one failed `price_checks` row;
-retry waits and authentication waits create no checks and never create price
-logs.
-
-The relevant settings are:
-
-| Variable                           |        Default | Purpose                                                 |
-| ---------------------------------- | -------------: | ------------------------------------------------------- |
-| `CRON_ENABLED`                     |         `true` | Enable scheduled dispatch                               |
-| `CRON_SCHEDULE`                    | `0 */12 * * *` | Cron expression for dispatch runs                       |
-| `COLLECTION_JOB_LEASE_MS`          |       `300000` | Claimed-job lease duration for large variant catalogues |
-| `COLLECTION_MAX_ATTEMPTS`          |            `4` | Total claims, including the first attempt               |
-| `COLLECTION_RETRY_BASE_DELAY_MS`   |         `5000` | Exponential retry base                                  |
-| `COLLECTION_RETRY_MAX_DELAY_MS`    |       `300000` | Backoff-plus-jitter cap                                 |
-| `COLLECTION_DISPATCH_DELAY_MIN_MS` |         `5000` | Minimum delay between queued products                   |
-| `COLLECTION_DISPATCH_DELAY_MAX_MS` |        `10000` | Maximum delay between queued products                   |
-
-Run the focused automated checks with `npm.cmd run test:phase9`. See
-`docs/phase-9-scheduled-checks.md` for the state machine, error taxonomy,
-shutdown behavior, and live verification checklist. The older `SCRAPE_*`
-settings remain for retained Playwright tooling and do not control the Phase 9
-production scheduler.
-
-## Phase 10 Telegram notifications
-
-Telegram notifications are optional. Tracking continues normally when either
-`TELEGRAM_BOT_TOKEN` or `TELEGRAM_CHAT_ID` is absent. With both configured, a
-qualifying context-safe price drop sends one HTML-safe alert after the price
-history transaction commits. The alert includes the product, variant, old and
-new VND prices, one-decimal reduction, price definition, pricing context, and
-Shopee URL.
-
-Temporary Telegram failures use a short bounded retry; permanent failures are
-not retried indefinitely. A successful notification event is written only
-after Telegram confirms delivery. The exact variant, price transition,
-definition, type, context, and context key prevent repeat alerts. Telegram
-failure never deletes or rolls back the stored price check.
-
-Verify the configured bot token and destination without sending a message:
-
-```powershell
-npm.cmd run telegram:test
-```
-
-Run the focused automated coverage with `npm.cmd run test:phase10`. See
-`docs/phase-10-telegram-notifications.md` for configuration, retry policy,
-security details, and the live delivery checklist.
-
-## Phase 11 web dashboard
-
-Phase 11 is available at `http://127.0.0.1:3000` after starting the backend:
-
-```powershell
-npm.cmd start
-```
-
-The same-origin dashboard supports tracking, paginated product cards,
-watchlist-wide product/variant/ID search, tracking-status and availability
-filters, manual refresh, pause/resume, confirmed deletion, authentication when
-enabled, and a filterable locally bundled Chart.js history view. Current and
-retained prices show pricing context, voucher state, source, availability,
-known stock quantity, and variant lifecycle warnings. Missing observations
-create chart gaps and are never stored or displayed as zero prices.
-
-Tracking and refresh queue extension jobs asynchronously. If background checks
-are disabled, click **Check now** in the extension after a dashboard action. The
-dashboard's **Price check queue** lists every active owner-scoped job, including
-queued, collecting, retry-scheduled, and Shopee-sign-in-waiting states. It shows
-whether the job is bound to a Chrome profile and refreshes automatically every
-10 seconds. Phase 10 Telegram notifications run independently after a
-qualifying stored price transition and do not change dashboard behavior.
-
-Run the focused dashboard verification, including its local headless-Chrome
-interaction check:
-
-```powershell
+npm.cmd run test:phase9
+npm.cmd run test:phase10
 npm.cmd run test:phase11
-```
-
-See `docs/phase-11-web-dashboard.md` for the UI contracts, security boundary,
-warning policy, history semantics, and manual checklist.
-
-## Phase 12 end-to-end hardening
-
-Run the complete automated acceptance gate with:
-
-```powershell
 npm.cmd run test:phase12
 ```
 
-This runs linting, formatting, all unit and integration tests, the deterministic
-extension build, the local dashboard Chromium workflow, and retained collector
-integrations. Phase 12 also verifies logger redaction, repository privacy,
-client-independent lifecycle coverage, listener cleanup, queue bounds, scheduler
-locking, transaction rollback, and snapshot idempotency.
+`npm.cmd run test:phase12` is the complete automated gate: linting, formatting,
+all Vitest tests, the deterministic extension build, dashboard Chromium flow,
+and retained collector integrations. Automated fixtures do not replace a live
+Chrome/Shopee or Telegram acceptance check.
 
-Phase 12 automated and live acceptance are complete. Real Shopee session
-behavior, scheduled extension dispatch, queue recovery across a browser/backend
-restart, Telegram delivery and duplicate suppression, lifecycle safety, history
-rendering, and cascade deletion were verified with separate disposable data. See
-`docs/phase-12-end-to-end-hardening.md` for the evidence and accepted external
-Shopee response limitation.
+## Release build
 
-This project has two browser modes:
-
-- `npm.cmd run legacy:current` (also available as `npm.cmd run current`) uses the exact
-  Chrome profile/window in which you click the extension icon. This is the
-  default and is the right mode for your currently logged-in Shopee session.
-- `npm.cmd run legacy:playwright` (also available as `npm.cmd run playwright`)
-  uses Playwright attachment or a separate persistent
-  automation profile.
-
-Both modes now collect two kinds of prices:
-
-- `get_pc` supplies each SKU's base promotional price and original price.
-- The script maps every valid `item.models[*].extinfo.tier_index` to its
-  on-page option buttons. It selects those options and captures Shopee's
-  resulting `pdp/cart_panel/select_variation_pc` response, including the
-  voucher-adjusted final display price.
-
-The clicks are dispatched as browser input in the product tab, allowing
-Shopee's own frontend to generate the current per-request security headers.
-Directly replaying a `get_pc` signature for another endpoint can return HTTP 403. A failed variant remains visible with an error note; its base price is
-never reported as its final display price.
-
-After updating this project, click **Reload** for the unpacked extension on
-`chrome://extensions`. Confirm that its version is **1.2.0**.
-
-If a variant still prints `Final display: N/A`, inspect the extension service
-worker from `chrome://extensions`. An HTTP 200 response without a recognized
-price now logs its exact `selected_tiers` key and raw payload. The terminal
-also reports the response's root/data keys, which distinguishes an
-unrecognized response shape from a request that Shopee never issued.
-
-## Mode 1: exact current Chrome profile
-
-### Install the extension once
-
-Install it in every Chrome profile that you may want to use:
-
-1. Open `chrome://extensions` in that profile.
-2. Enable **Developer mode**.
-3. Click **Load unpacked**.
-4. Select this folder:
-
-```text
-E:\NĂM 2026\huấn luyện\giáo án 2026\Phú Huy\Projects\shopee price\chrome-extension
-```
-
-5. Pin **Shopee Price - Current Profile** to the Chrome toolbar.
-
-Chrome requests the `debugger` permission because the extension must inspect
-the Shopee network response containing the product data. It only attaches to
-the temporary product tab that it creates.
-
-### Run with the current profile
-
-Start the legacy local bridge:
+Create the ignored local release bundle with:
 
 ```powershell
-npm.cmd run legacy:current
+npm.cmd run release:prepare
 ```
 
-Or provide another Shopee URL:
+The output is `dist/releases/shopee-price-tracker-v1.0.0` and contains the
+loadable unpacked extension, setup documentation, `.env.example`, the empty
+current SQLite schema, all migrations, a release manifest, and SHA-256
+checksums. See [docs/release.md](docs/release.md).
 
-```powershell
-npm.cmd run legacy:current -- "https://shopee.vn/your-product-i.123.456"
-```
+## Troubleshooting
 
-Then:
+See [docs/troubleshooting.md](docs/troubleshooting.md) for installation errors,
+extension-origin CORS failures, backend connectivity, queue recovery, Shopee
+sign-in waits, missing exact prices, scheduler behavior, Telegram errors, and
+database recovery.
 
-1. Focus the Chrome profile/window containing the Shopee login you want.
-2. Click the **Shopee Price - Current Profile** extension icon in that window.
+## Privacy and security
 
-The extension opens a new tab in exactly that window and profile, so the tab
-inherits its existing Shopee session. It closes only the temporary tab after
-returning the product data to the terminal.
+- The v1.0.0 backend is local-only and unauthenticated mode is loopback-only.
+- Shopee credentials remain inside the user's browser page context.
+- Captures and fixtures use strict allowlists; raw responses are rejected by the
+  backend.
+- Application session tokens and collection lease tokens are stored only as
+  hashes in SQLite.
+- Telegram credentials, chat IDs, passwords, tokens, request bodies, and message
+  text are redacted from structured logs.
+- Environment files, databases, logs, browser profiles, generated builds, and
+  debug fixtures are ignored by Git and checked by automated privacy tests.
+- The project does not bypass CAPTCHA, authentication, rate limits, or anti-bot
+  protections.
 
-If several profiles are open, clicking the icon selects the profile
-unambiguously because every profile has its own extension instance.
+## Known limitations
 
-## Mode 2: Playwright or persistent automation profile
+- Shopee Vietnam and Chrome are the only production platform/browser pair.
+- Shopee endpoints are private and may change without notice.
+- A signed-in browser does not guarantee that Shopee emits every exact variant
+  price on every attempt; safe gaps may remain.
+- The tracker cannot guarantee voucher eligibility or the final checkout total.
+- Shipping is deliberately excluded.
+- Background jobs require the bound Chrome profile and installed extension.
+- Telegram depends on the external Bot API.
+- The local SQLite design supports one backend process, not a hosted cluster.
+- Chrome Web Store distribution, hosted HTTPS operation, mandatory multi-user
+  authentication, and multi-device sync require a separate deployment and
+  security phase.
 
-Run:
-
-```powershell
-npm.cmd run playwright
-```
-
-If there is no debuggable Chrome at `http://127.0.0.1:9222`, the script opens
-Google Chrome with a persistent automation profile stored here:
-
-```text
-C:\Users\<your-user>\.shopee-price\chrome-profile
-```
-
-Log in to Shopee once in that window. The profile keeps its cookies, so later
-runs remain logged in.
-
-### Attach to an already-open debug-enabled Chrome
-
-Playwright cannot attach to a Chrome window that was started normally. Start a
-Chrome window with remote debugging and the same dedicated profile:
-
-```powershell
-& "$env:ProgramFiles\Google\Chrome\Application\chrome.exe" `
-  --remote-debugging-address=127.0.0.1 `
-  --remote-debugging-port=9222 `
-  --user-data-dir="$env:USERPROFILE\.shopee-price\chrome-profile"
-```
-
-Leave that Chrome window open, then run:
-
-```powershell
-npm.cmd run playwright
-```
-
-The script connects to it, creates a new tab in the existing context, extracts
-the product data, closes only the tab it created, and disconnects. It does not
-close your Chrome window.
-
-For another debugging port:
-
-```powershell
-$env:CHROME_CDP_URL = "http://127.0.0.1:9223"
-npm.cmd run playwright
-```
-
-If the connected browser exposes multiple contexts, the script prefers one
-with an open Shopee tab, then one with a Shopee login cookie. To select a
-specific zero-based context:
-
-```powershell
-$env:CHROME_CONTEXT_INDEX = "1"
-npm.cmd run playwright
-```
-
-To store the persistent profile elsewhere:
-
-```powershell
-$env:CHROME_PROFILE_DIR = "D:\Browser Profiles\Shopee"
-npm.cmd run playwright
-```
-
-## Code structure
-
-- `product.js` parses product URLs and formats terminal output.
-- `demo.js` is the small Playwright command entry point.
-- `playwright-browser.js` owns Chrome connection and profile selection.
-- `variant-pricing.js` adapts Playwright events and clicks to the shared flow.
-- `current-profile.js` runs the local bridge used by the extension.
-- `chrome-extension/background.js` contains only Chrome extension and CDP
-  integration.
-- `chrome-extension/shared/` is the single source of truth for pricing rules,
-  variation-button selection, retries, and response ordering. It is used by
-  both browser modes.
-
-Keep Shopee response-shape changes in
-`chrome-extension/shared/variant-core.js`; do not add separate price parsing
-rules to the Playwright and extension adapters.
-
-## Development
-
-Run all checks:
-
-```powershell
-npm.cmd test
-```
-
-Run only the fast unit test:
-
-```powershell
-npm.cmd run test:variant
-```
+Historical phase evidence remains under `docs/phase-*.md`. The current release
+instructions in this README, [docs/setup.md](docs/setup.md), and
+[docs/troubleshooting.md](docs/troubleshooting.md) take precedence when an older
+phase record describes a superseded implementation plan.

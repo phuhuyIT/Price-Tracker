@@ -1,6 +1,6 @@
 {
   "name": "shopee-price-tracker",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Local-first Shopee Vietnam variant price tracker.",
   "engines": {
@@ -43,6 +43,7 @@
     "playwright:install": "playwright install chromium",
     "telegram:test": "node scripts/test-telegram.mjs",
     "extension:build": "node scripts/build-extension.mjs",
+    "release:prepare": "npm run extension:build && node scripts/prepare-release.mjs",
     "legacy:anonymous-connectivity": "node scripts/manual-anonymous-playwright.mjs",
     "legacy:current": "node current-profile.js",
     "legacy:playwright": "node demo.js",

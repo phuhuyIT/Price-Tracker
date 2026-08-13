@@ -8,6 +8,11 @@ coverage/
 data/
 dist/
 *.log
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
 
 # Browser profiles contain cookies, login databases, and other private state.
 .chrome-profile/

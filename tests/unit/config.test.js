@@ -55,6 +55,27 @@ describe('environment configuration', () => {
     expect(loadConfig({ AUTH_ENABLED: 'true', HOST: '0.0.0.0' }).host).toBe('0.0.0.0');
   });
 
+  it('accepts the local-only production release boundary', () => {
+    const result = loadConfig({
+      AUTH_ENABLED: 'false',
+      CRON_ENABLED: 'true',
+      DATABASE_PATH: './data/shopee-tracker.db',
+      EXTENSION_ALLOWED_ORIGIN: 'chrome-extension://nhhlnaokdgoclelapceeojkghegnoihg',
+      HOST: '127.0.0.1',
+      NODE_ENV: 'production',
+      PORT: '3000',
+    });
+
+    expect(result).toMatchObject({
+      auth: { enabled: false },
+      cron: { enabled: true },
+      environment: 'production',
+      extensionAllowedOrigin: 'chrome-extension://nhhlnaokdgoclelapceeojkghegnoihg',
+      host: '127.0.0.1',
+      port: 3000,
+    });
+  });
+
   it('rejects malformed booleans and lifecycle limits', () => {
     expect(() => loadConfig({ AUTH_ENABLED: 'yes' })).toThrow(ConfigurationError);
     expect(() => loadConfig({ VARIANT_MISSING_THRESHOLD: '0' })).toThrow(ConfigurationError);
