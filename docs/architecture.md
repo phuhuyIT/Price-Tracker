@@ -1,4 +1,4 @@
-# Shopee Price Tracker v1.0.0 Architecture
+# Shopee Price Tracker v1.0.1 Architecture
 
 The released application is a local-first Node.js service, SQLite database,
 responsive dashboard, and Chrome Manifest V3 extension. Manual and scheduled
@@ -120,7 +120,7 @@ ignored `data/`. Neither is a source directory.
 
 ## Deployment boundary
 
-v1.0.0 supports one local Node.js process, one local SQLite database, one
+v1.0.1 supports one local Node.js process, one local SQLite database, one
 unpacked extension, and a loopback backend. Public or LAN hosting, Chrome Web
 Store publication, hosted persistence, mandatory multi-user operation, and
 multi-device sync require a separate security and deployment design.

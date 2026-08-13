@@ -1,6 +1,6 @@
 # Troubleshooting guide
 
-Start with the current v1.0.0 build and configuration:
+Start with the current v1.0.1 build and configuration:
 
 ```powershell
 npm.cmd run extension:build
@@ -77,6 +77,11 @@ If the dashboard shows a terminal completed/failed job but the popup retained a
 manual ID, click the explicit collection action once; the extension reconciles
 that ID against the backend state.
 
+If the extension was reinstalled or loaded from a different directory, its
+pricing-context key changes. In v1.0.1, an explicit collection click moves the
+next unclaimed job to the current Chrome profile before collecting it. Scheduled
+background polling still leaves jobs assigned to other profiles untouched.
+
 ## Job remains collecting
 
 A claimed job uses a lease. Check:
@@ -134,7 +139,7 @@ variants when all API stock is redacted.
 
 ## Popup shows the wrong selected variant
 
-Confirm the extension manifest shows v1.0.0. Rebuild and reload if needed. The
+Confirm the extension manifest shows v1.0.1. Rebuild and reload if needed. The
 popup's current variant, price, stock, availability, and voucher come from the
 latest current-page capture. Full-catalogue minimums belong only to collection
 coverage/status.

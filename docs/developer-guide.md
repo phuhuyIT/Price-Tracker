@@ -1,6 +1,6 @@
 # Developer guide
 
-This guide describes the v1.0.0 contracts and extension points. Phase records
+This guide describes the v1.0.1 contracts and extension points. Phase records
 under `docs/phase-*.md` preserve implementation evidence; this document is the
 maintainer-facing summary of the released design.
 

@@ -57,7 +57,7 @@ describe('release preparation', () => {
 
     expect(metadata).toMatchObject({
       nodeEngine: '>=20',
-      version: '1.0.0',
+      version: '1.0.1',
     });
     expect(schema.schemaVersion).toBe(4);
     expect(schema.migrations.map((migration) => migration.filename)).toEqual([
@@ -83,7 +83,7 @@ describe('release preparation', () => {
         `${JSON.stringify({
           manifest_version: 3,
           minimum_chrome_version: '116',
-          version: '1.0.0',
+          version: '1.0.1',
         })}\n`,
         'utf8',
       );
@@ -99,15 +99,15 @@ describe('release preparation', () => {
       );
       const checksums = await readFile(join(result.releaseDirectory, 'CHECKSUMS.sha256'), 'utf8');
 
-      expect(result).toMatchObject({ schemaVersion: 4, version: '1.0.0' });
+      expect(result).toMatchObject({ schemaVersion: 4, version: '1.0.1' });
       expect(manifest).toMatchObject({
         database: { schemaVersion: 4 },
-        extension: { version: '1.0.0' },
-        releaseVersion: '1.0.0',
+        extension: { version: '1.0.1' },
+        releaseVersion: '1.0.1',
       });
       expect(
         await readFile(join(result.releaseDirectory, 'extension', 'manifest.json'), 'utf8'),
-      ).toContain('1.0.0');
+      ).toContain('1.0.1');
       expect(
         await readFile(join(result.releaseDirectory, 'database-schema', 'schema-v4.sql'), 'utf8'),
       ).toContain('PRAGMA user_version = 4');

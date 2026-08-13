@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Shopee Price Tracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Capture displayed Shopee prices and submit them to the local price tracker.",
   "minimum_chrome_version": "116",
   "action": {

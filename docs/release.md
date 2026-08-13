@@ -1,6 +1,6 @@
 # Release guide
 
-Shopee Price Tracker v1.0.0 is the first complete local MVP release. This guide
+Shopee Price Tracker v1.0.1 is a maintenance release of the complete local MVP. This guide
 defines the source tag and generated artifact procedure. It does not deploy or
 push anything to a remote host.
 
@@ -29,7 +29,7 @@ Those exclusions require a separate security and deployment design.
 
 ## Version ownership
 
-The v1.0.0 release version must match in:
+The v1.0.1 release version must match in:
 
 - root `package.json`;
 - `apps/server/package.json`;
@@ -70,7 +70,7 @@ The release exporter fails if the MVP versions differ or are not numeric SemVer.
 The ignored local artifact is:
 
 ```text
-dist/releases/shopee-price-tracker-v1.0.0/
+dist/releases/shopee-price-tracker-v1.0.1/
 |-- .env.example
 |-- README.md
 |-- CHECKSUMS.sha256
@@ -100,8 +100,8 @@ itself is written. Use it to detect accidental changes during transfer.
 After the release commit and verification:
 
 ```powershell
-git tag -a v1.0.0 -m "Shopee Price Tracker v1.0.0"
-git show --stat --decorate v1.0.0
+git tag -a v1.0.1 -m "Shopee Price Tracker v1.0.1"
+git show --stat --decorate v1.0.1
 ```
 
 The tag should point to the commit that contains the synchronized versions,
@@ -112,7 +112,7 @@ it. If pushed later, push the reviewed branch first and the exact tag second.
 
 ## Reproducing the bundle from the tag
 
-From a clean checkout of `v1.0.0`:
+From a clean checkout of `v1.0.1`:
 
 ```powershell
 npm.cmd ci
@@ -139,20 +139,23 @@ live database.
 ## Rollback and data compatibility
 
 Before changing application versions, stop the backend and make a private
-database backup. v1.0.0 uses schema version 4.
+database backup. v1.0.1 uses schema version 4.
 
 Do not run older application code against a database after newer migrations have
 changed it unless that downgrade path was explicitly tested. Source migrations
 are forward-only. A release rollback therefore means restoring both the earlier
 source version and its matching database backup.
 
-## v1.0.0 verification record
+## v1.0.1 verification record
 
 The release includes:
 
-- synchronized v1.0.0 runtime and extension versions;
+- synchronized v1.0.1 runtime and extension versions;
+- recovery of unclaimed manual jobs bound to an earlier extension installation;
+- live Chrome verification that regenerating the pricing context, then clicking
+  **Collect next price check**, rebinds and completes an already queued job;
 - complete installation and maintenance documentation;
 - validated environment and privacy templates;
 - a reproducible unpacked extension and empty schema bundle;
 - release preparation tests and SHA-256 artifact checksums;
-- the annotated local `v1.0.0` source tag.
+- the annotated local `v1.0.1` source tag after live acceptance.

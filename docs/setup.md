@@ -1,6 +1,6 @@
 # Setup guide
 
-This guide installs Shopee Price Tracker v1.0.0 on one local computer. The
+This guide installs Shopee Price Tracker v1.0.1 on one local computer. The
 backend, database, dashboard, and unpacked Chrome extension stay on that
 computer.
 
@@ -222,7 +222,7 @@ Then run the release exporter:
 npm.cmd run release:prepare
 ```
 
-The release command must report v1.0.0, schema v4, and a versioned directory
+The release command must report v1.0.1, schema v4, and a versioned directory
 under `dist/releases`.
 
 If any step fails, continue with [troubleshooting.md](troubleshooting.md).

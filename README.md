@@ -1,6 +1,6 @@
 # Shopee Price Tracker
 
-Shopee Price Tracker v1.0.0 is a local-first Shopee Vietnam price-history
+Shopee Price Tracker v1.0.1 is a local-first Shopee Vietnam price-history
 application. A Chrome Manifest V3 extension observes the prices exposed to the
 user's current Shopee session, a Node.js backend stores variants and history in
 SQLite, a responsive dashboard manages the watchlist, and optional Telegram
@@ -9,7 +9,7 @@ alerts report genuine price reductions.
 This release is designed for one local computer. The backend binds to loopback,
 the database remains on that computer, and the extension is loaded unpacked.
 Public hosting, Chrome Web Store distribution, and multi-device sync are outside
-the v1.0.0 boundary.
+the v1.0.1 boundary.
 
 ## Price definition
 
@@ -167,7 +167,7 @@ the configured Chrome profile.
 
 ### Disabled local mode
 
-`AUTH_ENABLED=false` is the v1.0.0 default. Product routes transparently use one
+`AUTH_ENABLED=false` is the v1.0.1 default. Product routes transparently use one
 reserved passwordless local owner. Authentication endpoints return
 `AUTH_DISABLED`, account controls remain hidden, and startup rejects a
 non-loopback `HOST`.
@@ -221,7 +221,7 @@ source updates:
 npm.cmd run extension:build
 ```
 
-Then click **Reload** on the unpacked extension card. For v1.0.0, its manifest
+Then click **Reload** on the unpacked extension card. For v1.0.1, its manifest
 version must show `1.0.0`. If Chrome assigns a different extension ID after
 reinstallation, update `EXTENSION_ALLOWED_ORIGIN`, restart the backend, and save
 extension options again.
@@ -295,7 +295,7 @@ Create the ignored local release bundle with:
 npm.cmd run release:prepare
 ```
 
-The output is `dist/releases/shopee-price-tracker-v1.0.0` and contains the
+The output is `dist/releases/shopee-price-tracker-v1.0.1` and contains the
 loadable unpacked extension, setup documentation, `.env.example`, the empty
 current SQLite schema, all migrations, a release manifest, and SHA-256
 checksums. See [docs/release.md](docs/release.md).
@@ -309,7 +309,7 @@ database recovery.
 
 ## Privacy and security
 
-- The v1.0.0 backend is local-only and unauthenticated mode is loopback-only.
+- The v1.0.1 backend is local-only and unauthenticated mode is loopback-only.
 - Shopee credentials remain inside the user's browser page context.
 - Captures and fixtures use strict allowlists; raw responses are rejected by the
   backend.
