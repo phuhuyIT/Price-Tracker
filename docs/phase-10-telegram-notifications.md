@@ -2,10 +2,11 @@
 
 ## Status
 
-The Telegram formatter, bounded Bot API client, post-commit delivery service,
-successful-transition persistence, connection-test command, and automated
-coverage are implemented. Live verification with the user's bot and destination
-chat remains a manual gate because tests do not use real Telegram credentials.
+Phase 10 is complete. The Telegram formatter, bounded Bot API client,
+post-commit delivery service, successful-transition persistence,
+connection-test command, automated coverage, live delivery, and exact-transition
+duplicate suppression passed by 2026-08-12. The live checklist remains a
+repeatable gate because tests do not use real Telegram credentials.
 
 ## Delivery boundary
 
@@ -110,7 +111,7 @@ The complete regression command remains:
 npm.cmd test
 ```
 
-## Manual live checklist
+## Repeatable live checklist
 
 1. Create or select a Telegram bot through BotFather and keep its token outside
    the repository.

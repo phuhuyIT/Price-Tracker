@@ -358,10 +358,10 @@ It never accepts or stores browser request headers, cookies, Shopee
 authentication data, delivery addresses, or account information. Suspicious
 nested keys are removed before JSON is written.
 
-Capture another fixture with:
+Capture another fixture through the retained current-profile bridge with:
 
 ```powershell
-npm.cmd start -- "<Shopee URL>" --fixture "tests/fixtures/<name>.json"
+npm.cmd run legacy:current -- "<Shopee URL>" --fixture "tests/fixtures/<name>.json"
 ```
 
 The destination is created without overwriting an existing fixture.

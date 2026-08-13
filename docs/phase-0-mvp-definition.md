@@ -33,8 +33,9 @@ The product owner confirmed these release decisions:
   one price check.
 - The Chrome Manifest V3 extension is the preferred collector for the price
   displayed in a user's active Shopee session.
-- Anonymous Playwright collection supports manual refreshes and scheduled
-  backend checks.
+- Profile-bound extension collection supports manual refreshes and scheduled
+  backend checks. Anonymous Playwright remains retained discovery and
+  integration-test tooling.
 - A responsive dashboard supports tracking, listing, pausing, resuming,
   refreshing, deleting, and viewing price history.
 - Telegram is the only notification channel in the MVP.

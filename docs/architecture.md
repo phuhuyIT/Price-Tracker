@@ -1,8 +1,9 @@
 # Shopee Price Tracker MVP Architecture
 
-This is the target architecture agreed during Phase 0. The current root-level
-collector is a working discovery demo and remains intact until Phase 1 records
-its endpoints, field mappings, fixtures, and price behavior.
+This is the released v1.0.0 local MVP architecture. The root-level collector
+and `chrome-extension` remain retained discovery and regression tooling;
+production manual and scheduled collection uses `apps/extension` in the user's
+current Chrome profile.
 
 ## System overview
 
@@ -216,11 +217,18 @@ The accepted lifecycle state machine and default safeguards are specified in
   current dispatch loop, stops cron, and closes the database. Chrome owns its
   temporary tabs; any surviving claimed job is recoverable through lease expiry.
 
-## Target repository structure
+## Repository structure reference
 
-The root is a single npm-managed project. The current demo files are preserved
-through Phase 1 and then either migrated into the target modules or moved under
-an explicitly documented legacy/demo directory.
+The tree below records the modular target established during the foundation
+phases. The current implementation additionally contains persistent collection
+job modules, release tooling, and the focused files listed in
+[developer-guide.md](developer-guide.md). Use the repository itself as the
+authoritative file inventory.
+
+The root is a single npm-managed project. The root-level demo files and
+`chrome-extension` are retained in place as explicitly documented legacy
+discovery and regression tooling; the MVP application lives under `apps` and
+`packages`.
 
 ```text
 shopee-price-tracker/

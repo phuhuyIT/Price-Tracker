@@ -1,6 +1,6 @@
 # Phase 8 Logged-in Chrome Session Collector
 
-Status: implemented and automatically verified; live extension-profile verification remains pending.
+Status: **complete — automated and live acceptance verified 2026-08-12**
 
 ## Why Phase 8 uses the extension
 
@@ -157,7 +157,7 @@ binding, wrong-profile rejection, inactive-tab creation, successful completion,
 authentication notification, timeout closure, API validation, extension build,
 and the preserved legacy integrations.
 
-## Manual verification checklist
+## Repeatable live revalidation checklist
 
 1. Load `dist/extension` in the Chrome profile that is signed in to Shopee.
 2. Start the local backend; periodic background price checks may remain off.
@@ -180,5 +180,6 @@ and the preserved legacy integrations.
 12. Sign in to Shopee in the same profile, click **Check now**, and confirm that
     the same job resumes and can complete.
 
-The Phase 8 exit condition remains open until these live Chrome-profile steps
-are completed with a real Shopee response.
+These live Chrome-profile behaviors passed during the Phase 12 acceptance run.
+Repeat this checklist when Chrome, Shopee response behavior, or the extension
+collection boundary changes.

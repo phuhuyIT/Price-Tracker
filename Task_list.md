@@ -838,6 +838,8 @@ Fixture snapshots can be posted through the API and viewed through the products 
 
 # Phase 7 — Build the Chrome Extension Collector
 
+Status: **complete — automated and live acceptance verified 2026-08-12**
+
 ## Objective
 
 Capture the actual price displayed to a user in their active Shopee session.
@@ -972,6 +974,8 @@ Visiting a supported Shopee product page can create a valid `user_session` price
 
 # Phase 8 — Implement the Logged-in Chrome Session Collector
 
+Status: **complete — automated and live acceptance verified 2026-08-12**
+
 ## Objective
 
 Provide manual and future scheduled price checks through the user's installed
@@ -1104,7 +1108,7 @@ temporary tab open.
 
 # Phase 9 — Implement Scheduled Price Checks
 
-Status: **implementation complete — live Chrome verification pending 2026-08-07**
+Status: **complete — automated and live acceptance verified 2026-08-12**
 
 ## Objective
 
@@ -1220,7 +1224,7 @@ A scheduled run can check multiple active products, record failures correctly an
 
 # Phase 10 — Implement Telegram Notifications
 
-Status: **implementation complete — live Telegram verification pending 2026-08-09**
+Status: **complete — automated and live acceptance verified 2026-08-12**
 
 ## Objective
 
@@ -1511,6 +1515,8 @@ All acceptance criteria pass, or every remaining limitation is explicitly docume
 ---
 
 # Phase 13 — Documentation and Release Preparation
+
+Status: **complete — v1.0.0 verified 2026-08-13**
 
 ## Objective
 

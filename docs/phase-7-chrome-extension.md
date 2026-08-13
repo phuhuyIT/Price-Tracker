@@ -1,11 +1,12 @@
 # Phase 7 — Chrome Extension Collector
 
-Status: **implemented and automatically verified on 2026-08-01; live Chrome checklist pending**
+Status: **complete — automated and live acceptance verified 2026-08-12**
 
 ## Boundary
 
 The loadable extension is generated in `dist/extension`. It captures only the
-two configured Shopee product endpoints in the active page session and never
+configured Shopee product-detail and selected-variation endpoints in the active
+page session and never
 reads or forwards cookies, request headers, response headers, Shopee tokens, or
 raw responses.
 
@@ -166,7 +167,7 @@ The focused suite covers:
 6. Open the extension Options page. Keep **automatic capture off**, confirm the
    backend is connected, and confirm account controls are hidden.
 
-## Manual test checklist
+## Repeatable live revalidation checklist
 
 Use a Shopee Vietnam product URL containing `-i.<shop-id>.<item-id>`.
 

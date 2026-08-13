@@ -2,10 +2,11 @@
 
 ## Status
 
-The scheduler, persistent retry states, terminal failed-check behavior,
-extension queue draining, shutdown handling, and automated coverage are
-implemented. The live Chrome-profile checklist below remains a manual gate
-because fixtures cannot prove Shopee authentication or current response shape.
+Phase 9 is complete. The scheduler, persistent retry states, terminal
+failed-check behavior, extension queue draining, shutdown handling, automated
+coverage, and live Chrome-profile schedule passed by 2026-08-12. The checklist
+below remains a repeatable live gate because fixtures cannot prove current
+Shopee authentication or response shape.
 
 ## Asynchronous boundary
 
@@ -185,7 +186,7 @@ The complete regression command remains:
 npm.cmd test
 ```
 
-## Manual live Chrome-profile checklist
+## Repeatable live Chrome-profile checklist
 
 Use a disposable test schedule and restore normal values afterward.
 
