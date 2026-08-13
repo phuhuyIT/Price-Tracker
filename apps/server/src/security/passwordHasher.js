@@ -3,7 +3,7 @@ import { promisify } from 'node:util';
 
 const scryptAsync = promisify(nodeScrypt);
 
-export const DEFAULT_SCRYPT_PARAMETERS = Object.freeze({
+const DEFAULT_SCRYPT_PARAMETERS = Object.freeze({
   keyLength: 64,
   maxmem: 256 * 1024 * 1024,
   N: 2 ** 17,

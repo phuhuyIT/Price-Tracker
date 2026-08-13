@@ -39,7 +39,7 @@ function authenticationRequired() {
  * Extract either the dashboard cookie or extension bearer credential. A
  * request carrying both is rejected to avoid transport ambiguity.
  */
-export function extractSessionCredential(request) {
+function extractSessionCredential(request) {
   const authorization = request.get('authorization');
   const cookieToken = parseCookies(request.get('cookie')).get(DASHBOARD_SESSION_COOKIE);
   let bearerToken;

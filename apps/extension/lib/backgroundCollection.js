@@ -4,7 +4,7 @@ import { STORAGE_KEYS } from './serviceWorkerStore.js';
 export const COLLECTION_POLL_ALARM_NAME = 'collection-job-poll';
 export const COLLECTION_RETRY_ALARM_NAME = 'collection-job-retry';
 export const COLLECTION_TIMEOUT_ALARM_PREFIX = 'collection-job-timeout:';
-export const DEFAULT_COLLECTION_TIMEOUT_MS = 270_000;
+const DEFAULT_COLLECTION_TIMEOUT_MS = 270_000;
 const NEXT_JOB_DELAY_MIN_MS = 5_000;
 const NEXT_JOB_DELAY_MAX_MS = 10_000;
 const BACKEND_RETRY_DELAY_MS = 5_000;

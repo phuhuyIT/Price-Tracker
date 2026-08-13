@@ -23,7 +23,6 @@ const staticFiles = [
   'popup/popup.css',
   'options/options.html',
   'options/options.css',
-  'icons/README.md',
 ];
 
 async function listFiles(directory) {
@@ -64,7 +63,7 @@ async function rejectRemoteExecutable(files) {
 }
 
 /** Bundle and validate the loadable MV3 extension in the generated dist directory. */
-export async function buildExtension() {
+async function buildExtension() {
   const manifestPath = join(sourceDirectory, 'manifest.json');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
 

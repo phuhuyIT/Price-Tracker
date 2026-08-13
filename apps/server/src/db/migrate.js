@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
-import { basename, dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { closeDatabase, getDatabase } from './connection.js';
@@ -164,5 +164,3 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     closeDatabase();
   }
 }
-
-export const migrationDirectoryName = basename(migrationsDirectory);

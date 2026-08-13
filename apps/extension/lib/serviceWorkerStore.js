@@ -15,7 +15,7 @@ export const STORAGE_KEYS = Object.freeze({
   SETTINGS: 'extensionSettings',
 });
 
-export const DEFAULT_COLLECTION_STATUS = Object.freeze({
+const DEFAULT_COLLECTION_STATUS = Object.freeze({
   availability: 'unknown',
   at: null,
   displayedStockQuantity: null,
@@ -46,7 +46,7 @@ export const DEFAULT_BACKEND_STATUS = Object.freeze({
   status: 'unknown',
 });
 
-export const DEFAULT_SUBMISSION_STATUS = Object.freeze({
+const DEFAULT_SUBMISSION_STATUS = Object.freeze({
   at: null,
   error: null,
   expectedVariantCount: null,

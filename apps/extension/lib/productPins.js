@@ -2,7 +2,7 @@ import { getShopeeProductIdentity } from '../../../packages/shared/schemas/shope
 
 export const PINNED_PRODUCT_LIMIT = 5;
 export const PINNED_PRODUCT_STORAGE_KEY = 'pinnedProductsByScope';
-export const PRODUCT_SEARCH_RESULT_LIMIT = 8;
+const PRODUCT_SEARCH_RESULT_LIMIT = 8;
 
 function productPinsError(message, code, status = null) {
   const error = new Error(message);
@@ -91,7 +91,7 @@ function safeCanonicalUrl(value) {
 }
 
 /** Reduce the dashboard product contract to fields that are safe and useful in the popup. */
-export function compactPopupProduct(product) {
+function compactPopupProduct(product) {
   const id = Number(product?.id);
 
   if (!isPositiveIdentifier(id)) {

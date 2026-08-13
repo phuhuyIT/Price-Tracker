@@ -2,7 +2,7 @@ import pino from 'pino';
 
 import { config } from '../config/index.js';
 
-export const LOGGER_REDACTION_PATHS = Object.freeze([
+const LOGGER_REDACTION_PATHS = Object.freeze([
   'accessToken',
   'authorization',
   'botToken',

@@ -51,15 +51,6 @@ export function createVariantRepository(database) {
     WHERE pv.product_id = @productId AND p.owner_user_id = @ownerUserId
     ORDER BY pv.id
   `);
-  const listNonInactiveStatement = database.prepare(`
-    SELECT pv.*
-    FROM product_variants pv
-    JOIN products p ON p.id = pv.product_id
-    WHERE pv.product_id = @productId
-      AND p.owner_user_id = @ownerUserId
-      AND pv.lifecycle_status <> 'inactive'
-    ORDER BY pv.id
-  `);
   const upsertPresentStatement = database.prepare(`
     INSERT INTO product_variants (
       product_id,
@@ -138,28 +129,6 @@ export function createVariantRepository(database) {
 
   return Object.freeze({
     /**
-     * Find one owner-scoped variant by external marketplace identity.
-     *
-     * @param {object} input
-     */
-    findByExternalModelId({ externalModelId, ownerUserId, productId }) {
-      assertIdentifier(ownerUserId, 'ownerUserId');
-      assertIdentifier(productId, 'productId');
-
-      try {
-        return mapVariant(
-          findByExternalIdStatement.get({
-            externalModelId,
-            ownerUserId,
-            productId,
-          }),
-        );
-      } catch (error) {
-        throwDatabaseError('Unable to find the product variant identity', error);
-      }
-    },
-
-    /**
      * Find one owner-scoped variant by internal ID.
      *
      * @param {{ownerUserId: number, variantId: number}} input
@@ -188,24 +157,6 @@ export function createVariantRepository(database) {
         return listByProductStatement.all({ ownerUserId, productId }).map((row) => mapVariant(row));
       } catch (error) {
         throwDatabaseError('Unable to list product variants', error);
-      }
-    },
-
-    /**
-     * List known non-inactive variants used by missing-ratio evaluation.
-     *
-     * @param {{ownerUserId: number, productId: number}} input
-     */
-    listNonInactiveByProduct({ ownerUserId, productId }) {
-      assertIdentifier(ownerUserId, 'ownerUserId');
-      assertIdentifier(productId, 'productId');
-
-      try {
-        return listNonInactiveStatement
-          .all({ ownerUserId, productId })
-          .map((row) => mapVariant(row));
-      } catch (error) {
-        throwDatabaseError('Unable to list active product variants', error);
       }
     },
 

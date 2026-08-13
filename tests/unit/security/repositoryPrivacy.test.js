@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -24,7 +24,8 @@ function repositoryFiles() {
   })
     .split('\0')
     .filter(Boolean)
-    .map((file) => file.replaceAll('\\', '/'));
+    .map((file) => file.replaceAll('\\', '/'))
+    .filter((file) => existsSync(path.join(REPOSITORY_ROOT, file)));
 }
 
 describe('repository privacy boundary', () => {

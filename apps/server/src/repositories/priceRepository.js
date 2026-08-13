@@ -198,12 +198,6 @@ export function createPriceRepository(database) {
     ON CONFLICT(product_id, idempotency_key) DO NOTHING
     RETURNING *
   `);
-  const findCheckByIdStatement = database.prepare(`
-    SELECT pc.*
-    FROM price_checks pc
-    JOIN products p ON p.id = pc.product_id
-    WHERE pc.id = @checkId AND p.owner_user_id = @ownerUserId
-  `);
   const findCheckByIdempotencyStatement = database.prepare(`
     SELECT pc.*
     FROM price_checks pc
@@ -566,22 +560,6 @@ export function createPriceRepository(database) {
         return { check: existing, created: false };
       } catch (error) {
         throwDatabaseError('Unable to create the price check', error);
-      }
-    },
-
-    /**
-     * Find one owner-scoped check.
-     *
-     * @param {{checkId: number, ownerUserId: number}} input
-     */
-    findCheckById({ checkId, ownerUserId }) {
-      assertIdentifier(checkId, 'checkId');
-      assertIdentifier(ownerUserId, 'ownerUserId');
-
-      try {
-        return mapCheck(findCheckByIdStatement.get({ checkId, ownerUserId }));
-      } catch (error) {
-        throwDatabaseError('Unable to find the price check', error);
       }
     },
 
