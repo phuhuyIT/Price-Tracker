@@ -16,7 +16,7 @@ async function startDashboard(options) {
   return harness;
 }
 
-describe('Phase 11 dashboard', () => {
+describe('dashboard delivery', () => {
   it('serves the dashboard and locally installed Chart.js under a restrictive CSP', async () => {
     const { baseUrl } = await startDashboard();
     const dashboard = await fetch(`${baseUrl}/`);

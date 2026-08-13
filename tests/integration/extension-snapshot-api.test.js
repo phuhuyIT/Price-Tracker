@@ -59,7 +59,7 @@ async function createExtensionSnapshot() {
   });
 }
 
-describe('Phase 7 extension-to-backend contract', () => {
+describe('extension-to-backend snapshot contract', () => {
   it('stores a normalised user-session capture as one grouped check through allowed CORS', async () => {
     const harness = await createApiHarness({ extensionAllowedOrigin: EXTENSION_ORIGIN });
     harnesses.add(harness);

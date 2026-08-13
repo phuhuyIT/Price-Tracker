@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 describe('database migrations', () => {
-  it('creates the Phase 4 schema with foreign keys, WAL, and a stored version', () => {
+  it('creates the current schema with foreign keys, WAL, and a stored version', () => {
     const harness = createTestDatabase();
     harnesses.push(harness);
 

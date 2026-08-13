@@ -269,7 +269,7 @@ describe('tracking and price-comparison services', () => {
       CREATE TRIGGER reject_phase5_price
       BEFORE INSERT ON price_logs
       BEGIN
-        SELECT RAISE(ABORT, 'forced phase 5 rollback');
+        SELECT RAISE(ABORT, 'forced tracking rollback');
       END;
     `);
 

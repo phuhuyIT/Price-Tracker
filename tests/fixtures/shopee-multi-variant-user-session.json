@@ -34,11 +34,7 @@
                 "price_before_discount": 25500000000,
                 "status": 1,
                 "stock": null,
-                "extinfo": {
-                  "tier_index": [
-                    0
-                  ]
-                }
+                "extinfo": { "tier_index": [0] }
               },
               {
                 "model_id": 280758809722,
@@ -48,11 +44,7 @@
                 "price_before_discount": 25500000000,
                 "status": 1,
                 "stock": null,
-                "extinfo": {
-                  "tier_index": [
-                    1
-                  ]
-                }
+                "extinfo": { "tier_index": [1] }
               },
               {
                 "model_id": 280758809723,
@@ -62,22 +54,14 @@
                 "price_before_discount": 25500000000,
                 "status": 1,
                 "stock": null,
-                "extinfo": {
-                  "tier_index": [
-                    2
-                  ]
-                }
+                "extinfo": { "tier_index": [2] }
               }
             ],
             "shopid": 1259293184,
             "tier_variations": [
               {
                 "name": "ĐÓNG GÓI",
-                "options": [
-                  "NGUYÊN HẠT",
-                  "PHA PHIN",
-                  "PHA MÁY ESPRESSO"
-                ]
+                "options": ["NGUYÊN HẠT", "PHA PHIN", "PHA MÁY ESPRESSO"]
               }
             ]
           },
@@ -147,9 +131,7 @@
                 "instalment_cta_action": null
               }
             },
-            "item": {
-              "price_breakdown": null
-            }
+            "item": { "price_breakdown": null }
           }
         }
       }
@@ -161,15 +143,11 @@
           "body": {
             "item_id": 26882883164,
             "quantity": 1,
-            "selected_tiers": {
-              "0": 0
-            },
+            "selected_tiers": { "0": 0 },
             "shop_id": 1259293184
           },
           "modelIndex": 0,
-          "selectedTiers": {
-            "0": 0
-          }
+          "selectedTiers": { "0": 0 }
         },
         "response": {
           "error": null,
@@ -243,15 +221,11 @@
           "body": {
             "item_id": 26882883164,
             "quantity": 1,
-            "selected_tiers": {
-              "0": 1
-            },
+            "selected_tiers": { "0": 1 },
             "shop_id": 1259293184
           },
           "modelIndex": 1,
-          "selectedTiers": {
-            "0": 1
-          }
+          "selectedTiers": { "0": 1 }
         },
         "response": {
           "error": null,
@@ -325,15 +299,11 @@
           "body": {
             "item_id": 26882883164,
             "quantity": 1,
-            "selected_tiers": {
-              "0": 2
-            },
+            "selected_tiers": { "0": 2 },
             "shop_id": 1259293184
           },
           "modelIndex": 2,
-          "selectedTiers": {
-            "0": 2
-          }
+          "selectedTiers": { "0": 2 }
         },
         "response": {
           "error": null,

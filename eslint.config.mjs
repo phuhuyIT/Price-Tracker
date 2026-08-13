@@ -3,15 +3,7 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: [
-      'chrome-extension/**',
-      'coverage/**',
-      'data/**',
-      'dist/**',
-      'node_modules/**',
-      'phase1/**',
-      'tests/fixtures/**',
-    ],
+    ignores: ['coverage/**', 'data/**', 'dist/**', 'node_modules/**', 'tests/fixtures/**'],
   },
   eslint.configs.recommended,
   {

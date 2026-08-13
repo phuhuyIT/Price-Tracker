@@ -14,8 +14,7 @@ Included:
 - persistent manual and scheduled extension collection jobs;
 - variant-aware VND history, lifecycle safeguards, and chart gaps;
 - optional Telegram price-drop alerts;
-- disabled-by-default local account enforcement with implemented sessions; and
-- retained anonymous Playwright discovery/integration tooling.
+- disabled-by-default local account enforcement with implemented sessions.
 
 Excluded:
 
@@ -26,7 +25,7 @@ Excluded:
 - mandatory public registration; and
 - additional marketplaces.
 
-Those exclusions require Phase 14 or a later security/deployment design.
+Those exclusions require a separate security and deployment design.
 
 ## Version ownership
 
@@ -38,9 +37,6 @@ The v1.0.0 release version must match in:
 - `apps/extension/manifest.json`; and
 - the root lockfile workspace entries.
 
-`chrome-extension/manifest.json` belongs to the retained legacy discovery tool
-and keeps its independent version.
-
 The release exporter fails if the MVP versions differ or are not numeric SemVer.
 
 ## Pre-release checklist
@@ -51,24 +47,23 @@ The release exporter fails if the MVP versions differ or are not numeric SemVer.
 3. Confirm no real Telegram token, chat ID, application password, session token,
    collection lease, cookie, or Shopee credential appears in tracked files.
 4. Review `.env.example` against `apps/server/src/config/index.js`.
-5. Confirm phase documents no longer describe a completed live gate as pending.
-6. Run the complete automated gate:
+5. Run the complete automated gate:
 
    ```powershell
-   npm.cmd run test:phase12
+   npm.cmd test
    ```
 
-7. Create the release bundle:
+6. Create the release bundle:
 
    ```powershell
    npm.cmd run release:prepare
    ```
 
-8. Inspect `RELEASE-MANIFEST.json`, the unpacked extension manifest, schema
+7. Inspect `RELEASE-MANIFEST.json`, the unpacked extension manifest, schema
    version, migration inventory, and `CHECKSUMS.sha256`.
-9. Load the generated release `extension` directory in Chrome and repeat the
-   smallest live smoke test when release inputs changed after Phase 12.
-10. Commit the release changes before tagging.
+8. Load the generated release `extension` directory in Chrome and repeat the
+   smallest live smoke test when release inputs changed.
+9. Commit the release changes before tagging.
 
 ## Generated artifact
 
@@ -110,7 +105,7 @@ git show --stat --decorate v1.0.0
 ```
 
 The tag should point to the commit that contains the synchronized versions,
-release documentation, exporter, and Phase 13 completion record.
+release documentation and exporter.
 
 Do not push the branch or tag unless the repository owner explicitly requests
 it. If pushed later, push the reviewed branch first and the exact tag second.
@@ -121,7 +116,7 @@ From a clean checkout of `v1.0.0`:
 
 ```powershell
 npm.cmd ci
-npm.cmd run test:phase12
+npm.cmd test
 npm.cmd run release:prepare
 ```
 
@@ -153,14 +148,11 @@ source version and its matching database backup.
 
 ## v1.0.0 verification record
 
-Phase 12 records the automated and live acceptance evidence. Phase 13 adds:
+The release includes:
 
 - synchronized v1.0.0 runtime and extension versions;
 - complete installation and maintenance documentation;
 - validated environment and privacy templates;
 - a reproducible unpacked extension and empty schema bundle;
-- release preparation tests and SHA-256 artifact checksums; and
+- release preparation tests and SHA-256 artifact checksums;
 - the annotated local `v1.0.0` source tag.
-
-See [phase-13-release-preparation.md](phase-13-release-preparation.md) for the
-final command results and completion record.

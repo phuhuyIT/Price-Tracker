@@ -1,29 +1,21 @@
-import variantCore from '../../../chrome-extension/shared/variant-core.js';
-import variationPage from '../../../chrome-extension/shared/variation-page.js';
 import {
   DEFAULT_SHOPEE_PRICE_SCALE,
   isImplicitDefaultShopeeProduct,
 } from '../../../packages/shared/shopee/shopeeSnapshotNormalizer.js';
+import {
+  buildTierDefinitions,
+  createVariantRequests,
+  selectedTiersKey,
+} from './variantSelection.js';
+import {
+  createVariationClicker,
+  findSelectedVariationButtonsInPage,
+  findVariationButtonInPage,
+} from './variationControls.js';
 
 const CAPTURE_WAIT_MS = 4_000;
 const IMPLICIT_DEFAULT_PRICE_WAIT_MS = 3_000;
 const POLL_INTERVAL_MS = 100;
-
-function toLegacyItem(productCapture) {
-  return {
-    itemid: productCapture.product.itemId,
-    models: productCapture.product.models.map((model) => ({
-      extinfo: { tier_index: [...model.tierIndex] },
-      modelid: model.modelId,
-      name: model.name,
-    })),
-    shopid: productCapture.product.shopId,
-    tier_variations: productCapture.product.tierVariations.map((tier) => ({
-      name: tier.name,
-      options: [...tier.options],
-    })),
-  };
-}
 
 function wait(timeoutMs) {
   return new Promise((resolve) => setTimeout(resolve, timeoutMs));
@@ -100,9 +92,7 @@ async function collectImplicitDefaultPrice({
 }) {
   const model = captureState.productDetail.product.models[0];
   const request = requests[0];
-  const variationKey = request?.selectedTiers
-    ? variantCore.selectedTiersKey(request.selectedTiers)
-    : null;
+  const variationKey = request?.selectedTiers ? selectedTiersKey(request.selectedTiers) : null;
 
   await onProgress({ expectedVariantCount: 1, processedVariantCount: 0 });
 
@@ -166,22 +156,18 @@ export async function collectBackgroundPageVariants(
     throw new Error('Shopee product details were not captured');
   }
 
-  const item = toLegacyItem(productCapture);
-  const requests = variantCore.createVariantRequests(item, {
-    itemId: productCapture.product.itemId,
-    shopId: productCapture.product.shopId,
-  });
-  const definitions = variantCore.buildTierDefinitions(item, requests);
-  const clicker = variationPage.createVariationClicker({
+  const requests = createVariantRequests(productCapture.product);
+  const definitions = buildTierDefinitions(productCapture.product, requests);
+  const clicker = createVariationClicker({
     click: clickAt,
     locate: (tierDefinitions, tierIndex, optionIndex) =>
-      variationPage.findVariationButtonInPage({
+      findVariationButtonInPage({
         definitions: tierDefinitions,
         optionIndex,
         tierIndex,
       }),
     locateSelected: (tierDefinitions) =>
-      variationPage.findSelectedVariationButtonsInPage({ definitions: tierDefinitions }),
+      findSelectedVariationButtonsInPage({ definitions: tierDefinitions }),
     wait,
   });
 
@@ -219,7 +205,7 @@ export async function collectBackgroundPageVariants(
       continue;
     }
 
-    const key = variantCore.selectedTiersKey(request.selectedTiers);
+    const key = selectedTiersKey(request.selectedTiers);
 
     if (captureState.variations.has(key)) {
       processedVariantCount += 1;

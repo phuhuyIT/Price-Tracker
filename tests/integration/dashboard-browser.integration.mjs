@@ -65,10 +65,7 @@ async function verifyLocalDashboard(browser) {
 
   try {
     const snapshot = JSON.parse(
-      readFileSync(
-        new URL('../../packages/shared/examples/valid-product-snapshot.json', import.meta.url),
-        'utf8',
-      ),
+      readFileSync(new URL('../fixtures/valid-product-snapshot.json', import.meta.url), 'utf8'),
     );
     const snapshotResponse = await globalThis.fetch(`${harness.baseUrl}/api/products/snapshot`, {
       body: JSON.stringify(snapshot),

@@ -74,7 +74,7 @@ changes.
 ## 5. Install Playwright Chromium
 
 Normal collection uses Chrome and the MVP extension. Install Playwright
-Chromium for the full verification suite and retained anonymous tooling:
+Chromium for the full verification suite:
 
 ```powershell
 npm.cmd run playwright:install
@@ -99,8 +99,6 @@ Then:
 6. Copy the extension ID from its card.
 
 Do not load `apps/extension` directly. It contains unbundled module sources.
-Do not load `chrome-extension` for the MVP workflow; that directory is retained
-legacy discovery tooling with a separate version.
 
 ## 7. Allow the exact extension origin
 
@@ -215,7 +213,7 @@ from the reserved local owner.
 Run the complete automated gate:
 
 ```powershell
-npm.cmd run test:phase12
+npm.cmd test
 ```
 
 Then run the release exporter:

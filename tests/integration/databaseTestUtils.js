@@ -6,10 +6,7 @@ import { openDatabase } from '../../apps/server/src/db/connection.js';
 import { runMigrations } from '../../apps/server/src/db/migrate.js';
 import { createRepositories } from '../../apps/server/src/repositories/index.js';
 
-const validSnapshotPath = new URL(
-  '../../packages/shared/examples/valid-product-snapshot.json',
-  import.meta.url,
-);
+const validSnapshotPath = new URL('../fixtures/valid-product-snapshot.json', import.meta.url);
 
 /**
  * Return an independent copy of the documented valid snapshot.
@@ -59,10 +56,10 @@ export function createTestOwner(repositories, email = 'owner@example.com') {
 }
 
 /**
- * Persist one complete snapshot through the Phase 4 repository transaction.
+ * Persist one complete snapshot through the repository transaction.
  *
- * This helper intentionally performs orchestration only in tests. Phase 5 will
- * move validation and lifecycle policy into the tracking service.
+ * This helper intentionally performs orchestration only in tests; validation
+ * and lifecycle policy belong in the tracking service.
  *
  * @param {object} input
  */

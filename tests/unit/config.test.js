@@ -85,15 +85,6 @@ describe('environment configuration', () => {
     );
   });
 
-  it('rejects an inverted scrape delay range', () => {
-    expect(() =>
-      loadConfig({
-        SCRAPE_DELAY_MAX_MS: '5',
-        SCRAPE_DELAY_MIN_MS: '10',
-      }),
-    ).toThrow(/SCRAPE_DELAY_MIN_MS must not exceed SCRAPE_DELAY_MAX_MS/u);
-  });
-
   it('rejects unsafe collection lease durations', () => {
     expect(() => loadConfig({ COLLECTION_JOB_LEASE_MS: '29999' })).toThrow(ConfigurationError);
   });

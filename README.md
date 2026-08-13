@@ -45,9 +45,8 @@ Express -> same-origin dashboard -> product and history APIs
 ```
 
 Production manual and scheduled checks are performed by `apps/extension` in the
-Chrome profile already signed in to Shopee. Playwright remains anonymous
-discovery and integration-test tooling; it does not receive or persist the
-user's Shopee profile.
+Chrome profile already signed in to Shopee. Playwright is used only by the local
+dashboard browser test and never receives or persists the user's Shopee profile.
 
 The detailed boundaries are documented in
 [docs/architecture.md](docs/architecture.md) and
@@ -61,8 +60,8 @@ The detailed boundaries are documented in
 - a normal Chrome profile signed in to Shopee Vietnam for reliable collection
 - optional Telegram bot and destination chat
 
-Playwright Chromium is required for the complete test suite and retained
-anonymous tooling, but not for normal extension-based production collection.
+Playwright Chromium is required for the complete test suite, but not for normal
+extension-based production collection.
 
 ## Quick start
 
@@ -129,47 +128,40 @@ The full first-install procedure and validation checklist are in
 Startup validates every environment value. Invalid configuration fails with a
 clear error before the server begins listening.
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `NODE_ENV` | `development` | `development`, `test`, or `production` behavior |
-| `HOST` | `127.0.0.1` | HTTP bind host; must be loopback when authentication is disabled |
-| `PORT` | `3000` | Backend and dashboard port |
-| `DATABASE_PATH` | `./data/shopee-tracker.db` | Persistent SQLite file |
-| `AUTH_ENABLED` | `false` | Require price-tracker application sessions |
-| `AUTH_ALLOW_REGISTRATION` | `false` | Expose account creation when authentication is enabled |
-| `AUTH_SESSION_TTL_HOURS` | `720` | Application session lifetime |
-| `COLLECTION_JOB_LEASE_MS` | `300000` | Claimed extension-job lease |
-| `COLLECTION_MAX_ATTEMPTS` | `4` | Total retry-budget claims |
-| `COLLECTION_RETRY_BASE_DELAY_MS` | `5000` | Collection retry base delay |
-| `COLLECTION_RETRY_MAX_DELAY_MS` | `300000` | Collection retry delay cap |
-| `COLLECTION_DISPATCH_DELAY_MIN_MS` | `5000` | Minimum delay between scheduled products |
-| `COLLECTION_DISPATCH_DELAY_MAX_MS` | `10000` | Maximum delay between scheduled products |
-| `CRON_ENABLED` | `true` | Enable scheduled job dispatch |
-| `CRON_SCHEDULE` | `0 */12 * * *` | node-cron dispatch expression |
-| `SHOPEE_HEADLESS` | `true` | Retained anonymous Playwright mode |
-| `SHOPEE_PRICE_SCALE` | `100000` | Verified raw Shopee price divisor |
-| `SCRAPE_TIMEOUT_MS` | `45000` | Retained Playwright timeout |
-| `SCRAPE_DELAY_MIN_MS` | `5000` | Retained Playwright minimum delay |
-| `SCRAPE_DELAY_MAX_MS` | `10000` | Retained Playwright maximum delay |
-| `SCRAPE_MAX_RETRIES` | `2` | Retained Playwright retry limit |
-| `PRICE_DROP_THRESHOLD_PERCENT` | `1` | Default product alert threshold |
-| `VARIANT_MISSING_THRESHOLD` | `3` | Verified complete misses before inactivity |
-| `MAX_VARIANT_MISSING_RATIO` | `0.5` | Mass-disappearance quarantine threshold |
-| `VARIANT_MASS_MISSING_CONFIRMATIONS` | `2` | Matching suspicious catalogues required |
-| `TELEGRAM_BOT_TOKEN` | empty | Optional Telegram Bot API token |
-| `TELEGRAM_CHAT_ID` | empty | Optional Telegram destination |
-| `TELEGRAM_REQUEST_TIMEOUT_MS` | `3000` | Telegram request timeout |
-| `TELEGRAM_MAX_ATTEMPTS` | `2` | Total Telegram delivery attempts |
-| `TELEGRAM_RETRY_BASE_DELAY_MS` | `500` | Telegram retry base delay |
-| `TELEGRAM_RETRY_MAX_DELAY_MS` | `2000` | Telegram retry delay cap |
-| `EXTENSION_ALLOWED_ORIGIN` | empty | Exact allowed MVP extension origin |
-| `API_RATE_LIMIT_WINDOW_MS` | `60000` | API rate-limit window |
-| `API_RATE_LIMIT_MAX` | `60` | Product mutations allowed per window |
-| `LOG_LEVEL` | `info` | Pino log level, including `silent` |
+| Variable                             | Default                    | Purpose                                                          |
+| ------------------------------------ | -------------------------- | ---------------------------------------------------------------- |
+| `NODE_ENV`                           | `development`              | `development`, `test`, or `production` behavior                  |
+| `HOST`                               | `127.0.0.1`                | HTTP bind host; must be loopback when authentication is disabled |
+| `PORT`                               | `3000`                     | Backend and dashboard port                                       |
+| `DATABASE_PATH`                      | `./data/shopee-tracker.db` | Persistent SQLite file                                           |
+| `AUTH_ENABLED`                       | `false`                    | Require price-tracker application sessions                       |
+| `AUTH_ALLOW_REGISTRATION`            | `false`                    | Expose account creation when authentication is enabled           |
+| `AUTH_SESSION_TTL_HOURS`             | `720`                      | Application session lifetime                                     |
+| `COLLECTION_JOB_LEASE_MS`            | `300000`                   | Claimed extension-job lease                                      |
+| `COLLECTION_MAX_ATTEMPTS`            | `4`                        | Total retry-budget claims                                        |
+| `COLLECTION_RETRY_BASE_DELAY_MS`     | `5000`                     | Collection retry base delay                                      |
+| `COLLECTION_RETRY_MAX_DELAY_MS`      | `300000`                   | Collection retry delay cap                                       |
+| `COLLECTION_DISPATCH_DELAY_MIN_MS`   | `5000`                     | Minimum delay between scheduled products                         |
+| `COLLECTION_DISPATCH_DELAY_MAX_MS`   | `10000`                    | Maximum delay between scheduled products                         |
+| `CRON_ENABLED`                       | `true`                     | Enable scheduled job dispatch                                    |
+| `CRON_SCHEDULE`                      | `0 */12 * * *`             | node-cron dispatch expression                                    |
+| `PRICE_DROP_THRESHOLD_PERCENT`       | `1`                        | Default product alert threshold                                  |
+| `VARIANT_MISSING_THRESHOLD`          | `3`                        | Verified complete misses before inactivity                       |
+| `MAX_VARIANT_MISSING_RATIO`          | `0.5`                      | Mass-disappearance quarantine threshold                          |
+| `VARIANT_MASS_MISSING_CONFIRMATIONS` | `2`                        | Matching suspicious catalogues required                          |
+| `TELEGRAM_BOT_TOKEN`                 | empty                      | Optional Telegram Bot API token                                  |
+| `TELEGRAM_CHAT_ID`                   | empty                      | Optional Telegram destination                                    |
+| `TELEGRAM_REQUEST_TIMEOUT_MS`        | `3000`                     | Telegram request timeout                                         |
+| `TELEGRAM_MAX_ATTEMPTS`              | `2`                        | Total Telegram delivery attempts                                 |
+| `TELEGRAM_RETRY_BASE_DELAY_MS`       | `500`                      | Telegram retry base delay                                        |
+| `TELEGRAM_RETRY_MAX_DELAY_MS`        | `2000`                     | Telegram retry delay cap                                         |
+| `EXTENSION_ALLOWED_ORIGIN`           | empty                      | Exact allowed MVP extension origin                               |
+| `API_RATE_LIMIT_WINDOW_MS`           | `60000`                    | API rate-limit window                                            |
+| `API_RATE_LIMIT_MAX`                 | `60`                       | Product mutations allowed per window                             |
+| `LOG_LEVEL`                          | `info`                     | Pino log level, including `silent`                               |
 
-The `SCRAPE_*`, `SHOPEE_HEADLESS`, and anonymous Playwright settings do not
-control production scheduled collection. The scheduler creates persistent jobs;
-the installed extension performs them.
+The scheduler creates persistent jobs; the installed extension performs them in
+the configured Chrome profile.
 
 ## Authentication modes
 
@@ -222,8 +214,8 @@ migrations. It contains no user data.
 
 ## Extension installation and configuration
 
-Always load `dist/extension`, not `apps/extension` and not the legacy
-`chrome-extension` discovery tool. After source updates:
+Always load `dist/extension`, not the unbundled `apps/extension` sources. After
+source updates:
 
 ```powershell
 npm.cmd run extension:build
@@ -264,38 +256,22 @@ A notification event is recorded only after Telegram confirms delivery. A
 delivery failure never rolls back price history, and the same successful price
 transition is not sent twice.
 
-## Retained anonymous Playwright tooling
+## Browser-test tooling
 
-Install its Chromium binary with:
+Install the local Chromium binary used by the dashboard integration test with:
 
 ```powershell
 npm.cmd run playwright:install
 ```
 
-The safe connectivity command uses a fresh anonymous context:
-
-```powershell
-npm.cmd run legacy:anonymous-connectivity -- "https://shopee.vn/product-i.shop.item"
-```
-
-It does not sign in, load the user's Chrome profile, or perform production
-scheduled checks. The older root-level and `chrome-extension` tools remain only
-for discovery and regression compatibility.
-
 ## Fixture maintenance
 
-When Shopee changes a recognised response, capture a new allowlisted fixture
-through the retained current-profile bridge:
-
-```powershell
-npm.cmd run legacy:current -- "https://shopee.vn/product-i.shop.item" --fixture "tests/fixtures/new-capture.json"
-```
-
-The destination must not already exist. Review the output for only public
-product/model, selected-tier, stock, and pricing evidence. Never commit cookies,
-headers, request signatures, authentication data, addresses, or a raw response.
-See [docs/developer-guide.md](docs/developer-guide.md) for the complete fixture
-and adapter workflow.
+When Shopee changes a recognised response, inspect the response in Chrome
+DevTools on a disposable public product and manually create the smallest
+allowlisted test fixture needed to represent the new shape. Never save or commit
+a HAR, cookies, headers, request signatures, authentication data, addresses, or
+a raw response. See [docs/developer-guide.md](docs/developer-guide.md) for the
+complete fixture and adapter workflow.
 
 ## Development and tests
 
@@ -303,18 +279,13 @@ and adapter workflow.
 npm.cmd run dev
 npm.cmd run lint
 npm.cmd run format:check
-npm.cmd run test:foundation
-npm.cmd run test:phase7
-npm.cmd run test:phase9
-npm.cmd run test:phase10
-npm.cmd run test:phase11
-npm.cmd run test:phase12
+npm.cmd test
 ```
 
-`npm.cmd run test:phase12` is the complete automated gate: linting, formatting,
-all Vitest tests, the deterministic extension build, dashboard Chromium flow,
-and retained collector integrations. Automated fixtures do not replace a live
-Chrome/Shopee or Telegram acceptance check.
+`npm.cmd test` is the complete automated gate: linting, formatting, all Vitest
+tests, the deterministic extension build, and the dashboard Chromium flow.
+Automated fixtures do not replace a live Chrome/Shopee or Telegram acceptance
+check.
 
 ## Release build
 
@@ -365,8 +336,3 @@ database recovery.
 - Chrome Web Store distribution, hosted HTTPS operation, mandatory multi-user
   authentication, and multi-device sync require a separate deployment and
   security phase.
-
-Historical phase evidence remains under `docs/phase-*.md`. The current release
-instructions in this README, [docs/setup.md](docs/setup.md), and
-[docs/troubleshooting.md](docs/troubleshooting.md) take precedence when an older
-phase record describes a superseded implementation plan.

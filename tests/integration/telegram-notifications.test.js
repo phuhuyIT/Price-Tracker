@@ -35,7 +35,7 @@ async function postSnapshot(baseUrl, snapshot) {
   });
 }
 
-describe('Phase 10 Telegram integration', () => {
+describe('Telegram notification integration', () => {
   it('sends and records one qualifying transition while suppressing the duplicate cycle', async () => {
     const { baseUrl, databaseHarness, telegramClient } = await startApi();
 

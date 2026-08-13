@@ -102,8 +102,8 @@ Important invariants:
 - Expected, observed, and priced counts must agree with the variant array and
   coverage claim.
 
-The complete accepted example is
-`packages/shared/examples/valid-product-snapshot.json`.
+The complete accepted regression fixture is
+`tests/fixtures/valid-product-snapshot.json`.
 
 ## Shopee endpoint adapter
 
@@ -147,17 +147,17 @@ unrecognised container, or mismatched model is rejected. Do not silently fall
 back to `price_min`, `price_max`, a crossed-out original amount, another model's
 price, or a previous check.
 
-`SHOPEE_PRICE_SCALE` remains configurable for retained tooling, but changing it
-requires new sanitised live evidence and focused conversion tests.
+The verified scale is owned by the Shopee normaliser. Changing it requires new
+sanitised live evidence and focused conversion tests.
 
 ## Pricing contexts
 
 The supported source/context pairs are:
 
-| Source | Pricing context | Use |
-| --- | --- | --- |
-| `extension` | `user_session` | Production price from the current Chrome profile |
-| `playwright` | `anonymous` | Retained anonymous discovery evidence |
+| Source       | Pricing context | Use                                              |
+| ------------ | --------------- | ------------------------------------------------ |
+| `extension`  | `user_session`  | Production price from the current Chrome profile |
+| `playwright` | `anonymous`     | Historical/import compatibility only             |
 
 Every current stream has a `pricingContextKey`. The extension generates an
 opaque stable local installation key; it is not a Shopee account identifier.
@@ -236,23 +236,20 @@ fresh migration and upgrade behavior.
 When Shopee changes a private response:
 
 1. Choose a disposable public product that demonstrates one specific behavior.
-2. Use the retained current-profile bridge in the signed-in profile:
-
-   ```powershell
-   npm.cmd run legacy:current -- "https://shopee.vn/product-i.shop.item" --fixture "tests/fixtures/descriptive-name.json"
-   ```
-
-3. Use a new destination; the command refuses to overwrite an existing fixture.
+2. Open Chrome DevTools **Network** on the public product page and locate only
+   the recognised product-detail or selected-variation response.
+3. Do not export a HAR or copy request headers. Manually construct the smallest
+   JSON fixture that represents the required response shape.
 4. Inspect the JSON manually. It may contain public product IDs, canonical URL,
    title/image identifiers, model IDs/names, tier selections, stock/status
    evidence, and allowlisted pricing blocks.
 5. Remove or reject any cookie, header, token, request signature, account ID,
    address, raw response, or unrelated nested field.
-6. Record provenance and whether the shape is live, derived, or mocked in
-   `docs/phase-1-shopee-analysis.md`.
+6. Record provenance and whether the shape is live, derived, or mocked next to
+   the focused test that consumes it.
 7. Add focused sanitizer, normaliser, and schema tests before changing adapter
    behavior.
-8. Run `npm.cmd run test:phase7` and the complete gate.
+8. Run the focused adapter test and `npm.cmd test`.
 
 Do not repeatedly hit Shopee to manufacture rate limits or authentication
 failures, and do not bypass platform controls.
@@ -286,7 +283,7 @@ know which private response fields produced it.
 Use the narrowest relevant command while developing, then run:
 
 ```powershell
-npm.cmd run test:phase12
+npm.cmd test
 npm.cmd run release:prepare
 ```
 

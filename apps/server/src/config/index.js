@@ -40,14 +40,6 @@ const environmentSchema = z
     CRON_ENABLED: booleanString.default('true'),
     CRON_SCHEDULE: z.string().trim().min(1).default('0 */12 * * *'),
 
-    SHOPEE_HEADLESS: booleanString.default('true'),
-    SHOPEE_PRICE_SCALE: z.coerce.number().int().positive().safe().default(100_000),
-
-    SCRAPE_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(300_000).default(45_000),
-    SCRAPE_DELAY_MIN_MS: z.coerce.number().int().min(0).max(300_000).default(5_000),
-    SCRAPE_DELAY_MAX_MS: z.coerce.number().int().min(0).max(300_000).default(10_000),
-    SCRAPE_MAX_RETRIES: z.coerce.number().int().min(0).max(10).default(2),
-
     PRICE_DROP_THRESHOLD_PERCENT: z.coerce.number().min(0).max(100).default(1),
     VARIANT_MISSING_THRESHOLD: z.coerce.number().int().min(1).max(100).default(3),
     MAX_VARIANT_MISSING_RATIO: z.coerce.number().gt(0).max(1).default(0.5),
@@ -73,14 +65,6 @@ const environmentSchema = z
         code: z.ZodIssueCode.custom,
         message: 'HOST must be loopback when AUTH_ENABLED=false',
         path: ['HOST'],
-      });
-    }
-
-    if (value.SCRAPE_DELAY_MIN_MS > value.SCRAPE_DELAY_MAX_MS) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'SCRAPE_DELAY_MIN_MS must not exceed SCRAPE_DELAY_MAX_MS',
-        path: ['SCRAPE_DELAY_MIN_MS'],
       });
     }
 
@@ -189,14 +173,6 @@ export function loadConfig(environment = process.env) {
     rateLimit: Object.freeze({
       max: value.API_RATE_LIMIT_MAX,
       windowMs: value.API_RATE_LIMIT_WINDOW_MS,
-    }),
-    scrape: Object.freeze({
-      delayMaxMs: value.SCRAPE_DELAY_MAX_MS,
-      delayMinMs: value.SCRAPE_DELAY_MIN_MS,
-      headless: value.SHOPEE_HEADLESS,
-      maxRetries: value.SCRAPE_MAX_RETRIES,
-      priceScale: value.SHOPEE_PRICE_SCALE,
-      timeoutMs: value.SCRAPE_TIMEOUT_MS,
     }),
     telegram: Object.freeze({
       botToken: value.TELEGRAM_BOT_TOKEN,

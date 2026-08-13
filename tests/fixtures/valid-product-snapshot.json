@@ -10,7 +10,7 @@
   "capturedAt": "2026-07-30T10:00:00.000Z",
   "source": "extension",
   "pricingContext": "user_session",
-  "pricingContextKey": "extension_install_example_01",
+  "pricingContextKey": "extension_install_test_01",
   "variantCoverage": "complete",
   "coverageConfidence": "verified",
   "expectedVariantCount": 2,

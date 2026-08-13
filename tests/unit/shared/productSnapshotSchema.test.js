@@ -10,10 +10,7 @@ import {
 } from '../../../packages/shared/index.js';
 
 const exampleSnapshot = JSON.parse(
-  readFileSync(
-    new URL('../../../packages/shared/examples/valid-product-snapshot.json', import.meta.url),
-    'utf8',
-  ),
+  readFileSync(new URL('../../fixtures/valid-product-snapshot.json', import.meta.url), 'utf8'),
 );
 
 function validSnapshot() {

@@ -1,5 +1,0 @@
--- Schema source pointer.
---
--- The executable, versioned source is migrations/001-initial.sql. This file is
--- intentionally kept as a short pointer so migrations remain the single source
--- of truth and future schema changes cannot be applied outside migration order.
