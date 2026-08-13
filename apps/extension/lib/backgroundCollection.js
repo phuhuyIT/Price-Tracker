@@ -12,6 +12,25 @@ const LEASE_SAFETY_BUFFER_MS = 10_000;
 const PAGE_COMPLETION_BUFFER_MS = 5_000;
 const LOCAL_COLLECTION_SUCCESS_STATES = new Set(['no_prices', 'partial', 'success', 'unavailable']);
 
+function nextManualJobId(queue, now = Date.now()) {
+  if (queue?.kind !== 'success' || !Array.isArray(queue.jobs)) {
+    return null;
+  }
+
+  const waitingForAuthentication = queue.jobs.find((job) => job.status === 'waiting_auth');
+
+  if (waitingForAuthentication) {
+    return waitingForAuthentication.id;
+  }
+
+  const claimable = queue.jobs.find(
+    (job) =>
+      job.status === 'pending' ||
+      (job.status === 'retry_wait' && Date.parse(job.nextAttemptAt) <= now),
+  );
+  return claimable?.id ?? null;
+}
+
 function status(state, { error = null, jobId = null, ...details } = {}) {
   return { at: new Date().toISOString(), error, jobId, ...details, state };
 }
@@ -217,7 +236,7 @@ export function createBackgroundCollectionAgent({
             ? Date.parse(rebound.job.nextAttemptAt)
             : Date.now() + 100;
         await scheduleRetry(Number.isFinite(retryAt) ? retryAt : Date.now() + 100);
-        return queued;
+        return { ...queued, retryImmediately: retryAt <= Date.now() + 100 };
       }
 
       const error = rebound.error ?? 'The collection could not move to this Chrome profile';
@@ -532,6 +551,47 @@ export function createBackgroundCollectionAgent({
     }
   }
 
+  async function pollNow(jobId = null) {
+    if (jobId !== null) {
+      const state = await store.load();
+
+      if (state.activeCollection?.job?.id === jobId) {
+        await store.set({
+          [STORAGE_KEYS.MANUAL_COLLECTION_QUEUE]: state.manualCollectionQueue.filter(
+            (id) => id !== jobId,
+          ),
+        });
+        return {
+          job: state.activeCollection.job,
+          state: 'collecting',
+          tabId: state.activeCollection.tabId,
+        };
+      }
+
+      const manualCollectionQueue = [...new Set([...state.manualCollectionQueue, jobId])];
+      await store.set({ [STORAGE_KEYS.MANUAL_COLLECTION_QUEUE]: manualCollectionQueue });
+    }
+
+    const result = await poll({ allowWhenDisabled: true, resumeWaitingAuth: true });
+
+    if (result?.state === 'busy') {
+      await scheduleRetry(Date.now() + 100);
+    }
+
+    if (result?.retryImmediately) {
+      await alarms.clear(COLLECTION_RETRY_ALARM_NAME);
+      return poll({ allowWhenDisabled: true, resumeWaitingAuth: true });
+    }
+
+    return result;
+  }
+
+  async function pollNext() {
+    const state = await store.load();
+    const queue = await backendClient.listCollectionJobs(state.settings, state.auth);
+    return pollNow(nextManualJobId(queue));
+  }
+
   return Object.freeze({
     configureAlarm,
 
@@ -632,35 +692,7 @@ export function createBackgroundCollectionAgent({
     },
 
     poll,
-
-    async pollNow(jobId = null) {
-      if (jobId !== null) {
-        const state = await store.load();
-
-        if (state.activeCollection?.job?.id === jobId) {
-          await store.set({
-            [STORAGE_KEYS.MANUAL_COLLECTION_QUEUE]: state.manualCollectionQueue.filter(
-              (id) => id !== jobId,
-            ),
-          });
-          return {
-            job: state.activeCollection.job,
-            state: 'collecting',
-            tabId: state.activeCollection.tabId,
-          };
-        }
-
-        const manualCollectionQueue = [...new Set([...state.manualCollectionQueue, jobId])];
-        await store.set({ [STORAGE_KEYS.MANUAL_COLLECTION_QUEUE]: manualCollectionQueue });
-      }
-
-      const result = await poll({ allowWhenDisabled: true, resumeWaitingAuth: true });
-
-      if (result?.state === 'busy') {
-        await scheduleRetry(Date.now() + 100);
-      }
-
-      return result;
-    },
+    pollNext,
+    pollNow,
   });
 }

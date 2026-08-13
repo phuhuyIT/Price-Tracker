@@ -487,7 +487,7 @@ async function handleMessage(message, sender) {
       return submissionQueue.clearFailed();
     case RUNTIME_MESSAGES.POLL_COLLECTION_JOBS:
       requireExtensionPage(sender);
-      return backgroundCollection.pollNow();
+      return backgroundCollection.pollNext();
     default:
       throw extensionError('Unknown extension message', 'UNKNOWN_MESSAGE');
   }

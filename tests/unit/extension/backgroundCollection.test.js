@@ -59,6 +59,7 @@ function createHarness({ settings } = {}) {
       kind: 'success',
     })),
     getCollectionJob: vi.fn(async () => ({ job: null, kind: 'success' })),
+    listCollectionJobs: vi.fn(async () => ({ jobs: [], kind: 'success' })),
     rebindCollectionJob: vi.fn(async () => ({ job: null, kind: 'success' })),
   };
   const notifications = { create: vi.fn(async () => 'notification') };
@@ -121,6 +122,51 @@ describe('background Chrome collection agent', () => {
       url: 'https://shopee.vn/product-i.1259293184.26882883164',
       windowId: 4,
     });
+  });
+
+  it('moves the next manual job from an old profile and claims it immediately', async () => {
+    const harness = createHarness();
+    const staleJob = {
+      id: 11,
+      itemId: '26882883164',
+      shopId: '1259293184',
+      status: 'pending',
+      targetContextKey: 'extension:old-profile',
+    };
+    harness.backendClient.listCollectionJobs.mockResolvedValue({
+      jobs: [staleJob],
+      kind: 'success',
+    });
+    harness.backendClient.claimCollectionJob
+      .mockResolvedValueOnce({ claim: null, kind: 'success' })
+      .mockResolvedValueOnce({ claim: claim(), kind: 'success' });
+    harness.backendClient.getCollectionJob.mockResolvedValue({ job: staleJob, kind: 'success' });
+    harness.backendClient.rebindCollectionJob.mockResolvedValue({
+      job: { ...staleJob, targetContextKey: 'extension:test-profile' },
+      kind: 'success',
+    });
+
+    await harness.agent.pollNext();
+
+    expect(harness.backendClient.rebindCollectionJob).toHaveBeenCalledWith(
+      harness.store.state.settings,
+      harness.store.state.auth,
+      11,
+      'extension:test-profile',
+    );
+    expect(harness.backendClient.claimCollectionJob).toHaveBeenLastCalledWith(
+      harness.store.state.settings,
+      harness.store.state.auth,
+      'extension:test-profile',
+      true,
+      11,
+    );
+    expect(harness.tabs.create).toHaveBeenCalledWith({
+      active: false,
+      url: 'https://shopee.vn/product-i.1259293184.26882883164',
+      windowId: 4,
+    });
+    expect(harness.store.state.manualCollectionQueue).toEqual([]);
   });
 
   it('claims work with the profile key and opens an inactive tab in an existing window', async () => {
