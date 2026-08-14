@@ -401,6 +401,19 @@ dd {
   min-height: 18px;
 }
 
+.privacy-note {
+  color: #6b7280;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  margin: 10px 2px 0;
+}
+
+.privacy-note a {
+  color: #9a3412;
+  font-weight: 700;
+  text-underline-offset: 2px;
+}
+
 button {
   border: 0;
   cursor: pointer;

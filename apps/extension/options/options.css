@@ -112,6 +112,17 @@ input:focus {
   line-height: 1.5;
 }
 
+.privacy-panel .hint {
+  margin-bottom: 10px;
+}
+
+.privacy-link {
+  color: #9a3412;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
 .status {
   margin: 10px 0 0;
   min-height: 18px;

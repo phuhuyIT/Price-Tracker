@@ -14,13 +14,31 @@
         <p>Configure the backend and how validated user-session prices are submitted.</p>
       </header>
 
+      <section class="panel privacy-panel" aria-labelledby="privacy-title">
+        <h2 id="privacy-title">Local-only data handling</h2>
+        <p class="hint">
+          The extension observes sanitised product details only on Shopee Vietnam product pages and
+          sends tracked snapshots only to a backend running on this computer. It never sends Shopee
+          cookies, request headers, passwords, addresses, or payment information.
+        </p>
+        <a
+          class="privacy-link"
+          href="https://github.com/phuhuyIT/Price-Tracker/blob/main/PRIVACY.md"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Read the privacy policy
+        </a>
+      </section>
+
       <section class="panel">
         <h2>Collector</h2>
         <form id="settings-form">
           <label>
-            Backend URL
+            Local backend URL
             <input id="backend-url" name="backendUrl" type="url" required />
           </label>
+          <p class="hint">Only localhost and 127.0.0.1 HTTP origins are accepted.</p>
           <label class="check-row">
             <input id="automatic-capture" name="automaticCapture" type="checkbox" />
             <span>Submit valid captures automatically</span>

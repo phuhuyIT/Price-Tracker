@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Shopee Price Tracker",
-  "version": "1.0.1",
-  "description": "Capture displayed Shopee prices and submit them to the local price tracker.",
+  "version": "1.1.0",
+  "description": "Track displayed Shopee Vietnam prices with a local-only dashboard and Chrome-session collection.",
+  "homepage_url": "https://github.com/phuhuyIT/Price-Tracker",
   "minimum_chrome_version": "116",
   "action": {
     "default_icon": {
@@ -31,7 +32,7 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; connect-src http://127.0.0.1:* http://localhost:* https:"
+    "extension_pages": "default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'; connect-src http://127.0.0.1:* http://localhost:*"
   },
   "host_permissions": [
     "https://shopee.vn/*",
@@ -46,6 +47,5 @@
     "128": "icons/icon128.png"
   },
   "options_page": "options/options.html",
-  "optional_host_permissions": ["https://*/*"],
   "permissions": ["activeTab", "alarms", "notifications", "storage"]
 }

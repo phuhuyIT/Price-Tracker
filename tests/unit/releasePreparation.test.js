@@ -13,10 +13,16 @@ import {
 const repositoryRoot = process.cwd();
 const releaseDocumentationFiles = [
   'README.md',
+  'PRIVACY.md',
   'docs/setup.md',
   'docs/developer-guide.md',
   'docs/troubleshooting.md',
   'docs/release.md',
+  'docs/chrome-web-store.md',
+  'store/chrome-web-store/listing.md',
+  'store/chrome-web-store/privacy-practices.md',
+  'store/chrome-web-store/reviewer-instructions.md',
+  'store/chrome-web-store/assets/README.md',
 ];
 const expectedEnvironmentKeys = [
   'NODE_ENV',
@@ -57,7 +63,7 @@ describe('release preparation', () => {
 
     expect(metadata).toMatchObject({
       nodeEngine: '>=20',
-      version: '1.0.1',
+      version: '1.1.0',
     });
     expect(schema.schemaVersion).toBe(4);
     expect(schema.migrations.map((migration) => migration.filename)).toEqual([
@@ -83,7 +89,7 @@ describe('release preparation', () => {
         `${JSON.stringify({
           manifest_version: 3,
           minimum_chrome_version: '116',
-          version: '1.0.1',
+          version: '1.1.0',
         })}\n`,
         'utf8',
       );
@@ -99,20 +105,30 @@ describe('release preparation', () => {
       );
       const checksums = await readFile(join(result.releaseDirectory, 'CHECKSUMS.sha256'), 'utf8');
 
-      expect(result).toMatchObject({ schemaVersion: 4, version: '1.0.1' });
+      expect(result).toMatchObject({ schemaVersion: 4, version: '1.1.0' });
       expect(manifest).toMatchObject({
         database: { schemaVersion: 4 },
-        extension: { version: '1.0.1' },
-        releaseVersion: '1.0.1',
+        extension: { version: '1.1.0' },
+        releaseVersion: '1.1.0',
       });
       expect(
         await readFile(join(result.releaseDirectory, 'extension', 'manifest.json'), 'utf8'),
-      ).toContain('1.0.1');
+      ).toContain('1.1.0');
       expect(
         await readFile(join(result.releaseDirectory, 'database-schema', 'schema-v4.sql'), 'utf8'),
       ).toContain('PRAGMA user_version = 4');
+      expect(await readFile(join(result.releaseDirectory, 'PRIVACY.md'), 'utf8')).toContain(
+        'local-only browser extension',
+      );
+      expect(
+        await readFile(
+          join(result.releaseDirectory, 'store', 'chrome-web-store', 'listing.md'),
+          'utf8',
+        ),
+      ).toContain('Single purpose');
       expect(checksums).toContain('extension/manifest.json');
       expect(checksums).toContain('database-schema/migrations/004-variant-stock.sql');
+      expect(checksums).toContain('store/chrome-web-store/privacy-practices.md');
     } finally {
       await rm(temporaryRoot, { force: true, recursive: true });
     }

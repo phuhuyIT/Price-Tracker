@@ -1,15 +1,16 @@
 # Shopee Price Tracker
 
-Shopee Price Tracker v1.0.1 is a local-first Shopee Vietnam price-history
+Shopee Price Tracker v1.1.0 is a local-first Shopee Vietnam price-history
 application. A Chrome Manifest V3 extension observes the prices exposed to the
 user's current Shopee session, a Node.js backend stores variants and history in
 SQLite, a responsive dashboard manages the watchlist, and optional Telegram
 alerts report genuine price reductions.
 
-This release is designed for one local computer. The backend binds to loopback,
-the database remains on that computer, and the extension is loaded unpacked.
-Public hosting, Chrome Web Store distribution, and multi-device sync are outside
-the v1.0.1 boundary.
+This release is designed for one local computer. The backend binds to loopback
+and the database remains on that computer. Chrome Web Store packaging and
+submission documentation are included, while publisher-account upload and review
+remain manual. Public hosting and multi-device sync are outside the v1.1.0
+boundary.
 
 ## Price definition
 
@@ -167,7 +168,7 @@ the configured Chrome profile.
 
 ### Disabled local mode
 
-`AUTH_ENABLED=false` is the v1.0.1 default. Product routes transparently use one
+`AUTH_ENABLED=false` is the v1.1.0 default. Product routes transparently use one
 reserved passwordless local owner. Authentication endpoints return
 `AUTH_DISABLED`, account controls remain hidden, and startup rejects a
 non-loopback `HOST`.
@@ -221,8 +222,8 @@ source updates:
 npm.cmd run extension:build
 ```
 
-Then click **Reload** on the unpacked extension card. For v1.0.1, its manifest
-version must show `1.0.0`. If Chrome assigns a different extension ID after
+Then click **Reload** on the unpacked extension card. For v1.1.0, its manifest
+version must show `1.1.0`. If Chrome assigns a different extension ID after
 reinstallation, update `EXTENSION_ALLOWED_ORIGIN`, restart the backend, and save
 extension options again.
 
@@ -295,10 +296,20 @@ Create the ignored local release bundle with:
 npm.cmd run release:prepare
 ```
 
-The output is `dist/releases/shopee-price-tracker-v1.0.1` and contains the
+The output is `dist/releases/shopee-price-tracker-v1.1.0` and contains the
 loadable unpacked extension, setup documentation, `.env.example`, the empty
 current SQLite schema, all migrations, a release manifest, and SHA-256
 checksums. See [docs/release.md](docs/release.md).
+
+Create the Chrome Web Store upload ZIP separately:
+
+```powershell
+npm.cmd run store:prepare
+```
+
+This writes a ZIP with `manifest.json` at its root and a matching SHA-256 file
+under `dist/chrome-web-store`. Store listing, privacy, reviewer, and screenshot
+instructions are in [docs/chrome-web-store.md](docs/chrome-web-store.md).
 
 ## Troubleshooting
 
@@ -309,7 +320,7 @@ database recovery.
 
 ## Privacy and security
 
-- The v1.0.1 backend is local-only and unauthenticated mode is loopback-only.
+- The v1.1.0 backend and extension are local-only; the extension rejects non-loopback backends.
 - Shopee credentials remain inside the user's browser page context.
 - Captures and fixtures use strict allowlists; raw responses are rejected by the
   backend.
@@ -321,6 +332,7 @@ database recovery.
   debug fixtures are ignored by Git and checked by automated privacy tests.
 - The project does not bypass CAPTCHA, authentication, rate limits, or anti-bot
   protections.
+- The complete user-data policy is documented in [PRIVACY.md](PRIVACY.md).
 
 ## Known limitations
 
@@ -333,6 +345,7 @@ database recovery.
 - Background jobs require the bound Chrome profile and installed extension.
 - Telegram depends on the external Bot API.
 - The local SQLite design supports one backend process, not a hosted cluster.
-- Chrome Web Store distribution, hosted HTTPS operation, mandatory multi-user
+- Chrome Web Store upload and review require manual publisher-account actions
+  and current screenshots. Hosted operation, mandatory multi-user
   authentication, and multi-device sync require a separate deployment and
   security phase.

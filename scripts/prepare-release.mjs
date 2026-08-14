@@ -9,12 +9,15 @@ const defaultRepositoryRoot = resolve(scriptDirectory, '..');
 const migrationFilenamePattern = /^(?<version>\d{3})-[a-z0-9]+(?:-[a-z0-9]+)*\.sql$/u;
 const releaseDocumentation = [
   'README.md',
+  'PRIVACY.md',
   '.env.example',
   'docs/setup.md',
   'docs/developer-guide.md',
   'docs/troubleshooting.md',
   'docs/release.md',
+  'docs/chrome-web-store.md',
 ];
+const releaseDirectories = ['store/chrome-web-store'];
 
 async function readJson(filePath) {
   return JSON.parse(await readFile(filePath, 'utf8'));
@@ -242,6 +245,12 @@ export async function prepareRelease({
     const destination = join(releaseDirectory, relativePath);
     await mkdir(dirname(destination), { recursive: true });
     await cp(join(repositoryRoot, relativePath), destination);
+  }
+
+  for (const relativePath of releaseDirectories) {
+    await cp(join(repositoryRoot, relativePath), join(releaseDirectory, relativePath), {
+      recursive: true,
+    });
   }
 
   const schemaBackup = await createSchemaBackup(repositoryRoot);

@@ -1,6 +1,6 @@
 # Setup guide
 
-This guide installs Shopee Price Tracker v1.0.1 on one local computer. The
+This guide installs Shopee Price Tracker v1.1.0 on one local computer. The
 backend, database, dashboard, and unpacked Chrome extension stay on that
 computer.
 
@@ -95,7 +95,7 @@ Then:
 3. Choose **Load unpacked**.
 4. Select the generated `dist/extension` directory.
 5. Confirm the extension is named **Shopee Price Tracker** and its version is
-   `1.0.0`.
+   `1.1.0`.
 6. Copy the extension ID from its card.
 
 Do not load `apps/extension` directly. It contains unbundled module sources.
@@ -222,7 +222,17 @@ Then run the release exporter:
 npm.cmd run release:prepare
 ```
 
-The release command must report v1.0.1, schema v4, and a versioned directory
+The release command must report v1.1.0, schema v4, and a versioned directory
 under `dist/releases`.
+
+For Chrome Web Store packaging, also run:
+
+```powershell
+npm.cmd run store:prepare
+```
+
+The command must produce a v1.1.0 ZIP and SHA-256 file under
+`dist/chrome-web-store`. Follow [chrome-web-store.md](chrome-web-store.md) before
+uploading it.
 
 If any step fails, continue with [troubleshooting.md](troubleshooting.md).
