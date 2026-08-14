@@ -20,11 +20,7 @@ export function normaliseBackendBaseUrl(value) {
       return null;
     }
 
-    if (url.protocol === 'http:' && !isLoopbackHostname(url.hostname)) {
-      return null;
-    }
-
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    if (url.protocol !== 'http:' || !isLoopbackHostname(url.hostname)) {
       return null;
     }
 
@@ -60,10 +56,4 @@ export function normaliseExtensionSettings(value = {}, { randomUuid } = {}) {
     debugMode: value.debugMode === true,
     pricingContextKey,
   };
-}
-
-/** Return the exact optional host permission needed by a remote HTTPS backend. */
-export function backendPermissionOrigin(backendBaseUrl) {
-  const url = new URL(backendBaseUrl);
-  return url.protocol === 'https:' ? `${url.origin}/*` : null;
 }

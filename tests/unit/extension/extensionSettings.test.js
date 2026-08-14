@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  backendPermissionOrigin,
   createPricingContextKey,
   normaliseBackendBaseUrl,
   normaliseExtensionSettings,
@@ -38,21 +37,14 @@ describe('extension settings', () => {
     ).toBe(30);
   });
 
-  it('accepts loopback HTTP and HTTPS while rejecting remote plaintext backends', () => {
+  it('accepts loopback HTTP while rejecting every remote or encrypted backend', () => {
     expect(normaliseBackendBaseUrl('http://localhost:3000/')).toBe('http://localhost:3000');
     expect(normaliseBackendBaseUrl('http://127.0.0.1:3000')).toBe('http://127.0.0.1:3000');
-    expect(normaliseBackendBaseUrl('https://tracker.example.com')).toBe(
-      'https://tracker.example.com',
-    );
+    expect(normaliseBackendBaseUrl('http://127.1.2.3:3000')).toBe('http://127.1.2.3:3000');
+    expect(normaliseBackendBaseUrl('https://tracker.example.com')).toBeNull();
+    expect(normaliseBackendBaseUrl('https://localhost:3000')).toBeNull();
     expect(normaliseBackendBaseUrl('http://tracker.example.com')).toBeNull();
-    expect(normaliseBackendBaseUrl('https://tracker.example.com/api')).toBeNull();
-  });
-
-  it('requests optional host access only for HTTPS backends', () => {
-    expect(backendPermissionOrigin('https://tracker.example.com')).toBe(
-      'https://tracker.example.com/*',
-    );
-    expect(backendPermissionOrigin('http://127.0.0.1:3000')).toBeNull();
+    expect(normaliseBackendBaseUrl('http://localhost:3000/api')).toBeNull();
   });
 
   it('creates a schema-compatible context identifier', () => {

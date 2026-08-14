@@ -312,7 +312,7 @@ async function saveSettings(input) {
 
   if (!backendBaseUrl) {
     throw extensionError(
-      'Use an HTTPS backend URL or a loopback HTTP origin without a path',
+      'Use a localhost or 127.0.0.1 HTTP origin without a path',
       'INVALID_BACKEND_URL',
     );
   }

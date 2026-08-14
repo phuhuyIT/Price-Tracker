@@ -1,4 +1,4 @@
-import { backendPermissionOrigin, normaliseBackendBaseUrl } from '../lib/extensionSettings.js';
+import { normaliseBackendBaseUrl } from '../lib/extensionSettings.js';
 import { RUNTIME_MESSAGES } from '../lib/runtimeMessages.js';
 
 const elements = {
@@ -96,17 +96,7 @@ elements.settingsForm.addEventListener('submit', async (event) => {
     const backendBaseUrl = normaliseBackendBaseUrl(elements.backendUrl.value);
 
     if (!backendBaseUrl) {
-      throw new Error('Use an HTTPS URL or a local loopback HTTP origin without a path.');
-    }
-
-    const permissionOrigin = backendPermissionOrigin(backendBaseUrl);
-
-    if (permissionOrigin) {
-      const granted = await chrome.permissions.request({ origins: [permissionOrigin] });
-
-      if (!granted) {
-        throw new Error('Chrome did not grant access to that HTTPS backend origin.');
-      }
+      throw new Error('Use a localhost or 127.0.0.1 HTTP origin without a path.');
     }
 
     await callServiceWorker({
