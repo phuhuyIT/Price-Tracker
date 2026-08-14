@@ -55,12 +55,25 @@ The repository cannot perform these account-owned actions:
 Use private visibility for the first Store review and installation test when practical. All
 visibility modes remain subject to Chrome Web Store policy review.
 
-## Final acceptance
+## Submission readiness
 
-Phase 13 is complete only after:
+The package is ready to submit after:
 
 - automated tests and Store packaging pass;
-- the real screenshots and privacy URL are reviewed;
-- the Store-installed extension completes a live Shopee capture and local-backend upload;
+- the three real screenshots are reviewed;
+- the privacy policy URL is publicly accessible from the tagged source;
+- the unpacked extension completes a live Shopee capture and local-backend upload;
 - a manually queued price check opens an inactive tab and completes; and
 - the Store listing accurately describes the local companion-backend requirement.
+
+## Post-approval acceptance
+
+After Chrome Web Store review succeeds:
+
+1. Install the reviewed item through the selected test distribution mode.
+2. Confirm it connects to the local backend.
+3. Repeat one live Shopee snapshot upload.
+4. Repeat one queued manual price check and confirm its inactive tab closes after completion.
+
+Post-approval acceptance validates Store delivery and updates. It does not block the source tag or
+the initial Store submission.

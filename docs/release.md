@@ -191,12 +191,16 @@ Automated verification completed on August 14, 2026:
 - the Store ZIP produced 14 root-relative extension files; and
 - the Store ZIP SHA-256 file matched the generated archive.
 
-Complete these live gates before tagging or Store submission:
+Pre-submission live verification completed on August 14, 2026:
 
 - install the unpacked v1.1.0 build and confirm local backend connectivity;
 - confirm a normal Shopee capture and local snapshot upload;
-- confirm a queued manual price check opens an inactive tab and completes;
+- confirm queued manual price checks for two products open inactive tabs and complete;
 - confirm a remote HTTPS backend URL is rejected;
 - inspect the exact Store ZIP and checksum;
-- capture privacy-safe screenshots from the submitted version; and
-- install the reviewed Store item through the selected test distribution mode.
+- capture three privacy-safe screenshots from the submitted version.
+
+After the Store review succeeds, install the reviewed item through the selected
+test distribution mode and repeat one snapshot upload and one queued manual price
+check. This post-approval gate does not block creating the source tag or uploading
+the reviewed package.
